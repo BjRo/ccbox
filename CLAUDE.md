@@ -42,6 +42,18 @@ Key design patterns:
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
 
+## Registry Pattern (defensive-copy accessors)
+
+Packages that own static lookup data (e.g., `internal/firewall/`) follow a consistent accessor pattern:
+
+- **Package-level `var registry`** holds the canonical data. It is unexported and never handed out directly.
+- **`Registry() map[K]V`** returns a deep copy of the full map. Callers can mutate freely without corrupting shared state.
+- **`ForX(key) (V, bool)`** returns a deep copy of a single entry (comma-ok style).
+- **`Keys() []K`** (or `Stacks()`, etc.) returns a sorted slice of registry keys for deterministic iteration and display.
+- Deep copies use `slices.Clone` on slices of value types. If the element type contains pointers or nested slices, copy those too.
+- Sorted key iteration uses `slices.Sorted(maps.Keys(m))` (Go 1.24+ -- uses `maps` and `slices` from the standard library, no third-party deps).
+- Tests validate defensive copying by mutating a returned value and asserting the canonical data is unchanged.
+
 ## Bean-Driven Workflow
 
 All work is tracked with `beans` CLI, not TodoWrite. The delivery pipeline:
