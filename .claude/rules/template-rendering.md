@@ -1,3 +1,8 @@
+---
+description: Template rendering conventions — embed pattern, rendering signatures, shell injection defense, Dockerfile whitespace
+globs: "internal/render/**"
+---
+
 # Template Rendering Patterns
 
 ## Embedded Template Rendering

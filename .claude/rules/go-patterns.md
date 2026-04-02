@@ -1,3 +1,8 @@
+---
+description: Go coding patterns for ccbox — Cobra CLI, stdlib preferences, registry pattern, package conventions
+globs: "**/*.go"
+---
+
 # Go Coding Patterns
 
 ## Cobra CLI

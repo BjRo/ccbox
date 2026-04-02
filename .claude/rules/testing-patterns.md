@@ -1,3 +1,8 @@
+---
+description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing
+globs: "**/*_test.go"
+---
+
 # Testing Patterns
 
 ## Filesystem Testability via fs.FS
