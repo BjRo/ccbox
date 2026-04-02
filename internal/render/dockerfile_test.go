@@ -350,6 +350,95 @@ func TestDockerfile_AptGetValidShellSyntax(t *testing.T) {
 	}
 }
 
+func TestDockerfile_GitDeltaUsesArchDetection(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	// git-delta must use dpkg --print-architecture, not hardcoded amd64.
+	if strings.Contains(out, "git-delta_0.18.2_amd64.deb") {
+		t.Error("git-delta URL still hardcodes amd64; should use dpkg --print-architecture")
+	}
+	if !strings.Contains(out, "dpkg --print-architecture") {
+		t.Error("git-delta section missing dpkg --print-architecture")
+	}
+	if !strings.Contains(out, "git-delta_0.18.2_${ARCH}.deb") {
+		t.Error("git-delta URL missing ${ARCH} variable substitution")
+	}
+}
+
+func TestDockerfile_MiseInstallAsNodeUser(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	// mise install must run after USER node, not as root.
+	nodeIdx := strings.Index(out, "USER node\n")
+	miseInstallIdx := strings.Index(out, "RUN mise install")
+	if nodeIdx == -1 {
+		t.Fatal("output missing USER node directive before mise install")
+	}
+	if miseInstallIdx == -1 {
+		t.Fatal("output missing RUN mise install")
+	}
+	if miseInstallIdx < nodeIdx {
+		t.Error("mise install runs before USER node; should run as node user")
+	}
+
+	// mise binary should be copied to /usr/local/bin for all-user access.
+	if !strings.Contains(out, "cp /root/.local/bin/mise /usr/local/bin/mise") {
+		t.Error("output missing mise binary copy to /usr/local/bin")
+	}
+}
+
+func TestDockerfile_NodeAlwaysInMiseConfig(t *testing.T) {
+	// Even with no Node stack, node = "lts" must appear in mise config.
+	for _, tc := range []struct {
+		name   string
+		stacks []stack.StackID
+	}{
+		{"go only", []stack.StackID{stack.Go}},
+		{"rust only", []stack.StackID{stack.Rust}},
+		{"empty stacks", []stack.StackID{}},
+		{"node included", []stack.StackID{stack.Node}},
+		{"go and node", []stack.StackID{stack.Go, stack.Node}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg, err := Merge(tc.stacks, nil)
+			if err != nil {
+				t.Fatalf("Merge: %v", err)
+			}
+
+			out, err := Dockerfile(cfg)
+			if err != nil {
+				t.Fatalf("Dockerfile: %v", err)
+			}
+
+			if !strings.Contains(out, `node = "lts"`) {
+				t.Errorf("output missing node = \"lts\" in mise config")
+			}
+
+			// node = "lts" should appear exactly once (not duplicated).
+			count := strings.Count(out, `node = "lts"`)
+			if count != 1 {
+				t.Errorf(`node = "lts" appears %d times, want exactly 1`, count)
+			}
+		})
+	}
+}
+
 // Tests that call Dockerfile() directly with hand-built GenerationConfig
 // structs to isolate template rendering from merging logic.
 

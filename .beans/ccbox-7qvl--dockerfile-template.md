@@ -262,8 +262,8 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [x] Tests pass (`go test ./...`)
 - [x] Branch pushed
 - [x] PR created (https://github.com/BjRo/ccbox/pull/8)
-- [ ] Automated code review passed (`@review-backend`)
-- [ ] Review feedback worked in
+- [x] Automated code review passed (`@review-backend`)
+- [x] Review feedback worked in (ccbox-9ium)
 - [ ] ADR written (if architectural changes)
 - [ ] User notified
 
@@ -287,5 +287,6 @@ Next: push branch.
 | challenge | complete | 1 | 2026-04-02T17:35:00Z |
 | implement | complete | 1 | 2026-04-02T18:00:00Z |
 | pr | complete | 1 | 2026-04-02T18:10:00Z |
-| review | pending | | |
+| review | complete | 1 | 2026-04-02T18:20:00Z |
+| rework | complete | 1 | 2026-04-02T19:00:00Z |
 | codify | pending | | |
