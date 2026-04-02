@@ -333,6 +333,101 @@ func TestMerge_RuntimesMatchRegistry(t *testing.T) {
 	}
 }
 
+func TestMerge_SystemDeps_GoOnly(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.SystemDeps == nil {
+		t.Error("SystemDeps is nil, want non-nil empty slice")
+	}
+	if len(cfg.SystemDeps) != 0 {
+		t.Errorf("SystemDeps = %v, want empty (Go has no system deps)", cfg.SystemDeps)
+	}
+}
+
+func TestMerge_SystemDeps_Ruby(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Ruby}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	ruby, _ := stack.Get(stack.Ruby)
+	if len(cfg.SystemDeps) != len(ruby.SystemDeps) {
+		t.Errorf("SystemDeps count = %d, want %d", len(cfg.SystemDeps), len(ruby.SystemDeps))
+	}
+
+	// Spot-check specific Ruby deps.
+	depsSet := make(map[string]bool)
+	for _, d := range cfg.SystemDeps {
+		depsSet[d] = true
+	}
+	if !depsSet["libssl-dev"] {
+		t.Error("missing libssl-dev in SystemDeps for Ruby")
+	}
+	if !depsSet["libreadline-dev"] {
+		t.Error("missing libreadline-dev in SystemDeps for Ruby")
+	}
+}
+
+func TestMerge_SystemDeps_Deduplication(t *testing.T) {
+	// Ruby and Python both declare libssl-dev; merged should contain it only once.
+	cfg, err := Merge([]stack.StackID{stack.Ruby, stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	count := 0
+	for _, d := range cfg.SystemDeps {
+		if d == "libssl-dev" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Errorf("libssl-dev appears %d times, want exactly 1 (deduplication)", count)
+	}
+
+	// Structural: count should match union of unique deps from both stacks.
+	ruby, _ := stack.Get(stack.Ruby)
+	python, _ := stack.Get(stack.Python)
+	union := make(map[string]bool)
+	for _, d := range ruby.SystemDeps {
+		union[d] = true
+	}
+	for _, d := range python.SystemDeps {
+		union[d] = true
+	}
+	if len(cfg.SystemDeps) != len(union) {
+		t.Errorf("SystemDeps count = %d, want %d (union of Ruby+Python)", len(cfg.SystemDeps), len(union))
+	}
+}
+
+func TestMerge_SystemDeps_Sorted(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Ruby, stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !slices.IsSorted(cfg.SystemDeps) {
+		t.Errorf("SystemDeps not sorted: %v", cfg.SystemDeps)
+	}
+}
+
+func TestMerge_SystemDeps_Empty(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.SystemDeps == nil {
+		t.Error("SystemDeps is nil, want non-nil empty slice")
+	}
+	if len(cfg.SystemDeps) != 0 {
+		t.Errorf("SystemDeps count = %d, want 0", len(cfg.SystemDeps))
+	}
+}
+
 func TestMerge_LSPsMatchRegistry(t *testing.T) {
 	input := []stack.StackID{stack.Go, stack.Python, stack.Rust}
 	cfg, err := Merge(input, nil)

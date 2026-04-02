@@ -184,6 +184,62 @@ func TestNoDuplicateDomains(t *testing.T) {
 	}
 }
 
+func TestSystemDeps_NonNil(t *testing.T) {
+	all := All()
+	for _, s := range all {
+		t.Run(string(s.ID), func(t *testing.T) {
+			if s.SystemDeps == nil {
+				t.Errorf("SystemDeps is nil for stack %q, want non-nil (possibly empty) slice", s.ID)
+			}
+		})
+	}
+}
+
+func TestSystemDeps_DefensiveCopy(t *testing.T) {
+	// Get a stack that has system deps (Ruby has several).
+	first, ok := Get(Ruby)
+	if !ok {
+		t.Fatal("Get(Ruby) returned ok=false")
+	}
+	if len(first.SystemDeps) == 0 {
+		t.Fatal("Ruby should have non-empty SystemDeps")
+	}
+
+	// Mutate the returned slice.
+	first.SystemDeps = append(first.SystemDeps, "evil-package")
+
+	// A second Get should not see the mutation.
+	second, _ := Get(Ruby)
+	for _, dep := range second.SystemDeps {
+		if dep == "evil-package" {
+			t.Error("mutation of SystemDeps leaked into registry")
+		}
+	}
+}
+
+func TestSystemDeps_KnownValues(t *testing.T) {
+	// Spot-check: Ruby should include libssl-dev and libreadline-dev.
+	ruby, ok := Get(Ruby)
+	if !ok {
+		t.Fatal("Get(Ruby) returned ok=false")
+	}
+	if !slices.Contains(ruby.SystemDeps, "libssl-dev") {
+		t.Error("Ruby SystemDeps should contain libssl-dev")
+	}
+	if !slices.Contains(ruby.SystemDeps, "libreadline-dev") {
+		t.Error("Ruby SystemDeps should contain libreadline-dev")
+	}
+
+	// Spot-check: Go should have empty SystemDeps.
+	goStack, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	if len(goStack.SystemDeps) != 0 {
+		t.Errorf("Go SystemDeps should be empty, got %v", goStack.SystemDeps)
+	}
+}
+
 func TestDomainsAreValidHostnames(t *testing.T) {
 	// A basic hostname pattern: one or more labels separated by dots.
 	// Each label is alphanumeric with optional hyphens, no leading/trailing hyphens.
