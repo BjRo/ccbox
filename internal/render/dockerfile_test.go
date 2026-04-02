@@ -57,8 +57,12 @@ func TestDockerfile_MiseToolsSingleStack(t *testing.T) {
 	if !strings.Contains(out, `go = "latest"`) {
 		t.Error(`output missing go = "latest" in mise config`)
 	}
+	// Node is always present (Claude Code dependency).
+	if !strings.Contains(out, `node = "lts"`) {
+		t.Error(`output missing node = "lts" in mise config (always included for Claude Code)`)
+	}
 	// Should not contain other stacks' tools.
-	for _, absent := range []string{`node = "`, `python = "`, `ruby = "`, `rust = "`} {
+	for _, absent := range []string{`python = "`, `ruby = "`, `rust = "`} {
 		if strings.Contains(out, absent) {
 			t.Errorf("output should not contain %q for Go-only config", absent)
 		}
@@ -186,9 +190,13 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("empty config missing Claude Code install")
 	}
-	// No mise tools should be listed.
-	if strings.Contains(out, `go = "`) || strings.Contains(out, `node = "`) {
-		t.Error("empty config should not have mise tool entries")
+	// Node is always present (Claude Code dependency), even with no stacks.
+	if !strings.Contains(out, `node = "lts"`) {
+		t.Error(`empty config missing node = "lts" (always included for Claude Code)`)
+	}
+	// No other mise tools should be listed.
+	if strings.Contains(out, `go = "`) || strings.Contains(out, `python = "`) {
+		t.Error("empty config should not have non-Node mise tool entries")
 	}
 	// No LSP installs should be present.
 	if strings.Contains(out, "gopls") || strings.Contains(out, "typescript-language-server") {
