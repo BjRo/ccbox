@@ -265,7 +265,7 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [x] Automated code review passed (`@review-backend`)
 - [x] Review feedback worked in (ccbox-9ium)
 - [x] ADR written (if architectural changes) -- N/A, follows existing registry pattern
-- [ ] User notified
+- [x] User notified
 
 ## Agent Checkpoint
 
