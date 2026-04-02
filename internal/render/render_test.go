@@ -160,6 +160,41 @@ func TestMerge_EmptyStacks(t *testing.T) {
 	}
 }
 
+func TestMerge_NilStacks(t *testing.T) {
+	cfg, err := Merge(nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.Stacks == nil {
+		t.Error("Stacks is nil, want non-nil empty slice")
+	}
+	if len(cfg.Stacks) != 0 {
+		t.Errorf("Stacks count = %d, want 0", len(cfg.Stacks))
+	}
+	if cfg.Runtimes == nil {
+		t.Error("Runtimes is nil, want non-nil empty slice")
+	}
+	if len(cfg.Runtimes) != 0 {
+		t.Errorf("Runtimes count = %d, want 0", len(cfg.Runtimes))
+	}
+	if cfg.LSPs == nil {
+		t.Error("LSPs is nil, want non-nil empty slice")
+	}
+	if len(cfg.LSPs) != 0 {
+		t.Errorf("LSPs count = %d, want 0", len(cfg.LSPs))
+	}
+
+	// Domains should still include always-on entries.
+	wantDomains := firewall.Merge(nil, nil)
+	if len(cfg.Domains.Static) != len(wantDomains.Static) {
+		t.Errorf("Static domains count = %d, want %d", len(cfg.Domains.Static), len(wantDomains.Static))
+	}
+	if len(cfg.Domains.Dynamic) != len(wantDomains.Dynamic) {
+		t.Errorf("Dynamic domains count = %d, want %d", len(cfg.Domains.Dynamic), len(wantDomains.Dynamic))
+	}
+}
+
 func TestMerge_UnknownStack(t *testing.T) {
 	_, err := Merge([]stack.StackID{"elixir"}, nil)
 	if err == nil {
