@@ -1,11 +1,11 @@
 ---
 # ccbox-ztaa
 title: Curate per-stack domain allowlists
-status: todo
+status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:35:44Z
-updated_at: 2026-04-02T10:35:44Z
+updated_at: 2026-04-02T12:35:56Z
 parent: ccbox-m6ll
 ---
 
@@ -30,3 +30,25 @@ Research and curate the default domain allowlists for each supported stack. Doma
 | Ruby | rubygems.org, index.rubygems.org | — |
 
 Validate each domain is actually needed for basic development workflows (install deps, run tests, use Claude Code). Document the rationale.
+
+## Checklist
+
+- [ ] Tests written (TDD)
+- [ ] No TODO/FIXME/HACK/XXX comments
+- [ ] Lint passes
+- [ ] Tests pass
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed
+- [ ] Review feedback worked in
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | in-progress | 1 | 2026-04-02 |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
