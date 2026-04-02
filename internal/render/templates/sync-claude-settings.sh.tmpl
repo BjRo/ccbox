@@ -14,6 +14,8 @@ if [ ! -f "$TEMPLATE" ]; then
     exit 0
 fi
 
+# Volume mounts may be created with root ownership; fix before writing.
+sudo chown -R "$(id -u):$(id -g)" "$SETTINGS_DIR" 2>/dev/null || true
 mkdir -p "$SETTINGS_DIR"
 
 if [ ! -f "$SETTINGS_FILE" ]; then
