@@ -31,3 +31,4 @@ Use **structural assertions**, not golden-file snapshots:
 - **Empty-input safety**: Render with empty (non-nil) slices, verify no `<no value>` artifacts.
 - **Shell syntax validation**: Assert no bare backslash lines, no double backslashes, no blank lines inside RUN blocks.
 - **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
+- **Anchor assertions to rendered structure**: When checking for short tokens (e.g., stack ID `"go"`), assert against the rendered format (`"- go\n"` for a list item, `"| go |"` for a table cell) rather than bare `strings.Contains(out, "go")`. Bare substring matches produce false positives when the token appears in unrelated prose (e.g., `"go get"` in domain rationale text).
