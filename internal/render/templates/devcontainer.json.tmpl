@@ -16,7 +16,7 @@
     "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached"
   ],
-  "postStartCommand": "bash .devcontainer/sync-claude-settings.sh && sudo bash .devcontainer/init-firewall.sh",
+  "postStartCommand": "sudo chown -R node:node /home/node/.claude /home/node/.bash_history_volume && bash .devcontainer/sync-claude-settings.sh && sudo bash .devcontainer/init-firewall.sh",
   "capAdd": [
     "NET_ADMIN",
     "NET_RAW"
