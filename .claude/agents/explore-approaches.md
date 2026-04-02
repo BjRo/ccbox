@@ -2,7 +2,7 @@
 name: explore-approaches
 description: Researches a problem space and proposes 2-3 concrete approaches with tradeoffs.
 tools: Read, Bash, Glob, Grep, WebSearch, AskUserQuestion
-model: inherit
+disallowedTools: Write, Edit
 ---
 
 # Approach Exploration Agent

@@ -1,8 +1,7 @@
 ---
 name: deliver
 description: Automated delivery pipeline that chains refine, challenge, implement, review, and rework into a single command. Runs the full pipeline with human escalation when loops don't converge. Use with a bean ID argument, e.g. /deliver ccbox-abc1
-metadata:
-  argument-hint: <bean-id>
+argument-hint: <bean-id>
 ---
 
 # Deliver Pipeline

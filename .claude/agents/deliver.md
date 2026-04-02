@@ -2,7 +2,7 @@
 name: deliver
 description: Autonomous delivery pipeline for a bean. Runs refine, challenge, implement, review, rework, codify with bounded retries and bean-based escalation.
 tools: Read, Write, Edit, Bash, Glob, Grep, Agent
-model: inherit
+permissionMode: bypassPermissions
 ---
 
 # Deliver Pipeline Agent

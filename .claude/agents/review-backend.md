@@ -2,7 +2,6 @@
 name: review-backend
 description: Staff-level Go code reviewer. Reviews Go code for maintainability, design, performance, and security. Posts findings as PR review comments.
 tools: Read, Bash, Glob, Grep
-model: inherit
 ---
 
 # Go Code Review — Staff-Level Engineer

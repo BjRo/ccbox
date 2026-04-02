@@ -1,8 +1,7 @@
 ---
 name: parallel-deliver
 description: Launch parallel delivery pipelines for multiple beans. Each bean gets its own Claude CLI instance in an isolated worktree. Use with 1-3 bean IDs, e.g. /parallel-deliver ccbox-abc1 ccbox-xyz9
-metadata:
-  argument-hint: <bean-id> [bean-id...] (max 3)
+argument-hint: <bean-id> [bean-id...] (max 3)
 ---
 
 # Parallel Deliver

@@ -98,7 +98,7 @@ beans update "$BEAN_ID" --status in-progress
 echo -e "\n${GREEN}[5/5]${NC} Committing bean status change..."
 cd "$PROJECT_DIR"
 git add .beans/
-git commit --no-gpg-sign -m "chore: Start work on ${BEAN_ID}"
+git commit -m "chore: Start work on ${BEAN_ID}"
 
 echo -e "\n${GREEN}Ready to work!${NC}"
 echo -e "Branch: ${YELLOW}${BRANCH_NAME}${NC}"

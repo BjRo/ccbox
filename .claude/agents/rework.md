@@ -2,7 +2,6 @@
 name: rework
 description: Reworks PR review feedback. Reads comments, fixes CRITICAL and WARNING findings, pushes fixes.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
-model: inherit
 ---
 
 # Rework Agent

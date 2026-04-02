@@ -54,7 +54,5 @@ Add a new row to `/decisions/CLAUDE.md` index table.
 
 ```bash
 git add decisions/
-git commit --no-gpg-sign -m "docs: Add ADR for <title>
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+git commit -m "docs: Add ADR for <title>"
 ```

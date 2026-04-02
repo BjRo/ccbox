@@ -70,7 +70,7 @@ beans update "$BEAN_ID" --status completed
 echo -e "\n${GREEN}[7/7]${NC} Committing and pushing bean status change..."
 cd "$PROJECT_DIR"
 git add .beans/
-git commit --no-gpg-sign -m "chore: Mark ${BEAN_ID} as completed"
+git commit -m "chore: Mark ${BEAN_ID} as completed"
 git push origin main
 
 echo -e "\n${GREEN}Post-merge cleanup complete!${NC}"

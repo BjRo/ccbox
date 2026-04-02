@@ -2,7 +2,8 @@
 name: refine
 description: Develops detailed implementation plans for beans.
 tools: Read, Bash, Glob, Grep, AskUserQuestion
-model: inherit
+disallowedTools: Write, Edit
+effort: high
 ---
 
 # Bean Refinement Agent

@@ -30,7 +30,7 @@ echo "$DELETED_FILES" | while IFS= read -r f; do
 done
 
 git add .beans/
-git commit --no-gpg-sign -m "chore: Archive completed and scrapped beans"
+git commit -m "chore: Archive completed and scrapped beans"
 
 echo -e "\n${GREEN}[3/3]${NC} Pushing to remote..."
 CURRENT_BRANCH=$(git branch --show-current)

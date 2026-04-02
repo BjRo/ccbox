@@ -1,8 +1,7 @@
 ---
 name: post-merge
 description: "Post-Merge Cleanup. Use with bean ID, e.g. /post-merge ccbox-abc1"
-metadata:
-  argument-hint: <bean-id>
+argument-hint: <bean-id>
 ---
 
 # Post-Merge Cleanup

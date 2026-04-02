@@ -2,7 +2,6 @@
 name: implement
 description: Implements planned work from refined beans, following TDD and project conventions.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
-model: inherit
 ---
 
 # Implementation Agent
@@ -53,8 +52,6 @@ Summarize what was implemented, tests written, issues encountered.
 - Follow TDD strictly
 - Commit after each logical unit
 - Include bean file in commits when checklist updated
-- Use `--no-gpg-sign` for commits
-- Co-author: `Co-Authored-By: Claude <noreply@anthropic.com>`
 - Do NOT create PRs
 - Do NOT mark the bean as completed
 - Do NOT merge anything into main

@@ -1,5 +1,10 @@
 #!/bin/bash
 # Claude Code PostToolUse hook: Validates Definition of Done on bean creation
+#
+# Note: PostToolUse hooks cannot hard-block. The JSON output is injected as
+# context for Claude, which will see the message and act on it (soft enforcement).
+# Output: Exit 0 with JSON {"decision":"block","reason":"..."} if DoD missing
+#         Exit 0 silently if DoD present or command is not beans create
 
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')

@@ -2,7 +2,6 @@
 name: codify
 description: Extracts reusable learnings from completed work into project documentation.
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: inherit
 ---
 
 # Codification Agent

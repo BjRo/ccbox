@@ -1,33 +1,9 @@
 ---
 name: codify
 description: Extract reusable learnings from completed work into project documentation. Use with a bean ID argument, e.g. /codify ccbox-abc1
-metadata:
-  argument-hint: <bean-id>
+argument-hint: <bean-id>
+context: fork
+agent: codify
 ---
 
-# Codify Learnings
-
-Launch the `@codify` subagent to extract reusable learnings into documentation.
-
-## How to Launch
-
-```
-Task tool call:
-  subagent_type: "codify"
-  description: "Codify learnings from <bean-title>"
-  prompt: "Codify learnings from bean <BEAN_ID>. Read the bean body and git diff against main. Identify new patterns, conventions, or decisions. Write to CLAUDE.md or decisions/. Commit and push."
-```
-
-## What the Agent Does
-
-- Reads the bean body and git diff
-- Identifies reusable learnings
-- Checks existing documentation for duplicates
-- Writes to CLAUDE.md or `decisions/` (ADR format)
-- Commits and pushes
-
-## What the Agent Does NOT Do
-
-- Modify source code
-- Remove existing documentation
-- Create duplicates
+Codify learnings from bean $ARGUMENTS. Read the bean body and git diff against main. Identify new patterns, conventions, or architectural decisions. Check existing documentation for duplicates. Write findings to CLAUDE.md or decisions/. Commit and push if anything was written. Report what was codified or "No new patterns to codify" if nothing new was found.

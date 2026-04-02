@@ -161,7 +161,6 @@ echo "" | env \
     -u CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING \
     claude -p \
         --agent deliver \
-        --dangerously-skip-permissions \
         "$PROMPT" \
     > "$LOG_FILE" 2>&1
 

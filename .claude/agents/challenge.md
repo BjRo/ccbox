@@ -2,7 +2,8 @@
 name: challenge
 description: Challenges a refined bean's implementation plan from the Go engineer persona.
 tools: Read, Bash, Glob, Grep
-model: inherit
+disallowedTools: Write, Edit
+effort: high
 ---
 
 # Plan Challenge Agent

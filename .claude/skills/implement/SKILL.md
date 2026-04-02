@@ -1,8 +1,7 @@
 ---
 name: implement
 description: Launch the implement subagent to execute a refined bean's implementation plan. Use with a bean ID argument, e.g. /implement ccbox-abc1
-metadata:
-  argument-hint: <bean-id>
+argument-hint: <bean-id>
 ---
 
 # Implement a Bean

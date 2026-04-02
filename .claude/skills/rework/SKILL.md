@@ -1,8 +1,7 @@
 ---
 name: rework
 description: Rework PR review feedback. Reads review comments from the open PR, fixes CRITICAL and WARNING findings, pushes fixes, then re-triggers review. Auto-detects the bean from the current branch.
-metadata:
-  argument-hint: "[optional: additional feedback or bean-id override]"
+argument-hint: "[optional: additional feedback or bean-id override]"
 ---
 
 # Rework PR Review Feedback
