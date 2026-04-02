@@ -2,7 +2,7 @@ package stack
 
 import (
 	"regexp"
-	"sort"
+	"slices"
 	"testing"
 )
 
@@ -67,9 +67,28 @@ func TestGet_UnknownStack(t *testing.T) {
 	}
 }
 
+func TestGet_ReturnsCopies(t *testing.T) {
+	first, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	first.DefaultDomains = append(first.DefaultDomains, "evil.example.com")
+
+	second, _ := Get(Go)
+	for _, d := range second.DefaultDomains {
+		if d == "evil.example.com" {
+			t.Error("mutation of Get() result leaked into registry")
+		}
+	}
+}
+
 func TestAll_ReturnsCopies(t *testing.T) {
 	first := All()
 	// Mutate the first result.
+	// NOTE: The Name mutation is vacuous because All() returns values, not
+	// pointers, so the struct is already a shallow copy. The real guard
+	// here is the DefaultDomains append below, which tests that the
+	// underlying slice header was cloned (not aliased) by copyStack.
 	first[0].Name = "MUTATED"
 	first[0].DefaultDomains = append(first[0].DefaultDomains, "evil.example.com")
 
@@ -93,7 +112,7 @@ func TestAll_Sorted(t *testing.T) {
 	for i, s := range all {
 		ids[i] = string(s.ID)
 	}
-	if !sort.StringsAreSorted(ids) {
+	if !slices.IsSorted(ids) {
 		t.Errorf("All() is not sorted by ID: got %v", ids)
 	}
 }
@@ -104,7 +123,7 @@ func TestIDs_Sorted(t *testing.T) {
 	for i, id := range ids {
 		strs[i] = string(id)
 	}
-	if !sort.StringsAreSorted(strs) {
+	if !slices.IsSorted(strs) {
 		t.Errorf("IDs() is not sorted: got %v", strs)
 	}
 }
