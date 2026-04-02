@@ -29,7 +29,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 - [x] Lint passes
 - [x] Tests pass
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural)
@@ -42,7 +42,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 | refine | completed | 1 | 2026-04-02 | | |
 | challenge | completed | 1 | 2026-04-02 | | |
 | implement | completed | 1 | 2026-04-02 |
-| pr | pending | | |
+| pr | completed | 1 | 2026-04-02 |
 | review | pending | | |
 | codify | pending | | |
 
