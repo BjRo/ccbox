@@ -1,7 +1,7 @@
 ---
 # ccbox-asc5
 title: Minimal ccbox init for dogfood
-status: in-progress
+status: done
 type: task
 priority: normal
 created_at: 2026-04-02T22:14:38Z
