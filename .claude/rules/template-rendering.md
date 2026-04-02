@@ -33,6 +33,22 @@ Dockerfile `RUN` blocks use backslash continuation. When `{{ range }}` appends i
 
 Never use `{{- }}` trim markers that would collapse continuation backslashes.
 
+## Markdown Template Whitespace
+
+Markdown templates need different whitespace handling than Dockerfile templates. Use `{{- }}` trim markers on `{{ end }}` (and optionally `{{ if }}`) tags around conditional blocks to prevent double blank lines in rendered output. Markdown parsers collapse extra blank lines, so this is cosmetic, but clean output is preferred.
+
+```
+{{- if .Items }}
+
+**Items:**
+{{ range .Items }}
+- {{ . }}
+{{- end }}
+{{- end }}
+```
+
+This is the opposite guidance from Dockerfile templates, where `{{- }}` must be avoided to preserve backslash continuations.
+
 ## Shell Injection Defense
 
 Templates producing shell scripts use two independent defense layers:
