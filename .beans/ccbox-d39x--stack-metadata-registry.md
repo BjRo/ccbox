@@ -24,10 +24,10 @@ This registry is the single source of truth for all stack-specific behavior.
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes (`golangci-lint run ./...`)
-- [ ] Tests pass (`go test ./...`)
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes (`golangci-lint run ./...`)
+- [x] Tests pass (`go test ./...`)
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -41,7 +41,7 @@ This registry is the single source of truth for all stack-specific behavior.
 |-------|--------|-----------|-----------|
 | refine | pending | | |
 | challenge | pending | | |
-| implement | pending | | |
+| implement | in-progress | 1 | 2026-04-02 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
