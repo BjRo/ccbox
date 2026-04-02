@@ -6,7 +6,6 @@ ccbox
 .claude/worktrees/
 .claude/state/
 .claude/projects/
-.claude/settings.local.json
 
 # Environment
 .env

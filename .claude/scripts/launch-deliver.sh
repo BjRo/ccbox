@@ -160,7 +160,6 @@ echo "" | env \
     -u CLAUDE_CODE_ENTRYPOINT \
     -u CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING \
     claude -p \
-        --permission-mode bypassPermissions \
         --agent deliver \
         "$PROMPT" \
     > "$LOG_FILE" 2>&1
