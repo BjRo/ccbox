@@ -29,19 +29,28 @@ RUN groupadd --gid 1000 node \
     && echo 'node ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/node
 
 # --- Mise (runtime manager) ---
+# Note: curl|sh trusts mise.jdx.dev; consider pinning to a release with checksum verification for hardened environments.
 RUN curl https://mise.jdx.dev/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
-{{ if .Runtimes }}
+
+# --- Runtime configuration ---
+# Node is always included because Claude Code requires npm.
 COPY <<'MISE' /home/node/.config/mise/config.toml
 [tools]
+node = "lts"
 {{ range .Runtimes -}}
+{{ if ne .Tool "node" -}}
 {{ .Tool }} = "{{ .Version }}"
+{{ end -}}
 {{ end -}}
 MISE
 
-# --- Install runtimes via mise ---
+# --- Install runtimes via mise (as node user so $HOME matches config path) ---
+RUN chown -R node:node /home/node/.config
+USER node
+ENV PATH="/home/node/.local/bin:${PATH}"
 RUN mise install
-{{ end -}}
+USER root
 {{ if .LSPs }}
 # --- LSP servers ---
 {{ range .LSPs -}}
@@ -56,7 +65,9 @@ RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/downloa
     -t robbyrussell
 
 # --- QoL: git-delta ---
-RUN curl -fsSL -o /tmp/delta.deb https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_amd64.deb \
+RUN ARCH=$(dpkg --print-architecture) \
+    && curl -fsSL -o /tmp/delta.deb \
+       https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_${ARCH}.deb \
     && dpkg -i /tmp/delta.deb \
     && rm /tmp/delta.deb
 
