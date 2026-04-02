@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:35:24Z
-updated_at: 2026-04-02T15:30:44Z
+updated_at: 2026-04-02T15:36:12Z
 parent: ccbox-6z26
 ---
 
@@ -28,6 +28,7 @@ Three templates based on credfolio2 reference:
 - User-specified extra domains appended
 - One domain per line, comments for sections
 
+
 ## Implementation Plan
 
 ### Approach
@@ -37,14 +38,17 @@ Add three embedded Go templates to `internal/render/` and a rendering function t
 The templates produce shell scripts and a config file for Linux container network isolation using iptables, ipset, and dnsmasq. Static domains (stable IPs) are resolved once at container init and loaded into an ipset. Dynamic domains (CDN/rotating IPs) are managed by dnsmasq with ipset hooks for automatic re-resolution.
 
 Key design decisions:
-- **`text/template` not `html/template`**: These are shell scripts, not HTML. No HTML escaping needed.
+- **`text/template` not `html/template`**: These are shell scripts, not HTML. No HTML escaping needed. However, `text/template` performs NO escaping at all, so defense-in-depth via input validation is required (see domain validation below).
+- **Domain name validation (defense-in-depth)**: User-supplied domain names from `userExtraDomains` are interpolated into `init-firewall.sh` which runs as root. A malicious input like `; rm -rf /` or `$(cmd)` would be injected into shell commands. Add a `ValidateDomain` function in the `firewall` package that rejects inputs not matching a strict RFC 1123 DNS hostname pattern: alphanumeric characters, hyphens, dots, with an optional leading `*.` for wildcards. This validation runs in `firewall.Merge` before any domain is accepted. Combined with single-quoting domain names in all shell template interpolation points, this provides two independent layers of protection.
 - **Templates embedded via `//go:embed`**: Bundle `.tmpl` files into the binary at compile time. Templates live in `internal/render/templates/` subdirectory to keep them separate from Go source.
-- **Single `RenderFirewall` function**: Takes a `GenerationConfig` and an output `fs.FS`-like writer (or `io.Writer` per template). Returns rendered content as a map of filename-to-bytes, deferring actual file writing to a later bean (the orchestrator that calls `ccbox init`). This keeps `render` pure and testable without filesystem I/O.
-- **Wildcard domains handled**: The firewall registry contains `*.anthropic.com` which is a Dynamic domain. The init-firewall.sh script handles wildcard domains by stripping the `*.` prefix before passing to `dig` and using the base domain for DNS resolution, while configuring dnsmasq with the wildcard pattern for ipset integration.
-- **No `FuncMap` needed for v1**: The templates use only `{{range}}` and `{{.FieldName}}` -- no custom functions required. If future templates need helpers (e.g., string manipulation), a shared `FuncMap` can be added then.
+- **Single `RenderFirewall` function**: Takes a `GenerationConfig` and returns rendered content as a `FirewallFiles` struct (filename-to-bytes), deferring actual file writing to a later bean (the orchestrator that calls `ccbox init`). This keeps `render` pure and testable without filesystem I/O.
+- **`stripWildcard` template FuncMap helper**: The firewall registry contains `*.anthropic.com` as a Dynamic domain. The `*.` prefix must be stripped for two contexts: (1) `dynamic-domains.conf` outputs bare domain names for `dig` resolution (dig cannot resolve `*.anthropic.com`), and (2) `init-firewall.sh` dnsmasq `ipset=` directives need the stripped form (`ipset=/anthropic.com/allowed_ips` -- dnsmasq natively treats bare domains as matching all subdomains). A `stripWildcard` FuncMap function handles this in templates. The `warmup-dns.sh` script reads `dynamic-domains.conf`, so if that file contains stripped names, warmup works automatically with no additional handling.
+- **Single-quoted interpolation in shell templates**: All domain name interpolation in `init-firewall.sh.tmpl` uses single quotes (e.g., `'{{.Name}}'`) to prevent shell expansion. This is the second layer of defense alongside input validation.
 
 ### Files to Create
 
+- `internal/firewall/validate.go` -- Domain name validation function (`ValidateDomain`)
+- `internal/firewall/validate_test.go` -- Tests for domain validation
 - `internal/render/templates/init-firewall.sh.tmpl` -- Template for the main firewall initialization script
 - `internal/render/templates/warmup-dns.sh.tmpl` -- Template for DNS warmup script (static, no parameterization)
 - `internal/render/templates/dynamic-domains.conf.tmpl` -- Template for dnsmasq dynamic domain config
@@ -53,15 +57,63 @@ Key design decisions:
 
 ### Files to Modify
 
+- `internal/firewall/merge.go` -- Add domain validation call for user extras; return error on invalid input
+- `internal/render/render.go` -- Update `Merge` signature to propagate validation errors from `firewall.Merge`
 - `internal/render/doc.go` -- Update package doc to mention template rendering (minor)
 
 ### Detailed Steps
 
-#### Step 1: Create template directory and `dynamic-domains.conf.tmpl`
+#### Step 1: Add domain name validation to `internal/firewall/`
+
+**File**: `internal/firewall/validate.go`
+
+Add a `ValidateDomain(name string) error` function that validates a domain name against a strict RFC 1123 pattern. The function:
+
+- Accepts: `example.com`, `sub.example.com`, `a-b.example.com`, `*.example.com` (wildcard)
+- Rejects: empty strings, strings with spaces, shell metacharacters (`;`, `$`, `` ` ``, `|`, `&`, `(`, `)`, `{`, `}`, `\`, `'`, `"`, `>`, `<`, `!`, `#`, `~`), strings not matching the DNS hostname pattern
+- Uses a compiled `regexp.Regexp` at package level for efficiency
+- Pattern: `^(\*\.)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$`
+- Labels must be 1-63 characters, total name must be 1-253 characters
+- Returns a descriptive error message including the invalid input (for CLI error reporting)
+
+**File**: `internal/firewall/validate_test.go`
+
+Table-driven tests covering:
+- Valid bare domains: `example.com`, `sub.example.com`, `a-b.example.com`
+- Valid wildcard domains: `*.example.com`, `*.sub.example.com`
+- Invalid: empty string, leading/trailing hyphens (`-example.com`), shell injection attempts (`; rm -rf /`, `$(cmd)`, `` `cmd` ``), spaces, consecutive dots, IP addresses (questionable -- may allow), bare `*`
+- Edge cases: single-label domains (`localhost`), maximum label length (63 chars), maximum total length (253 chars)
+
+#### Step 2: Update `firewall.Merge` to validate user extras
+
+**File**: `internal/firewall/merge.go`
+
+Change the `Merge` signature from:
+```go
+func Merge(stacks []stack.StackID, userExtras []string) MergedDomains
+```
+to:
+```go
+func Merge(stacks []stack.StackID, userExtras []string) (MergedDomains, error)
+```
+
+In the user extras loop (Step 3 of the current code), after trimming and lowercasing, call `ValidateDomain(name)`. If validation fails, return a zero `MergedDomains` and the error. Registry domains are trusted (curated by us) and do not need runtime validation.
+
+This is a breaking change to the `Merge` signature. Update all callers:
+- `internal/render/render.go` (`Merge` function) -- propagate the error
+- `internal/firewall/merge_test.go` -- update all test call sites to handle the second return value
+- `internal/render/render_test.go` -- update all test call sites to handle the error
+
+Add new tests in `merge_test.go`:
+- `TestMerge_InvalidUserExtra_ShellInjection` -- verify `Merge(nil, []string{"; rm -rf /"})` returns an error
+- `TestMerge_InvalidUserExtra_CommandSubstitution` -- verify `Merge(nil, []string{"$(whoami)"})` returns an error
+- `TestMerge_ValidUserExtras_StillWork` -- verify that valid domain names continue to pass after validation is added
+
+#### Step 3: Create template directory and `dynamic-domains.conf.tmpl`
 
 **File**: `internal/render/templates/dynamic-domains.conf.tmpl`
 
-The simplest template. One domain per line from `Domains.Dynamic`. Include a header comment explaining the file's purpose. Each line is just the domain name -- dnsmasq reads these and re-resolves them periodically.
+The simplest parameterized template. One domain per line from `Domains.Dynamic`. Include a header comment explaining the file's purpose. Uses the `stripWildcard` FuncMap helper to output bare domain names.
 
 Template data source: `{{range .Domains.Dynamic}}` iterating over `firewall.Domain` structs.
 
@@ -69,14 +121,14 @@ Output format:
 ```
 # Dynamic domains managed by dnsmasq for periodic re-resolution.
 # Generated by ccbox -- do not edit manually.
-<domain-name>
-<domain-name>
-...
+{{range .Domains.Dynamic}}
+{{stripWildcard .Name}} # {{.Rationale}}
+{{end}}
 ```
 
-Design note: Include the domain rationale as an inline comment (`# <rationale>`) after each domain name. This makes the generated file self-documenting for users who inspect it.
+Key detail: `{{stripWildcard .Name}}` converts `*.anthropic.com` to `anthropic.com`. For domains without a wildcard prefix, it passes through unchanged. This ensures `warmup-dns.sh` can `dig` every line without encountering unresolvable wildcard syntax.
 
-#### Step 2: Create `warmup-dns.sh.tmpl`
+#### Step 4: Create `warmup-dns.sh.tmpl`
 
 **File**: `internal/render/templates/warmup-dns.sh.tmpl`
 
@@ -84,16 +136,14 @@ A static template (no parameterization). It reads `dynamic-domains.conf` at runt
 
 Key script behavior:
 - `#!/usr/bin/env bash` with `set -euo pipefail`
-- Read domains from `/etc/dnsmasq.d/dynamic-domains.conf` (or the path where the file lives in the container, which is `.devcontainer/dynamic-domains.conf` -- the script should use a relative path or a well-known path)
-- For each non-comment, non-empty line: run `dig +short <domain> @127.0.0.1` to force resolution through local dnsmasq
+- Uses `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` to resolve the config file relative to itself
+- For each non-comment, non-empty line in `dynamic-domains.conf`: run `dig +short <domain> @127.0.0.1` to force resolution through local dnsmasq
 - Log each resolution for debugging
 - This script runs once at container start to "warm" the DNS cache and populate ipset
 
-Design note: Even though this is "static" (no Go template variables), it is still a `.tmpl` file rendered through `text/template` for consistency with the other templates. This means the rendering pipeline treats all three files uniformly. The template just happens to have no `{{...}}` actions.
+Design note: Even though this is "static" (no Go template variables), it is still a `.tmpl` file rendered through `text/template` for consistency with the other templates. This means the rendering pipeline treats all three files uniformly.
 
-Refinement: Actually, `warmup-dns.sh` needs to know the path to `dynamic-domains.conf`. Since both files live in `.devcontainer/`, the script can use `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` to resolve the config file relative to itself. This keeps it static with no template variables.
-
-#### Step 3: Create `init-firewall.sh.tmpl`
+#### Step 5: Create `init-firewall.sh.tmpl`
 
 **File**: `internal/render/templates/init-firewall.sh.tmpl`
 
@@ -106,8 +156,8 @@ Script structure (in order):
 3. **Preserve loopback**: Allow all traffic on `lo` interface.
 4. **Preserve established connections**: `iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT`
 5. **Create ipset**: `ipset create allowed_ips hash:ip` for storing resolved IPs.
-6. **Resolve static domains**: Loop over `{{range .Domains.Static}}` domains, resolve each with `dig +short`, add all returned A records to the ipset. Static domains are resolved once here and cached.
-7. **Install and configure dnsmasq**: Write dnsmasq config that hooks into ipset -- when dnsmasq resolves a dynamic domain, it automatically adds the result to the `allowed_ips` ipset. Use `ipset=/<domain>/allowed_ips` directives for each dynamic domain.
+6. **Resolve static domains**: Loop over `{{range .Domains.Static}}` domains, resolve each with `dig +short '{{.Name}}'` (single-quoted), add all returned A records to the ipset. Static domains are resolved once here and cached.
+7. **Install and configure dnsmasq**: Write dnsmasq config that hooks into ipset -- when dnsmasq resolves a dynamic domain, it automatically adds the result to the `allowed_ips` ipset. Use `ipset=/{{stripWildcard .Name}}/allowed_ips` directives for each dynamic domain. The `stripWildcard` helper ensures `*.anthropic.com` becomes `ipset=/anthropic.com/allowed_ips` -- dnsmasq natively treats this as matching the base domain and all subdomains.
 8. **Configure iptables rules**:
    - Allow DNS to localhost (dnsmasq) on port 53
    - Allow all traffic to IPs in the `allowed_ips` ipset
@@ -118,16 +168,20 @@ Script structure (in order):
 Template variables used:
 - `{{range .Domains.Static}}` -- iterate static domains, access `.Name` and `.Rationale`
 - `{{range .Domains.Dynamic}}` -- iterate dynamic domains for dnsmasq config
+- `{{stripWildcard .Name}}` -- strip `*.` prefix for dnsmasq ipset directives
 
-#### Step 4: Create `internal/render/firewall.go`
+Shell injection defense: All domain name interpolations use single quotes in the shell template (e.g., `dig +short '{{.Name}}'`). Combined with the `ValidateDomain` input validation, this provides two independent barriers against injection.
+
+#### Step 6: Create `internal/render/firewall.go`
 
 **File**: `internal/render/firewall.go`
 
 This file contains:
 
 1. **Embed directive**: `//go:embed templates/init-firewall.sh.tmpl templates/warmup-dns.sh.tmpl templates/dynamic-domains.conf.tmpl` with `var templatesFS embed.FS`
-2. **Template parsing** (at package init or lazily): Parse all three templates from the embedded FS. Use `template.ParseFS(templatesFS, "templates/*.tmpl")` for batch parsing. Store the parsed `*template.Template` in a package-level var (parsed once, executed many times).
-3. **`FirewallFiles` type**: A struct or map holding the three rendered outputs:
+2. **FuncMap with `stripWildcard`**: A `template.FuncMap` containing the `stripWildcard` function that strips a leading `*.` prefix from a domain name, returning the bare domain. Implementation: `strings.TrimPrefix(name, "*.")`.
+3. **Template parsing** at package level: Parse all three templates from the embedded FS with the FuncMap. Use `template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl")`. Store the parsed `*template.Template` in a package-level var via `template.Must(...)`.
+4. **`FirewallFiles` type**: A struct holding the three rendered outputs:
    ```go
    type FirewallFiles struct {
        InitFirewall   []byte // init-firewall.sh content
@@ -135,18 +189,19 @@ This file contains:
        DynamicDomains []byte // dynamic-domains.conf content
    }
    ```
-4. **`RenderFirewall(cfg GenerationConfig) (FirewallFiles, error)`**: Executes each template against `cfg`, captures output into `bytes.Buffer`, returns the struct. Returns an error if any template execution fails (unlikely with well-tested templates, but correctness demands it).
+5. **`RenderFirewall(cfg GenerationConfig) (FirewallFiles, error)`**: Executes each template against `cfg`, captures output into `bytes.Buffer`, returns the struct. Returns an error if any template execution fails.
 
 Design notes:
-- Parse templates once at package level via `template.Must(template.ParseFS(...))`. This fails fast at program startup if templates have syntax errors, which is the correct behavior for embedded templates that should always be valid.
+- Parse templates once at package level via `template.Must(...)`. This fails fast at program startup if templates have syntax errors, which is the correct behavior for embedded templates that should always be valid.
 - The function returns `[]byte` not `string` because downstream file-writing code (`os.WriteFile`) wants bytes.
 - No file I/O in this function -- pure transformation from config to rendered bytes. File writing is the responsibility of the orchestrator (`ccbox init` command).
+- The `stripWildcard` FuncMap function is deliberately minimal: just `strings.TrimPrefix`. It does not validate input (validation happens upstream in `firewall.Merge`).
 
-#### Step 5: Create `internal/render/firewall_test.go`
+#### Step 7: Create `internal/render/firewall_test.go`
 
 **File**: `internal/render/firewall_test.go`
 
-Testing strategy -- a mix of structural validation and content spot-checks:
+Testing strategy -- a mix of structural validation, content spot-checks, and security-specific tests:
 
 **Test 1: `TestRenderFirewall_NoError`**
 - Call `RenderFirewall` with a `GenerationConfig` from `Merge([]stack.StackID{stack.Go}, nil)`.
@@ -161,12 +216,12 @@ Testing strategy -- a mix of structural validation and content spot-checks:
 
 **Test 3: `TestRenderFirewall_InitFirewall_ContainsDynamicDomains`**
 - Merge Go stack.
-- Assert `InitFirewall` output contains dnsmasq ipset directives for dynamic domains (e.g., "proxy.golang.org").
+- Assert `InitFirewall` output contains dnsmasq ipset directives for dynamic domains (e.g., `ipset=/proxy.golang.org/allowed_ips`).
 - This verifies the `{{range .Domains.Dynamic}}` loop generates dnsmasq config lines.
 
 **Test 4: `TestRenderFirewall_DynamicDomains_ContainsDomainNames`**
 - Merge Go+Node stacks.
-- Assert `DynamicDomains` output contains each domain from `cfg.Domains.Dynamic`.
+- Assert `DynamicDomains` output contains each domain from `cfg.Domains.Dynamic` (with wildcards stripped).
 - Assert it does NOT contain static domain names (e.g., "github.com" should not appear since it is Static).
 
 **Test 5: `TestRenderFirewall_DynamicDomains_ContainsRationale`**
@@ -194,10 +249,23 @@ Testing strategy -- a mix of structural validation and content spot-checks:
 
 **Test 10: `TestRenderFirewall_AllStacks`**
 - Use all five stacks + user extras.
-- Structural assertion: every domain from `cfg.Domains.Dynamic` appears in the `DynamicDomains` output.
+- Structural assertion: every domain from `cfg.Domains.Dynamic` appears in the `DynamicDomains` output (with wildcards stripped).
 - Structural assertion: every domain from `cfg.Domains.Static` appears somewhere in the `InitFirewall` output.
 
-#### Step 6: Update `internal/render/doc.go`
+**Test 11: `TestRenderFirewall_WildcardDomainHandling`**
+- Merge with no extra stacks (only AlwaysOn, which includes `*.anthropic.com`).
+- Render firewall files.
+- Assert `DynamicDomains` output contains `anthropic.com` (bare, no `*.` prefix).
+- Assert `DynamicDomains` output does NOT contain `*.anthropic.com` (literal wildcard form).
+- Assert `InitFirewall` output contains `ipset=/anthropic.com/allowed_ips` (dnsmasq directive with stripped wildcard).
+- Assert `InitFirewall` output does NOT contain `ipset=/*.anthropic.com/` (the raw wildcard form should not appear in ipset directives).
+
+**Test 12: `TestRenderFirewall_InitFirewall_SingleQuotedDomains`**
+- Merge Go stack.
+- Render firewall files.
+- Assert `InitFirewall` output contains at least one occurrence of a single-quoted domain in a `dig` command context (e.g., the string `'github.com'` appears). This verifies the shell injection defense layer in templates.
+
+#### Step 8: Update `internal/render/doc.go`
 
 Minor update to mention that the package now renders templates in addition to merging configs.
 
@@ -211,15 +279,16 @@ The generated script follows standard Linux container firewall patterns:
 - Uses `ipset` for efficient IP matching -- O(1) lookup instead of O(n) iptables rules.
 - Uses `dnsmasq` as a local DNS forwarder with `ipset` integration: when dnsmasq resolves a domain, it can automatically add the resolved IP to a named ipset. This handles CDN domains whose IPs rotate.
 - The `dig +short` calls resolve to A records. The script handles multiple A records per domain (CDNs often return several).
-- Wildcard domains (e.g., `*.anthropic.com`) are handled in the dnsmasq config using dnsmasq's native wildcard support (`ipset=/anthropic.com/allowed_ips` -- dnsmasq treats this as matching all subdomains).
+- Wildcard domains (e.g., `*.anthropic.com`) are handled by stripping the `*.` prefix via the `stripWildcard` FuncMap helper. In dnsmasq config, `ipset=/anthropic.com/allowed_ips` natively matches the base domain and all subdomains. In `dig` commands, the bare `anthropic.com` form is used since dig cannot resolve wildcard DNS names.
+- All domain name interpolations are single-quoted in shell context (e.g., `dig +short '{{.Name}}'`) to prevent shell expansion. This is a defense-in-depth measure alongside upstream `ValidateDomain` input validation.
 
 #### dynamic-domains.conf
 
-Plain text, one domain per line with inline rationale comments. This file is read by `warmup-dns.sh` and also serves as human-readable documentation of which dynamic domains are allowed.
+Plain text, one domain per line with inline rationale comments. Wildcard domains have their `*.` prefix stripped (via `stripWildcard` in the template) so that `dig` in `warmup-dns.sh` can resolve them. This file is read by `warmup-dns.sh` and also serves as human-readable documentation of which dynamic domains are allowed.
 
 #### warmup-dns.sh
 
-Reads `dynamic-domains.conf`, strips comments and blank lines, resolves each domain through the local dnsmasq (port 53 on 127.0.0.1). The resolution triggers dnsmasq's ipset integration, populating the `allowed_ips` set. This ensures dynamic domain IPs are available in the ipset before the user needs network access.
+Reads `dynamic-domains.conf`, strips comments and blank lines, resolves each domain through the local dnsmasq (port 53 on 127.0.0.1). The resolution triggers dnsmasq's ipset integration, populating the `allowed_ips` set. This ensures dynamic domain IPs are available in the ipset before the user needs network access. Because `dynamic-domains.conf` already has wildcards stripped, no additional wildcard handling is needed here.
 
 ### Testing Strategy
 
@@ -228,10 +297,12 @@ Reads `dynamic-domains.conf`, strips comments and blank lines, resolves each dom
 - **Registry-computed expectations**: Where possible, compute expected values from the firewall registry rather than hardcoding. For example, verify that every domain in `cfg.Domains.Static` appears in the rendered init-firewall.sh, rather than hardcoding a specific list.
 - **Template syntax validation**: The `template.Must` at package level ensures syntax errors are caught at startup. Tests verify the templates execute without runtime errors.
 - **Edge case: empty domains**: Test that templates produce valid output even when no stacks are detected (only always-on domains) or when domain lists are empty.
+- **Wildcard domain rendering**: Dedicated test (`TestRenderFirewall_WildcardDomainHandling`) verifies that `*.anthropic.com` is correctly stripped to `anthropic.com` in both `dynamic-domains.conf` and `init-firewall.sh` dnsmasq directives.
+- **Shell injection defense verification**: `TestRenderFirewall_InitFirewall_SingleQuotedDomains` verifies that domain interpolation in shell contexts uses single quotes. `TestValidateDomain_*` tests in the firewall package verify that shell metacharacters are rejected at the input validation layer.
 
 ### Open Questions
 
-None -- all design decisions are grounded in the existing codebase patterns and standard Linux container firewall tooling. The template approach (`embed.FS` + `text/template` + pure rendering functions) aligns with ADR-0002 and the sibling beans' expected patterns.
+None -- all design decisions are grounded in the existing codebase patterns and standard Linux container firewall tooling. The template approach (`embed.FS` + `text/template` + pure rendering functions) aligns with ADR-0002 and the sibling beans' expected patterns. The shell injection mitigation uses two independent defense layers (input validation + single-quoting) which is standard practice for generated shell scripts.
 
 ## Checklist
 
@@ -250,8 +321,8 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
-| refine | done | 1 | 2026-04-02 |
-| challenge | pending | | |
+| refine | in-progress | 2 | 2026-04-02 |
+| challenge | needs-revision | 1 | 2026-04-02 |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
