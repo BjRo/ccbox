@@ -175,17 +175,7 @@ func TestRenderClaude_UserSettings_EmptyStacks(t *testing.T) {
 	}
 
 	// enabledPlugins should be an empty array, not null.
-	if settings.EnabledPlugins == nil {
-		// Check the raw JSON to distinguish [] from null.
-		var raw map[string]json.RawMessage
-		if err := json.Unmarshal(files.UserSettings, &raw); err != nil {
-			t.Fatalf("raw JSON parse: %v", err)
-		}
-		trimmed := strings.TrimSpace(string(raw["enabledPlugins"]))
-		if trimmed != "[]" {
-			t.Errorf("enabledPlugins is %q, want empty array []", trimmed)
-		}
-	} else if len(settings.EnabledPlugins) != 0 {
+	if len(settings.EnabledPlugins) != 0 {
 		t.Errorf("enabledPlugins has %d entries, want 0", len(settings.EnabledPlugins))
 	}
 }
@@ -259,6 +249,7 @@ func TestRenderClaude_SyncSettings_ScriptStructure(t *testing.T) {
 		"$HOME/.claude",
 		"settings.json",
 		"jq -s",
+		`trap 'rm -f "$TMPFILE"' EXIT`,
 	}
 	for _, check := range checks {
 		if !strings.Contains(output, check) {
@@ -369,5 +360,34 @@ func TestRenderClaude_DirectConfig_CustomPlugins(t *testing.T) {
 	}
 	if !pluginSet["another-plugin"] {
 		t.Error("enabledPlugins missing 'another-plugin'")
+	}
+}
+
+func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
+	// Verify the jsonString FuncMap helper properly escapes characters that
+	// would produce invalid JSON if interpolated raw.
+	cfg := GenerationConfig{
+		LSPs: []stack.LSP{
+			{Package: "tricky-lsp", Plugin: `quote"and\backslash`},
+		},
+	}
+
+	files, err := RenderClaude(cfg)
+	if err != nil {
+		t.Fatalf("RenderClaude: %v", err)
+	}
+
+	var settings claudeSettings
+	if err := json.Unmarshal(files.UserSettings, &settings); err != nil {
+		t.Fatalf("UserSettings is not valid JSON: %v\nContent:\n%s", err, files.UserSettings)
+	}
+
+	if len(settings.EnabledPlugins) != 1 {
+		t.Fatalf("enabledPlugins has %d entries, want 1", len(settings.EnabledPlugins))
+	}
+
+	want := `quote"and\backslash`
+	if settings.EnabledPlugins[0] != want {
+		t.Errorf("enabledPlugins[0] = %q, want %q", settings.EnabledPlugins[0], want)
 	}
 }
