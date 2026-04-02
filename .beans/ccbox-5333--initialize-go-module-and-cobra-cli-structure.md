@@ -1,11 +1,11 @@
 ---
 # ccbox-5333
 title: Initialize Go module and Cobra CLI structure
-status: todo
+status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-02T10:33:55Z
-updated_at: 2026-04-02T10:33:55Z
+updated_at: 2026-04-02T11:37:44Z
 parent: ccbox-jxut
 ---
 
