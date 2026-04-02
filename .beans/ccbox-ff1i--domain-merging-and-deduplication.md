@@ -1,11 +1,11 @@
 ---
 # ccbox-ff1i
 title: Domain merging and deduplication
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:35:46Z
-updated_at: 2026-04-02T12:53:39Z
+updated_at: 2026-04-02T15:06:02Z
 parent: ccbox-m6ll
 ---
 
