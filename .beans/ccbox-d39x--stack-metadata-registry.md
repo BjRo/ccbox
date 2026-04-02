@@ -1,11 +1,11 @@
 ---
 # ccbox-d39x
 title: Stack metadata registry
-status: todo
+status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:34:21Z
-updated_at: 2026-04-02T10:34:21Z
+updated_at: 2026-04-02T12:36:12Z
 parent: ccbox-2n15
 ---
 
@@ -21,3 +21,27 @@ Define a registry of stack metadata. Each stack entry includes:
 - **VS Code extensions**: None for v1 (Claude Code only, added separately)
 
 This registry is the single source of truth for all stack-specific behavior.
+
+## Checklist
+
+- [ ] Tests written (TDD)
+- [ ] No TODO/FIXME/HACK/XXX comments
+- [ ] Lint passes (`golangci-lint run ./...`)
+- [ ] Tests pass (`go test ./...`)
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed
+- [ ] Review feedback worked in
+- [ ] All checklist items completed
+- [ ] User notified
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | pending | | |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
