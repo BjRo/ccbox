@@ -53,6 +53,32 @@ Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) f
 - **Sorted output**: `All()` and `IDs()` return sorted slices via `slices.Sorted(maps.Keys(m))` for deterministic templates and CLI output.
 - **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration. Package-level initialization of static, immutable data is idiomatic Go.
 
+## Filesystem Testability via fs.FS
+
+Packages that perform filesystem I/O should use Go's `fs.FS` interface to separate logic from the real filesystem. The pattern:
+
+- **Unexported core function accepts `fs.FS`**: e.g., `detect(fsys fs.FS) ([]stack.StackID, error)`. This contains all the real logic.
+- **Exported function accepts a path string**: e.g., `Detect(dir string) ([]stack.StackID, error)`. It validates the path, wraps it with `os.DirFS(dir)`, and delegates to the core function.
+- **Tests use `fstest.MapFS`**: In-memory filesystem with zero disk I/O, no temp directories to clean up, and deterministic behavior across platforms.
+
+```go
+// Production: real filesystem
+func Detect(dir string) ([]stack.StackID, error) {
+    return detect(os.DirFS(dir))
+}
+
+// Testable core: any fs.FS
+func detect(fsys fs.FS) ([]stack.StackID, error) { ... }
+
+// Test: in-memory filesystem
+fsys := fstest.MapFS{
+    "go.mod": &fstest.MapFile{},
+}
+got, err := detect(fsys)
+```
+
+Use `fs.Stat`, `fs.ReadDir`, and `fs.Glob` (not `os.*` or `filepath.*`) inside the core function to stay compatible with any `fs.FS` implementation. Reserve one integration-style test that calls the public API with a real path to verify the `os.DirFS` wiring.
+
 ## Testing Patterns for Registry-Backed Code
 
 When testing functions that consume registry data (e.g., `firewall.Merge`), prefer **structural invariants computed from the registry** over hardcoded expected values. Hardcoded counts break silently when registry data grows. Pair structural assertions with a few **hardcoded spot-checks** that name specific well-known entries, so the two approaches cross-validate each other.
