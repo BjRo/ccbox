@@ -29,6 +29,7 @@ cmd/
   root.go              # Root Cobra command
   init.go              # `ccbox init` subcommand (interactive wizard + CLI flags)
 internal/
+  stack/               # Stack metadata registry (pure data, zero internal dependencies)
   detect/              # Stack detection (scans for marker files like go.mod, package.json, etc.)
   render/              # Template rendering engine (Go templates → Dockerfile, devcontainer.json, scripts)
   firewall/            # Domain allowlist logic (per-stack defaults, merging, deduplication)
@@ -37,10 +38,20 @@ main.go
 ```
 
 Key design patterns:
-- **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains)
+- **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: projects with multiple stacks get merged configurations
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
+
+## Immutable Registry Pattern
+
+The `internal/stack` package establishes the pattern for read-only data registries in ccbox:
+
+- **Package-level map, accessor functions**: Data lives in an unexported `var registry` map. Public API is `Get(id) (T, bool)`, `All() []T`, `IDs() []ID`. No exported map or mutable state.
+- **Copy semantics on all accessors**: Every returned value is a deep copy. Slice fields are cloned via `slices.Clone` so callers cannot corrupt registry data. Tests verify this explicitly.
+- **String-based type IDs**: Use `type FooID string` (not integer enums) when the ID appears in config files, CLI flags, or template output. Self-describing values avoid a marshaling/display layer.
+- **Sorted output for determinism**: `All()` and `IDs()` return sorted slices so templates and CLI output are stable across runs.
+- **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration (hurts test isolation). Package-level `init()` or `var` initialization for static, immutable data is idiomatic Go and has no testability downside.
 
 ## Bean-Driven Workflow
 
