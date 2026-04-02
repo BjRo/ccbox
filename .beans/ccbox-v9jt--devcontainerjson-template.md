@@ -154,7 +154,7 @@ None. The bean description is sufficiently prescriptive, and the template conten
 - [x] PR created
 - [x] Automated code review passed
 - [x] Review feedback worked in
-- [ ] ADR written (if applicable)
+- [x] ADR written (if applicable)
 - [ ] User notified
 
 ## Pipeline State
@@ -167,4 +167,4 @@ None. The bean description is sufficiently prescriptive, and the template conten
 | pr | completed | 1 | 2026-04-02 | | |
 | review | completed | 1 | 2026-04-02 | | |
 | rework | completed | 1 | 2026-04-02 | | |
-| codify | in-progress | 1 | 2026-04-02 | | |
+| codify | completed | 1 | 2026-04-02 | | |
