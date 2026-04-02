@@ -1,11 +1,11 @@
 ---
 # ccbox-780o
 title: README.md template for generated devcontainer
-status: todo
+status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-02T10:35:29Z
-updated_at: 2026-04-02T10:35:29Z
+updated_at: 2026-04-02T16:09:00Z
 parent: ccbox-6z26
 ---
 
@@ -23,3 +23,27 @@ Generate a comprehensive README.md inside .devcontainer/ that explains:
 9. **Troubleshooting**: Common issues (firewall blocking needed domain, permission errors, volume issues)
 
 Template should include the detected stacks and their specific domains for context.
+
+## Checklist
+
+- [ ] Tests written
+- [ ] No TODO/FIXME/HACK/XXX
+- [ ] Lint passes
+- [ ] Tests pass
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed
+- [ ] Review feedback worked in
+- [ ] All other checklist items completed
+- [ ] User notified
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | pending | | |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
