@@ -13,10 +13,11 @@ import (
 // produced by combining multiple detected stacks. It is the single input
 // to the template rendering pipeline.
 type GenerationConfig struct {
-	Stacks   []stack.StackID       // Detected stack IDs, deduplicated and sorted
-	Runtimes []stack.Runtime       // Merged runtime entries for mise.toml, sorted by Tool
-	LSPs     []stack.LSP           // Merged LSP servers for Dockerfile + settings, sorted by Package
-	Domains  firewall.MergedDomains // Merged domain allowlists (static + dynamic)
+	Stacks     []stack.StackID        // Detected stack IDs, deduplicated and sorted
+	Runtimes   []stack.Runtime        // Merged runtime entries for mise.toml, sorted by Tool
+	LSPs       []stack.LSP            // Merged LSP servers for Dockerfile + settings, sorted by Package
+	SystemDeps []string               // Merged apt packages from all stacks, deduplicated and sorted
+	Domains    firewall.MergedDomains // Merged domain allowlists (static + dynamic)
 }
 
 // Merge combines metadata from the given stacks and user-provided extra domains
@@ -65,7 +66,21 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 		}
 	}
 
-	// Step 3: Sort runtimes by Tool, LSPs by Package.
+	// Step 3: Collect system deps, deduplicating by string value.
+	seenDeps := make(map[string]bool)
+	var systemDeps []string
+	for _, id := range uniqueStacks {
+		s, _ := stack.Get(id) // Already validated above.
+		for _, dep := range s.SystemDeps {
+			if !seenDeps[dep] {
+				seenDeps[dep] = true
+				systemDeps = append(systemDeps, dep)
+			}
+		}
+	}
+	slices.Sort(systemDeps)
+
+	// Step 4: Sort runtimes by Tool, LSPs by Package.
 	slices.SortFunc(runtimes, func(a, b stack.Runtime) int {
 		return strings.Compare(a.Tool, b.Tool)
 	})
@@ -89,11 +104,15 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	if lsps == nil {
 		lsps = []stack.LSP{}
 	}
+	if systemDeps == nil {
+		systemDeps = []string{}
+	}
 
 	return GenerationConfig{
-		Stacks:   uniqueStacks,
-		Runtimes: runtimes,
-		LSPs:     lsps,
-		Domains:  domains,
+		Stacks:     uniqueStacks,
+		Runtimes:   runtimes,
+		LSPs:       lsps,
+		SystemDeps: systemDeps,
+		Domains:    domains,
 	}, nil
 }

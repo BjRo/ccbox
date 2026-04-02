@@ -54,6 +54,11 @@ type Stack struct {
 	// (ccbox-ztaa) will finalize the exact domain allowlists.
 	DynamicDomains []string
 
+	// SystemDeps lists apt packages required to build the stack's runtime
+	// from source via mise (e.g., Ruby needs libssl-dev, libreadline-dev).
+	// Stacks that do not require extra packages use an empty (non-nil) slice.
+	SystemDeps []string
+
 	// MarkerFiles lists filenames whose presence in a project root
 	// indicates this stack is in use. These are exact filenames only,
 	// not glob patterns. Pattern-based detection (e.g., *.go files)
@@ -77,6 +82,7 @@ var registry = map[StackID]Stack{
 			Plugin:     "gopls",
 		},
 		DefaultDomains: []string{"proxy.golang.org", "sum.golang.org", "storage.googleapis.com"},
+		SystemDeps:     []string{},
 		MarkerFiles:    []string{"go.mod"},
 	},
 	Node: {
@@ -93,6 +99,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"registry.npmjs.org"},
 		DynamicDomains: []string{"registry.yarnpkg.com"},
+		SystemDeps:     []string{},
 		MarkerFiles:    []string{"package.json", "tsconfig.json"},
 	},
 	Python: {
@@ -108,6 +115,7 @@ var registry = map[StackID]Stack{
 			Plugin:     "pyright",
 		},
 		DefaultDomains: []string{"pypi.org", "files.pythonhosted.org"},
+		SystemDeps:     []string{"libssl-dev", "zlib1g-dev", "libbz2-dev", "libreadline-dev", "libsqlite3-dev", "libffi-dev"},
 		MarkerFiles:    []string{"requirements.txt", "pyproject.toml", "setup.py", "Pipfile"},
 	},
 	Rust: {
@@ -124,6 +132,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"crates.io", "static.crates.io", "index.crates.io"},
 		DynamicDomains: []string{"static.rust-lang.org"},
+		SystemDeps:     []string{},
 		MarkerFiles:    []string{"Cargo.toml"},
 	},
 	Ruby: {
@@ -139,6 +148,7 @@ var registry = map[StackID]Stack{
 			Plugin:     "solargraph",
 		},
 		DefaultDomains: []string{"rubygems.org", "index.rubygems.org"},
+		SystemDeps:     []string{"libssl-dev", "libreadline-dev", "libyaml-dev", "zlib1g-dev"},
 		MarkerFiles:    []string{"Gemfile"},
 	},
 }
@@ -188,6 +198,7 @@ func copyStack(s Stack) Stack {
 	cp := s
 	cp.DefaultDomains = slices.Clone(s.DefaultDomains)
 	cp.DynamicDomains = slices.Clone(s.DynamicDomains)
+	cp.SystemDeps = slices.Clone(s.SystemDeps)
 	cp.MarkerFiles = slices.Clone(s.MarkerFiles)
 	return cp
 }
