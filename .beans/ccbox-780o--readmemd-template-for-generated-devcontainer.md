@@ -120,7 +120,7 @@ None -- the scope is well-defined and all patterns are established by existing r
 - [x] No TODO/FIXME/HACK/XXX
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
