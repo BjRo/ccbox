@@ -21,6 +21,8 @@ if [ ! -f "$SETTINGS_FILE" ]; then
 else
     # Deep-merge: existing settings as base, template wins on conflicts.
     TMPFILE="$(mktemp)"
+    trap 'rm -f "$TMPFILE"' EXIT
     jq -s '.[0] * .[1]' "$SETTINGS_FILE" "$TEMPLATE" > "$TMPFILE"
     mv "$TMPFILE" "$SETTINGS_FILE"
+    trap - EXIT
 fi
