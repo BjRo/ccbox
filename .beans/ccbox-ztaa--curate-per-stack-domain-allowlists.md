@@ -33,10 +33,10 @@ Validate each domain is actually needed for basic development workflows (install
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -48,7 +48,7 @@ Validate each domain is actually needed for basic development workflows (install
 |-------|--------|-----------|-----------|
 | refine | in-progress | 1 | 2026-04-02 |
 | challenge | pending | | |
-| implement | pending | | |
+| implement | in-progress | 1 | 2026-04-02 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
