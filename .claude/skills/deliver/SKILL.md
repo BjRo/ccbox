@@ -49,7 +49,7 @@ Read the bean body and find the `### Verdict` line in the `## Challenge Report` 
 - If `NEEDS REVISION` and iteration < 3 -> loop back to Step 1
 - If `NEEDS REVISION` and iteration >= 3 -> escalate to user
 
-## Phase 2: Implement-Review-Rework Loop (max 2 iterations)
+## Phase 2: Implement-Review-Rework Loop (max 3 iterations)
 
 ### Step 1: Launch Implement
 
@@ -103,8 +103,8 @@ Task tool call:
 ### Step 4: Evaluate Review Results
 
 - **No actionable findings** -> check off "Automated code review passed". Proceed to Codify.
-- **Actionable findings, iteration 1** -> Rework
-- **Actionable findings, iteration 2** -> Escalate
+- **Actionable findings, iteration < 3** -> Rework
+- **Actionable findings, iteration >= 3** -> Escalate
 
 ### Step 5a: Rework
 
@@ -115,7 +115,7 @@ Task tool call:
   prompt: "Rework review feedback for bean <BEAN_ID>. Read the PR review comments, address all findings (CRITICAL, WARNING, and SUGGESTION), then push the fixes."
 ```
 
-After rework, loop back to Step 3 (re-launch review). This is iteration 2.
+After rework, loop back to Step 3 (re-launch review).
 
 ### Step 5b: Codify Learnings
 
