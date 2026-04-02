@@ -73,7 +73,7 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	})
 
 	// Step 4: Delegate domain merging to firewall.Merge.
-	domains := firewall.Merge(stacks, userExtraDomains)
+	domains := firewall.Merge(uniqueStacks, userExtraDomains)
 
 	// Ensure non-nil empty slices for template-friendly zero values.
 	if uniqueStacks == nil {
