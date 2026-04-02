@@ -24,12 +24,12 @@ This registry is the single source of truth for all stack-specific behavior.
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes (`golangci-lint run ./...`)
-- [ ] Tests pass (`go test ./...`)
-- [ ] Branch pushed
-- [ ] PR created
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes (`golangci-lint run ./...`)
+- [x] Tests pass (`go test ./...`)
+- [x] Branch pushed
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] All checklist items completed
@@ -182,7 +182,7 @@ None. The test file fully specifies the API contract. The data values (tool name
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02 |
 | challenge | pending | | |
-| implement | pending | | |
-| pr | pending | | |
+| implement | complete | 1 | 2026-04-02 |
+| pr | complete | 1 | 2026-04-02 |
 | review | pending | | |
 | codify | pending | | |
