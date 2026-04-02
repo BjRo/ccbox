@@ -1,6 +1,6 @@
 ---
 name: rework
-description: Rework PR review feedback. Reads review comments from the open PR, fixes CRITICAL and WARNING findings, pushes fixes, then re-triggers review. Auto-detects the bean from the current branch.
+description: Rework PR review feedback. Reads review comments from the open PR, fixes all findings, pushes fixes, then re-triggers review. Auto-detects the bean from the current branch.
 argument-hint: "[optional: additional feedback or bean-id override]"
 ---
 
@@ -29,7 +29,7 @@ BEAN_ID=$(echo "$BRANCH" | sed 's|^[^/]*/||' | grep -oP '^ccbox-\w+')
 Task tool call:
   subagent_type: "rework"
   description: "Rework PR review feedback"
-  prompt: "Rework review feedback for bean <BEAN_ID>. Read the PR review comments, address all CRITICAL and WARNING findings, then push the fixes."
+  prompt: "Rework review feedback for bean <BEAN_ID>. Read the PR review comments, address all findings (CRITICAL, WARNING, and SUGGESTION), then push the fixes."
 ```
 
 ### Step 3: After the Agent Completes

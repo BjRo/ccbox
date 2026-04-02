@@ -112,7 +112,7 @@ Task tool call:
 Task tool call:
   subagent_type: "rework"
   description: "Rework review feedback"
-  prompt: "Rework review feedback for bean <BEAN_ID>. Read the PR review comments, address all CRITICAL and WARNING findings, then push the fixes."
+  prompt: "Rework review feedback for bean <BEAN_ID>. Read the PR review comments, address all findings (CRITICAL, WARNING, and SUGGESTION), then push the fixes."
 ```
 
 After rework, loop back to Step 3 (re-launch review). This is iteration 2.

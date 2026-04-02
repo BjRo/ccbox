@@ -1,6 +1,6 @@
 ---
 name: rework
-description: Reworks PR review feedback. Reads comments, fixes CRITICAL and WARNING findings, pushes fixes.
+description: Reworks PR review feedback. Reads comments, fixes all findings, pushes fixes.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 ---
 
@@ -28,7 +28,7 @@ gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" --jq '.[] | {path: .path, lin
 
 ### 3. Parse Findings
 
-Focus on CRITICAL and WARNING. Skip SUGGESTION and QUESTION.
+Address all findings: CRITICAL, WARNING, and SUGGESTION.
 
 ### 4. Create Rework Bean
 
@@ -56,4 +56,4 @@ Mark rework bean completed. Push.
 - Do NOT launch review agents
 - Do NOT mark the original bean as completed
 - Do NOT merge anything
-- Do NOT address SUGGESTION findings unless asked
+- Address ALL findings including SUGGESTIONs
