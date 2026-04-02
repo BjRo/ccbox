@@ -24,10 +24,10 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX in code
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX in code
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -41,7 +41,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 |-------|--------|-----------|-----------|
 | refine | completed | 1 | 2026-04-02 | | |
 | challenge | completed | 1 | 2026-04-02 | | |
-| implement | pending | | |
+| implement | completed | 1 | 2026-04-02 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
