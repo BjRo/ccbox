@@ -40,7 +40,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | completed | 1 | 2026-04-02 | | |
-| challenge | pending | | |
+| challenge | completed | 1 | 2026-04-02 | | |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
