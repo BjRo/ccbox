@@ -261,7 +261,7 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] Tests pass (`go test ./...`)
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created (https://github.com/BjRo/ccbox/pull/8)
 - [ ] Automated code review passed (`@review-backend`)
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural changes)
@@ -286,6 +286,6 @@ Next: push branch.
 | refine | complete | 1 | 2026-04-02T17:30:00Z |
 | challenge | complete | 1 | 2026-04-02T17:35:00Z |
 | implement | complete | 1 | 2026-04-02T18:00:00Z |
-| pr | pending | | |
+| pr | complete | 1 | 2026-04-02T18:10:00Z |
 | review | pending | | |
 | codify | pending | | |
