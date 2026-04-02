@@ -1,11 +1,11 @@
 ---
 # ccbox-7qvl
 title: Dockerfile template
-status: todo
+status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:35:05Z
-updated_at: 2026-04-02T10:35:05Z
+updated_at: 2026-04-02T15:28:02Z
 parent: ccbox-6z26
 ---
 
@@ -33,3 +33,27 @@ Create a Go template for the generated Dockerfile. Based on the credfolio2 refer
 - `ExtraDomains []string` — user-specified domains for dynamic-domains.conf
 
 Use Go embed (`//go:embed`) for template files.
+
+## Definition of Done
+
+- [ ] Tests written (TDD)
+- [ ] No TODO/FIXME/HACK/XXX comments in new code
+- [ ] Lint passes (`golangci-lint run ./...`)
+- [ ] Tests pass (`go test ./...`)
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed (`@review-backend`)
+- [ ] Review feedback worked in
+- [ ] ADR written (if architectural changes)
+- [ ] User notified
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | pending | | |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
