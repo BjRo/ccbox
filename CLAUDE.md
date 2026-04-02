@@ -41,9 +41,37 @@ Key design patterns:
 - **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
-- Templates use Go's `embed` package for bundling
+- **Template rendering**: Embedded Go templates in `internal/render/`, parsed once at startup. See "Template Rendering Pattern" section below.
 - **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
 - **Node always included**: Node/npm is always present in generated containers because Claude Code requires it. The Dockerfile template hardcodes `node = "lts"` in the mise config and skips Node in the `{{ range .Runtimes }}` loop via `{{ if ne .Tool "node" }}`. This invariant applies to all templates that reference runtimes.
+
+## Template Rendering Pattern
+
+All template files live in `internal/render/templates/` and follow a consistent structure:
+
+- **Shared `embed.go`**: A single `embed.go` file in `internal/render/` contains the `//go:embed templates/*` directive and exports the `embed.FS` variable (`templateFS`). All template files are embedded through this one directive. Individual render files (e.g., `devcontainer.go`, `dockerfile.go`) do not declare their own embed directives.
+
+- **Package-level `template.Must(template.ParseFS(...))`**: Each template is parsed once at package init into an unexported `var fooTmpl` variable. `template.Must` is the correct idiom here because parse failures on embedded templates are always programmer errors and should surface immediately at startup, not at render time.
+
+- **Uniform render function signature**: Every render function follows `FuncName(w io.Writer, cfg GenerationConfig) error`. The `io.Writer` parameter follows Go conventions (like `text/template.Execute`). The `cfg` parameter is always `GenerationConfig`, even when the current template does not use all (or any) of its fields. This keeps the API uniform and avoids signature changes when parameterization is added later.
+
+```go
+// embed.go -- single file, shared across all templates
+//go:embed templates/*
+var templateFS embed.FS
+
+// devcontainer.go -- one file per template
+var devcontainerTmpl = template.Must(template.ParseFS(templateFS, "templates/devcontainer.json.tmpl"))
+
+func DevContainer(w io.Writer, cfg GenerationConfig) error {
+    if err := devcontainerTmpl.Execute(w, cfg); err != nil {
+        return fmt.Errorf("render devcontainer.json: %w", err)
+    }
+    return nil
+}
+```
+
+Uses `text/template` (not `html/template`) since output is config files, not HTML. See ADR-0002 for why the package is named `render`.
 
 ## Package Documentation Convention
 
