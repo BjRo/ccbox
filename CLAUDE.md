@@ -43,6 +43,7 @@ Key design patterns:
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
 - **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
+- **Node always included**: Node/npm is always present in generated containers because Claude Code requires it. The Dockerfile template hardcodes `node = "lts"` in the mise config and skips Node in the `{{ range .Runtimes }}` loop via `{{ if ne .Tool "node" }}`. This invariant applies to all templates that reference runtimes.
 
 ## Package Documentation Convention
 
@@ -89,6 +90,29 @@ Use `fs.Stat`, `fs.ReadDir`, and `fs.Glob` (not `os.*` or `filepath.*`) inside t
 When testing functions that consume registry data (e.g., `firewall.Merge`), prefer **structural invariants computed from the registry** over hardcoded expected values. Hardcoded counts break silently when registry data grows. Pair structural assertions with a few **hardcoded spot-checks** that name specific well-known entries, so the two approaches cross-validate each other.
 
 Example: assert `len(result.Static) == len(collectExpected(...))` (structural), then `assert result contains "github.com" in Static` (spot-check).
+
+## Go Template Whitespace in Dockerfile Continuations
+
+Dockerfile `RUN` blocks use backslash (`\`) continuation lines. When a `{{ range }}` loop appends items to such a block, the template must handle both the non-empty and empty cases without producing dangling backslashes or blank lines inside the shell command.
+
+The established pattern places the `{{ range }}` inline on the last static line, so the backslash comes from the range body:
+
+```
+    build-essential jq fzf{{ range .SystemDeps }} \
+    {{ . }}{{ end }} \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+When `.SystemDeps` is empty, this renders as `build-essential jq fzf \` followed by `&& rm -rf ...`. When non-empty, each dep gets its own continuation line. The key constraint: never use `{{- }}` trim markers that would collapse the continuation backslashes. Always add a `TestDockerfile_AptGetValidShellSyntax` test that asserts no bare backslash lines, no double backslashes, and no blank lines inside the RUN block across all stack combinations.
+
+## Template Testing: Two-Tier Strategy
+
+Template tests use two complementary approaches:
+
+1. **Integration tests (through `Merge`)**: Call `Merge(stacks, extras)` then `Dockerfile(cfg)` to test the full pipeline. These verify that registry data flows correctly into rendered output. Most tests use this tier.
+2. **Isolation tests (direct `GenerationConfig`)**: Hand-build a `GenerationConfig` with synthetic data (e.g., fictional runtimes like `deno`, `zig`) to test template logic independently of the registry. These catch template bugs that would be masked by real registry data.
+
+Both tiers use structural assertions (`strings.Contains`, `strings.Count`) rather than golden files. See "Testing Patterns for Registry-Backed Code" for the spot-check approach.
 
 ## Bean-Driven Workflow
 

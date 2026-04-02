@@ -289,4 +289,4 @@ Next: push branch.
 | pr | complete | 1 | 2026-04-02T18:10:00Z |
 | review | clean | 2 | 2026-04-02T18:30:00Z |
 | rework | complete | 1 | 2026-04-02T19:00:00Z |
-| codify | pending | | |
+| codify | complete | 1 | 2026-04-02T20:00:00Z |
