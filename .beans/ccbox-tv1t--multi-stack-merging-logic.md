@@ -158,3 +158,27 @@ None -- the existing patterns in `firewall.Merge` provide clear precedent for th
 ### Verdict
 
 **APPROVED** -- The plan is well-structured, follows established codebase patterns closely, and the testing strategy is thorough. Both findings are WARNINGs, not blockers. Finding 1 is the more consequential one: resolving it in favor of Option A will produce a simpler implementation with fewer lines and no loss of correctness. Finding 2 is a minor gap in the algorithm description that the tests already catch -- just needs the prose to match the intent.
+
+## Definition of Done
+
+- [x] `internal/render/doc.go` created with package doc comment
+- [x] `GenerationConfig` struct defined using `[]stack.Runtime` and `[]stack.LSP` directly (challenge finding 1)
+- [x] `Merge` function implemented with explicit Stacks deduplication and sorting (challenge finding 2)
+- [x] Runtimes deduplicated by Tool, LSPs deduplicated by Package
+- [x] Domain merging delegated to `firewall.Merge`
+- [x] Non-nil empty slices for zero-element cases
+- [x] Error returned for unknown stack IDs
+- [x] TestMerge_SingleStack
+- [x] TestMerge_MultipleStacks
+- [x] TestMerge_AllStacks
+- [x] TestMerge_EmptyStacks
+- [x] TestMerge_UnknownStack
+- [x] TestMerge_DuplicateStackIDs
+- [x] TestMerge_SortedOutput
+- [x] TestMerge_UserExtraDomains
+- [x] TestMerge_StacksFieldMatchesInput
+- [x] TestMerge_RuntimesMatchRegistry
+- [x] TestMerge_LSPsMatchRegistry
+- [x] All tests pass (`go test ./...`)
+- [x] Lint clean (`golangci-lint run ./...`)
+- [x] Branch pushed
