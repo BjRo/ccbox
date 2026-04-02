@@ -23,7 +23,8 @@ type GenerationConfig struct {
 // into a single GenerationConfig. It validates that all stack IDs exist in the
 // registry and returns an error for the first unknown ID. Duplicate stack IDs
 // in the input are deduplicated. Runtimes are deduplicated by Tool name and LSPs
-// by Package name, both using first-occurrence-wins.
+// by Package name; when two stacks share a key, the alphabetically-first stack
+// wins (input is sorted by StackID before collection).
 func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig, error) {
 	// Step 1: Validate all stack IDs and deduplicate.
 	seen := make(map[stack.StackID]bool)
