@@ -1,0 +1,12 @@
+# Build
+ccbox
+
+# Claude Code ephemeral state
+.claude/logs/
+.claude/worktrees/
+.claude/state/
+.claude/projects/
+
+# Environment
+.env
+.env.*
