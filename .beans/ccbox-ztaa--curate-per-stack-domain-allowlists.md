@@ -37,7 +37,7 @@ Validate each domain is actually needed for basic development workflows (install
 - [x] No TODO/FIXME/HACK/XXX comments
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
