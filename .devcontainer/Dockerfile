@@ -12,8 +12,7 @@ RUN apt-get update && apt-get install -y locales \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl git sudo zsh ca-certificates gnupg \
     iptables ipset iproute2 dnsutils dnsmasq \
-    build-essential jq fzf{{ range .SystemDeps }} \
-    {{ . }}{{ end }} \
+    build-essential jq fzf \
     && rm -rf /var/lib/apt/lists/*
 
 # --- GitHub CLI (gh) ---
@@ -40,11 +39,7 @@ RUN curl https://mise.jdx.dev/install.sh | sh \
 COPY <<'MISE' /home/node/.config/mise/config.toml
 [tools]
 node = "lts"
-{{ range .Runtimes -}}
-{{ if ne .Tool "node" -}}
-{{ .Tool }} = "{{ .Version }}"
-{{ end -}}
-{{ end -}}
+go = "latest"
 MISE
 
 # --- Install runtimes via mise (as node user so $HOME matches config path) ---
@@ -53,12 +48,9 @@ USER node
 ENV PATH="/home/node/.local/share/mise/shims:/home/node/.local/bin:${PATH}"
 RUN mise install
 
-{{ if .LSPs }}
+
 # --- LSP servers ---
-{{ range .LSPs -}}
-RUN {{ .InstallCmd }}
-{{ end -}}
-{{ end -}}
+RUN go install golang.org/x/tools/gopls@latest
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
