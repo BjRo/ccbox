@@ -30,8 +30,8 @@ This registry is the single source of truth for all stack-specific behavior.
 - [x] Tests pass (`go test ./...`)
 - [x] Branch pushed
 - [x] PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] All checklist items completed
 - [ ] User notified
 
@@ -185,5 +185,5 @@ None. The test file fully specifies the API contract. The data values (tool name
 | implement | complete | 1 | 2026-04-02 |
 | pr | complete | 1 | 2026-04-02 |
 | review | complete | 1 | 2026-04-02 |
-| rework | in-progress | 1 | 2026-04-02 |
+| rework | complete | 1 | 2026-04-02 |
 | codify | pending | | |
