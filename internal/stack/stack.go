@@ -1,6 +1,9 @@
 package stack
 
-import "sort"
+import (
+	"slices"
+	"strings"
+)
 
 // StackID identifies a supported technology stack.
 // It uses string values rather than integer enums because stack IDs appear
@@ -74,7 +77,6 @@ var registry = map[StackID]Stack{
 			Plugin:     "gopls",
 		},
 		DefaultDomains: []string{"proxy.golang.org", "sum.golang.org", "storage.googleapis.com"},
-		DynamicDomains: nil,
 		MarkerFiles:    []string{"go.mod"},
 	},
 	Node: {
@@ -106,7 +108,6 @@ var registry = map[StackID]Stack{
 			Plugin:     "pyright",
 		},
 		DefaultDomains: []string{"pypi.org", "files.pythonhosted.org"},
-		DynamicDomains: nil,
 		MarkerFiles:    []string{"requirements.txt", "pyproject.toml", "setup.py", "Pipfile"},
 	},
 	Rust: {
@@ -138,7 +139,6 @@ var registry = map[StackID]Stack{
 			Plugin:     "solargraph",
 		},
 		DefaultDomains: []string{"rubygems.org", "index.rubygems.org"},
-		DynamicDomains: nil,
 		MarkerFiles:    []string{"Gemfile"},
 	},
 }
@@ -162,8 +162,8 @@ func All() []Stack {
 	for _, s := range registry {
 		stacks = append(stacks, copyStack(s))
 	}
-	sort.Slice(stacks, func(i, j int) bool {
-		return stacks[i].ID < stacks[j].ID
+	slices.SortFunc(stacks, func(a, b Stack) int {
+		return strings.Compare(string(a.ID), string(b.ID))
 	})
 	return stacks
 }
@@ -176,8 +176,8 @@ func IDs() []StackID {
 	for id := range registry {
 		ids = append(ids, id)
 	}
-	sort.Slice(ids, func(i, j int) bool {
-		return ids[i] < ids[j]
+	slices.SortFunc(ids, func(a, b StackID) int {
+		return strings.Compare(string(a), string(b))
 	})
 	return ids
 }
@@ -186,17 +186,8 @@ func IDs() []StackID {
 // callers cannot mutate registry data.
 func copyStack(s Stack) Stack {
 	cp := s
-	if s.DefaultDomains != nil {
-		cp.DefaultDomains = make([]string, len(s.DefaultDomains))
-		copy(cp.DefaultDomains, s.DefaultDomains)
-	}
-	if s.DynamicDomains != nil {
-		cp.DynamicDomains = make([]string, len(s.DynamicDomains))
-		copy(cp.DynamicDomains, s.DynamicDomains)
-	}
-	if s.MarkerFiles != nil {
-		cp.MarkerFiles = make([]string, len(s.MarkerFiles))
-		copy(cp.MarkerFiles, s.MarkerFiles)
-	}
+	cp.DefaultDomains = slices.Clone(s.DefaultDomains)
+	cp.DynamicDomains = slices.Clone(s.DynamicDomains)
+	cp.MarkerFiles = slices.Clone(s.MarkerFiles)
 	return cp
 }
