@@ -23,10 +23,10 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX in new code
-- [ ] Lint passes (`golangci-lint run ./...`)
-- [ ] Tests pass (`go test ./...`)
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX in new code
+- [x] Lint passes (`golangci-lint run ./...`)
+- [x] Tests pass (`go test ./...`)
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
