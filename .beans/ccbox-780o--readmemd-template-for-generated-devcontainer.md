@@ -116,10 +116,10 @@ None -- the scope is well-defined and all patterns are established by existing r
 
 ## Checklist
 
-- [ ] Tests written
-- [ ] No TODO/FIXME/HACK/XXX
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written
+- [x] No TODO/FIXME/HACK/XXX
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -133,7 +133,7 @@ None -- the scope is well-defined and all patterns are established by existing r
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02 |
 | challenge | complete | 1 | 2026-04-02 |
-| implement | pending | | |
+| implement | complete | 1 | 2026-04-02 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
