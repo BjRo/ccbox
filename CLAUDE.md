@@ -41,8 +41,37 @@ Key design patterns:
 - **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
-- Templates use Go's `embed` package for bundling (see "Embedded Template Rendering" below and ADR-0006)
+- **Template rendering**: Embedded Go templates in `internal/render/`, parsed once at startup via `template.Must`. See "Template Rendering Pattern" section below and ADR-0006.
 - **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
+- **Node always included**: Node/npm is always present in generated containers because Claude Code requires it. The Dockerfile template hardcodes `node = "lts"` in the mise config and skips Node in the `{{ range .Runtimes }}` loop via `{{ if ne .Tool "node" }}`. This invariant applies to all templates that reference runtimes.
+
+## Template Rendering Pattern
+
+All template files live in `internal/render/templates/` and follow a consistent structure:
+
+- **Shared `embed.go`**: A single `embed.go` file in `internal/render/` contains the `//go:embed templates/*` directive and exports the `embed.FS` variable (`templateFS`). All template files are embedded through this one directive. Individual render files (e.g., `devcontainer.go`, `dockerfile.go`) do not declare their own embed directives.
+
+- **Package-level `template.Must(template.ParseFS(...))`**: Each template is parsed once at package init into an unexported `var fooTmpl` variable. `template.Must` is the correct idiom here because parse failures on embedded templates are always programmer errors and should surface immediately at startup, not at render time.
+
+- **Uniform render function signature**: Every render function follows `FuncName(w io.Writer, cfg GenerationConfig) error`. The `io.Writer` parameter follows Go conventions (like `text/template.Execute`). The `cfg` parameter is always `GenerationConfig`, even when the current template does not use all (or any) of its fields. This keeps the API uniform and avoids signature changes when parameterization is added later.
+
+```go
+// embed.go -- single file, shared across all templates
+//go:embed templates/*
+var templateFS embed.FS
+
+// devcontainer.go -- one file per template
+var devcontainerTmpl = template.Must(template.ParseFS(templateFS, "templates/devcontainer.json.tmpl"))
+
+func DevContainer(w io.Writer, cfg GenerationConfig) error {
+    if err := devcontainerTmpl.Execute(w, cfg); err != nil {
+        return fmt.Errorf("render devcontainer.json: %w", err)
+    }
+    return nil
+}
+```
+
+Uses `text/template` (not `html/template`) since output is config files, not HTML. See ADR-0002 for why the package is named `render`.
 
 ## Package Documentation Convention
 
@@ -101,30 +130,6 @@ The rendering pattern has four parts:
 3. **Pure rendering functions**: Each `RenderXxx(cfg GenerationConfig) (XxxFiles, error)` is a pure transformation -- config in, `[]byte` fields out, no file I/O. File writing is the orchestrator's job.
 4. **Use `text/template`, not `html/template`**: Outputs are shell scripts, config files, Dockerfiles, and JSON -- not HTML. `html/template` would corrupt shell-meaningful characters.
 
-```go
-// Pattern: embed, parse, render
-//go:embed templates/*.tmpl
-var templatesFS embed.FS
-
-var funcMap = template.FuncMap{
-    "stripWildcard": func(name string) string {
-        return strings.TrimPrefix(name, "*.")
-    },
-}
-
-var templates = template.Must(
-    template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl"),
-)
-
-func RenderFoo(cfg GenerationConfig) (FooFiles, error) {
-    var buf bytes.Buffer
-    if err := templates.ExecuteTemplate(&buf, "foo.tmpl", cfg); err != nil {
-        return FooFiles{}, err
-    }
-    return FooFiles{Content: buf.Bytes()}, nil
-}
-```
-
 ## Shell Injection Defense for Generated Scripts
 
 Templates that produce shell scripts (e.g., `init-firewall.sh.tmpl`) must use two independent defense layers:
@@ -134,16 +139,30 @@ Templates that produce shell scripts (e.g., `init-firewall.sh.tmpl`) must use tw
 
 Both layers are independently sufficient. This same two-layer approach applies to any future template that generates executable scripts from user-provided input.
 
-## Testing Template Output
+## Go Template Whitespace in Dockerfile Continuations
 
-Template rendering tests use **structural assertions**, not golden-file snapshots. Golden files are brittle -- any whitespace or comment change breaks them. Instead:
+Dockerfile `RUN` blocks use backslash (`\`) continuation lines. When a `{{ range }}` loop appends items to such a block, the template must handle both the non-empty and empty cases without producing dangling backslashes or blank lines inside the shell command.
 
-- **Shebang and structure checks**: Assert output starts with `#!/usr/bin/env bash`, contains `set -euo pipefail`, contains key structural markers (e.g., `ipset create`, `iptables`).
-- **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain name appears in the rendered output. This auto-adapts when registry data grows.
-- **Spot-checks for specific content**: Assert well-known entries (e.g., `"github.com"`, `ipset=/anthropic.com/allowed_ips`) appear in the output.
-- **Static template invariant**: If a template has no Go template variables, assert its output is identical across different configs.
-- **Empty-input safety**: Render with empty (but non-nil) slices and verify no `<no value>` artifacts appear.
-- **Defense-layer verification**: Assert single-quoted domain interpolation appears in shell script output (e.g., `'github.com'` in a `dig` command).
+The established pattern places the `{{ range }}` inline on the last static line, so the backslash comes from the range body:
+
+```
+    build-essential jq fzf{{ range .SystemDeps }} \
+    {{ . }}{{ end }} \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+When `.SystemDeps` is empty, this renders as `build-essential jq fzf \` followed by `&& rm -rf ...`. When non-empty, each dep gets its own continuation line. The key constraint: never use `{{- }}` trim markers that would collapse the continuation backslashes.
+
+## Template Testing
+
+Template tests use **structural assertions**, not golden-file snapshots:
+
+- **Two-tier strategy**: Integration tests (through `Merge` + render) verify full pipeline; isolation tests (hand-built `GenerationConfig`) test template logic independently of the registry.
+- **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain appears in rendered output.
+- **Spot-checks**: Assert well-known entries (e.g., `"github.com"`, `ipset=/anthropic.com/allowed_ips`) appear in output.
+- **Empty-input safety**: Render with empty (but non-nil) slices and verify no `<no value>` artifacts.
+- **Shell syntax validation**: `TestDockerfile_AptGetValidShellSyntax` asserts no bare backslash lines, no double backslashes, and no blank lines inside RUN blocks.
+- **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
 
 ## Bean-Driven Workflow
 
@@ -221,4 +240,4 @@ When switching on a string-typed category or enum where one branch is the "safe"
 
 ## Decisions
 
-Architecture Decision Records live in `decisions/`. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.
+All important technical decisions are documented as Architecture Decision Records (ADRs). See [`decisions/README.md`](decisions/README.md) for the full index. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.

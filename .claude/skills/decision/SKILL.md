@@ -48,7 +48,7 @@ Create in `/decisions/` with naming: `YYYYMMDDHHMMSS-kebab-case-title.md`
 
 ### 4. Update the Decision Index
 
-Add a new row to `/decisions/CLAUDE.md` index table.
+Add a new row to `/decisions/README.md` index table.
 
 ### 5. Commit Both Files
 

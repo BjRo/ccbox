@@ -51,7 +51,7 @@ Track state in the bean body:
 
 Launch @refine, then @challenge. Parse verdict. Loop or escalate.
 
-## Phase 2: Implement-Review-Rework Loop (max 2 iterations)
+## Phase 2: Implement-Review-Rework Loop (max 3 review iterations)
 
 ### Step 1: Launch Implement
 
@@ -68,13 +68,20 @@ Agent tool call:
 gh pr create --title "<type>: <description>" --body "..."
 ```
 
-### Step 3: Launch Review
+### Step 3: Review-Rework Loop
 
-Launch @review-backend.
+Set review_iteration = 1. Then loop:
 
-### Step 4: Evaluate
+1. **Launch @review-backend** to review the PR code and post findings as PR comments.
+2. **Read the review results** from the agent's response.
+3. **If no actionable findings** -> exit loop, proceed to Phase 3 (Codify).
+4. **If actionable findings AND review_iteration < 3**:
+   a. Launch @rework to address ALL findings (CRITICAL, WARNING, SUGGESTION).
+   b. Increment review_iteration.
+   c. **Go back to step 1 of this loop** (re-launch @review-backend).
+5. **If actionable findings AND review_iteration >= 3** -> escalate (write escalation to bean).
 
-No findings -> codify. Findings -> rework -> re-review.
+**CRITICAL: After rework, you MUST re-launch @review-backend before proceeding to codify. Never skip the re-review.**
 
 ## Phase 3: Codify
 
