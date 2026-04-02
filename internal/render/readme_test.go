@@ -64,12 +64,13 @@ func TestREADME_DetectedStacksListed(t *testing.T) {
 		t.Fatalf("README: %v", err)
 	}
 
-	// Stack IDs should appear in the output.
-	if !strings.Contains(out, "go") {
-		t.Error("README missing stack 'go'")
+	// Stack IDs should appear as Markdown list items to avoid false-positive
+	// substring matches (e.g., "go" appearing in domain rationale text).
+	if !strings.Contains(out, "- go\n") {
+		t.Error("README missing stack 'go' as list item")
 	}
-	if !strings.Contains(out, "node") {
-		t.Error("README missing stack 'node'")
+	if !strings.Contains(out, "- node\n") {
+		t.Error("README missing stack 'node' as list item")
 	}
 }
 
