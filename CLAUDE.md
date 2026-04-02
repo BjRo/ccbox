@@ -20,6 +20,7 @@ golangci-lint run ./...         # Lint
 
 - **Go version**: 1.24+
 - **Module path**: `github.com/bjro/ccbox`
+- **Linting**: `.golangci.yml` using golangci-lint **v2** format. Enabled: govet, errcheck, staticcheck, unused, ineffassign.
 - **Release tooling**: GoReleaser (cross-platform: linux/darwin, amd64/arm64), Homebrew tap at `bjro/homebrew-tap`
 
 ## Architecture
@@ -32,137 +33,16 @@ internal/
   stack/               # Stack metadata registry (pure data, zero internal dependencies)
   detect/              # Stack detection (scans for marker files like go.mod, package.json, etc.)
   render/              # Template rendering engine (Go templates → Dockerfile, devcontainer.json, scripts)
-  firewall/            # Domain allowlist logic (per-stack defaults, merging, deduplication)
+  firewall/            # Domain allowlist logic (per-stack defaults, merging, deduplication, validation)
   config/              # .ccbox.yml handling (persists user choices)
 main.go
 ```
 
-Key design patterns:
-- **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
-- **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
-- **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
-- **Template rendering**: Embedded Go templates in `internal/render/`, parsed once at startup via `template.Must`. See "Template Rendering Pattern" section below and ADR-0006.
-- **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
-- **Node always included**: Node/npm is always present in generated containers because Claude Code requires it. The Dockerfile template hardcodes `node = "lts"` in the mise config and skips Node in the `{{ range .Runtimes }}` loop via `{{ if ne .Tool "node" }}`. This invariant applies to all templates that reference runtimes.
-
-## Template Rendering Pattern
-
-All template files live in `internal/render/templates/` and follow a consistent structure:
-
-- **Shared `embed.go`**: A single `embed.go` file in `internal/render/` contains the `//go:embed templates/*` directive and exports the `embed.FS` variable (`templateFS`). All template files are embedded through this one directive. Individual render files (e.g., `devcontainer.go`, `dockerfile.go`) do not declare their own embed directives.
-
-- **Package-level `template.Must(template.ParseFS(...))`**: Each template is parsed once at package init into an unexported `var fooTmpl` variable. `template.Must` is the correct idiom here because parse failures on embedded templates are always programmer errors and should surface immediately at startup, not at render time.
-
-- **Uniform render function signature**: Every render function follows `FuncName(w io.Writer, cfg GenerationConfig) error`. The `io.Writer` parameter follows Go conventions (like `text/template.Execute`). The `cfg` parameter is always `GenerationConfig`, even when the current template does not use all (or any) of its fields. This keeps the API uniform and avoids signature changes when parameterization is added later.
-
-```go
-// embed.go -- single file, shared across all templates
-//go:embed templates/*
-var templateFS embed.FS
-
-// devcontainer.go -- one file per template
-var devcontainerTmpl = template.Must(template.ParseFS(templateFS, "templates/devcontainer.json.tmpl"))
-
-func DevContainer(w io.Writer, cfg GenerationConfig) error {
-    if err := devcontainerTmpl.Execute(w, cfg); err != nil {
-        return fmt.Errorf("render devcontainer.json: %w", err)
-    }
-    return nil
-}
-```
-
-Uses `text/template` (not `html/template`) since output is config files, not HTML. See ADR-0002 for why the package is named `render`.
-
-## Package Documentation Convention
-
-When a package's doc comment outgrows a single line above the `package` declaration, extract it to a `doc.go` file. The original `.go` file keeps a bare `package <name>` line with no comment. This keeps the primary source file focused on implementation and avoids the doc comment drifting out of sync with the code as the package grows.
-
-## Registry Pattern
-
-Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) follow a consistent pattern:
-
-- **Unexported `var registry` map**: Public API via accessor functions only. No exported map or mutable state.
-- **Defensive-copy accessors**: `All() []T`, `Get(id) (T, bool)`, `IDs() []ID` all return deep copies. Slice fields cloned via `slices.Clone`. Tests verify mutations don't corrupt canonical data.
-- **String-based type IDs**: Use `type FooID string` (not integer enums) when IDs appear in config files, CLI flags, or template output.
-- **Sorted output**: `All()` and `IDs()` return sorted slices via `slices.Sorted(maps.Keys(m))` for deterministic templates and CLI output.
-- **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration. Package-level initialization of static, immutable data is idiomatic Go.
-
-## Filesystem Testability via fs.FS
-
-Packages that perform filesystem I/O should use Go's `fs.FS` interface to separate logic from the real filesystem. The pattern:
-
-- **Unexported core function accepts `fs.FS`**: e.g., `detect(fsys fs.FS) ([]stack.StackID, error)`. This contains all the real logic.
-- **Exported function accepts a path string**: e.g., `Detect(dir string) ([]stack.StackID, error)`. It validates the path, wraps it with `os.DirFS(dir)`, and delegates to the core function.
-- **Tests use `fstest.MapFS`**: In-memory filesystem with zero disk I/O, no temp directories to clean up, and deterministic behavior across platforms.
-
-```go
-// Production: real filesystem
-func Detect(dir string) ([]stack.StackID, error) {
-    return detect(os.DirFS(dir))
-}
-
-// Testable core: any fs.FS
-func detect(fsys fs.FS) ([]stack.StackID, error) { ... }
-
-// Test: in-memory filesystem
-fsys := fstest.MapFS{
-    "go.mod": &fstest.MapFile{},
-}
-got, err := detect(fsys)
-```
-
-Use `fs.Stat`, `fs.ReadDir`, and `fs.Glob` (not `os.*` or `filepath.*`) inside the core function to stay compatible with any `fs.FS` implementation. Reserve one integration-style test that calls the public API with a real path to verify the `os.DirFS` wiring.
-
-## Testing Patterns for Registry-Backed Code
-
-When testing functions that consume registry data (e.g., `firewall.Merge`), prefer **structural invariants computed from the registry** over hardcoded expected values. Hardcoded counts break silently when registry data grows. Pair structural assertions with a few **hardcoded spot-checks** that name specific well-known entries, so the two approaches cross-validate each other.
-
-Example: assert `len(result.Static) == len(collectExpected(...))` (structural), then `assert result contains "github.com" in Static` (spot-check).
-
-## Embedded Template Rendering
-
-All templates live in `internal/render/templates/*.tmpl` and are embedded via `//go:embed` + `embed.FS`. See ADR-0006 for the full rationale.
-
-The rendering pattern has four parts:
-
-1. **Embed and parse once at package level**: `template.Must(template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl"))`. The `Funcs()` call must come before `ParseFS` because Go's template parser needs to know about custom functions at parse time.
-2. **FuncMap helpers are minimal**: They perform a single transformation (e.g., `strings.TrimPrefix`). Input validation happens upstream in `Merge` functions, not in template helpers.
-3. **Pure rendering functions**: Each `RenderXxx(cfg GenerationConfig) (XxxFiles, error)` is a pure transformation -- config in, `[]byte` fields out, no file I/O. File writing is the orchestrator's job.
-4. **Use `text/template`, not `html/template`**: Outputs are shell scripts, config files, Dockerfiles, and JSON -- not HTML. `html/template` would corrupt shell-meaningful characters.
-
-## Shell Injection Defense for Generated Scripts
-
-Templates that produce shell scripts (e.g., `init-firewall.sh.tmpl`) must use two independent defense layers:
-
-1. **Input validation**: `firewall.ValidateDomain` enforces strict RFC 1123 DNS hostname syntax before any domain enters `GenerationConfig`. Shell metacharacters are structurally impossible in valid DNS names. Validation runs in `firewall.Merge` for user-supplied domains; registry domains are trusted.
-2. **Output quoting**: All user-influenced interpolations in shell templates use single quotes (e.g., `dig +short '{{.Name}}'`). Single quotes prevent shell expansion even if validation were somehow bypassed.
-
-Both layers are independently sufficient. This same two-layer approach applies to any future template that generates executable scripts from user-provided input.
-
-## Go Template Whitespace in Dockerfile Continuations
-
-Dockerfile `RUN` blocks use backslash (`\`) continuation lines. When a `{{ range }}` loop appends items to such a block, the template must handle both the non-empty and empty cases without producing dangling backslashes or blank lines inside the shell command.
-
-The established pattern places the `{{ range }}` inline on the last static line, so the backslash comes from the range body:
-
-```
-    build-essential jq fzf{{ range .SystemDeps }} \
-    {{ . }}{{ end }} \
-    && rm -rf /var/lib/apt/lists/*
-```
-
-When `.SystemDeps` is empty, this renders as `build-essential jq fzf \` followed by `&& rm -rf ...`. When non-empty, each dep gets its own continuation line. The key constraint: never use `{{- }}` trim markers that would collapse the continuation backslashes.
-
-## Template Testing
-
-Template tests use **structural assertions**, not golden-file snapshots:
-
-- **Two-tier strategy**: Integration tests (through `Merge` + render) verify full pipeline; isolation tests (hand-built `GenerationConfig`) test template logic independently of the registry.
-- **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain appears in rendered output.
-- **Spot-checks**: Assert well-known entries (e.g., `"github.com"`, `ipset=/anthropic.com/allowed_ips`) appear in output.
-- **Empty-input safety**: Render with empty (but non-nil) slices and verify no `<no value>` artifacts.
-- **Shell syntax validation**: `TestDockerfile_AptGetValidShellSyntax` asserts no bare backslash lines, no double backslashes, and no blank lines inside RUN blocks.
-- **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
+Key design:
+- **Stack metadata registry** in `internal/stack/` -- single source of truth per stack, separate from behavior packages to avoid import cycles (ADR-0004)
+- **`render.Merge`** -- single entry point for multi-stack merging into `GenerationConfig` (ADR-0005)
+- **Embedded templates** in `internal/render/templates/`, parsed once at startup (ADR-0006)
+- **Dual-mode UX** -- interactive wizard (default) and non-interactive CLI flags
 
 ## Bean-Driven Workflow
 
@@ -172,7 +52,7 @@ All work is tracked with `beans` CLI, not TodoWrite. The delivery pipeline:
 2. **`/challenge <bean-id>`** -- Stress-test plan via Go engineer persona
 3. **`/implement <bean-id>`** -- TDD-based implementation
 4. **`/rework`** -- Fix review feedback
-5. **`/codify <bean-id>`** -- Extract learnings into docs/ADRs
+5. **`/codify <bean-id>`** -- Extract learnings into rules/ADRs
 6. **`/deliver <bean-id>`** -- Run full pipeline end-to-end
 
 Use `/dev-workflow` when starting work on a bean for proper git hygiene.
@@ -198,46 +78,10 @@ Automated reviews use the Go engineer persona (`.claude/personas/go-engineer.md`
 
 Engineering calibration: flag repetition (DRY), flag over-engineering (premature abstractions), flag under-engineering (missing error handling/edge cases).
 
-## Cobra CLI Patterns
-
-All commands follow the **unexported constructor pattern** established in `cmd/root.go`:
-
-- Each command file exposes `newXxxCmd() *cobra.Command` (unexported).
-- `newRootCmd()` builds the full command tree by calling sub-command constructors and wiring them via `AddCommand`.
-- The package-level `var rootCmd = newRootCmd()` is the single production instance. No `init()` functions for command registration.
-- Tests call `newRootCmd()` per test to get a fresh, isolated command tree. Use `cmd.SetOut()`, `cmd.SetErr()`, and `cmd.SetArgs()` for test I/O.
-- Tests live in `package cmd` (internal), not `package cmd_test`, because they need access to unexported constructors. True black-box CLI testing belongs in integration tests.
-
-Root command wiring:
-- `SilenceErrors: true` -- Cobra does not print errors; `main.go` handles all error output.
-- `SilenceUsage: true` -- Cobra does not dump usage on errors; users run `--help` explicitly.
-- `main.go` prints the error to stderr and exits with code 1.
-
-Version injection:
-- `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
-- GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
-
-## Go Style: Prefer Modern stdlib Packages
-
-Since the project targets Go 1.24+, prefer the `slices` and `maps` packages from the standard library over older patterns:
-
-- **Sorting**: `slices.Sort(s)` or `slices.SortFunc(s, cmp)` instead of `sort.Slice(s, less)`.
-- **Sorted map keys**: `slices.Sorted(maps.Keys(m))` instead of manually collecting keys, sorting, and returning.
-- **Slice copying**: `slices.Clone(s)` instead of manual `make` + `copy`.
-- **Map copying**: `maps.Clone(m)` for shallow copies.
-
-These produce shorter, less error-prone code and signal to readers that the codebase follows current Go idioms.
-
-## Go Style: Prefer `default` in Category/Enum Switches
-
-When switching on a string-typed category or enum where one branch is the "safe" fallback, use `default` instead of explicitly listing all non-primary cases. This prevents silent data loss if a new category value is added to the type but not yet handled in the switch. For example, `firewall.Merge` routes unrecognized `Category` values to the Dynamic bucket (re-resolved by dnsmasq) rather than silently dropping them.
-
-## Linting
-
-- Config: `.golangci.yml` using golangci-lint **v2** format (`version: "2"`).
-- Enabled linters: govet, errcheck, staticcheck, unused, ineffassign.
-- Run with `golangci-lint run ./...`.
-
 ## Decisions
 
 All important technical decisions are documented as Architecture Decision Records (ADRs). See [`decisions/README.md`](decisions/README.md) for the full index. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.
+
+## Rules
+
+Go coding patterns, template rendering conventions, and testing strategies live in `.claude/rules/`. These are loaded automatically by Claude Code. When codifying learnings from completed work, prefer adding to rules over expanding this file.
