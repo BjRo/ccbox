@@ -1,0 +1,77 @@
+# syntax=docker/dockerfile:1
+# --- Base image ---
+FROM debian:bookworm-slim
+
+# --- Locale ---
+ENV LANG=en_US.UTF-8
+RUN apt-get update && apt-get install -y locales \
+    && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
+    && locale-gen
+
+# --- System packages ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl git sudo zsh ca-certificates gnupg \
+    iptables ipset iproute2 dnsutils dnsmasq \
+    build-essential jq fzf \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- GitHub CLI (gh) ---
+RUN (curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+        | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg) \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Create non-root user ---
+RUN groupadd --gid 1000 node \
+    && useradd --uid 1000 --gid node --shell /bin/zsh --create-home node \
+    && echo 'node ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/node
+
+# --- Mise (runtime manager) ---
+# NOTE: curl|sh trusts mise.jdx.dev; consider pinning to a release with
+# checksum verification for hardened environments.
+RUN curl https://mise.jdx.dev/install.sh | sh \
+    && cp /root/.local/bin/mise /usr/local/bin/mise
+
+# --- Runtime configuration ---
+# Node is always included because Claude Code requires npm.
+COPY <<'MISE' /home/node/.config/mise/config.toml
+[tools]
+node = "lts"
+go = "latest"
+MISE
+
+# --- Install runtimes via mise (as node user so $HOME matches config path) ---
+RUN chown -R node:node /home/node/.config
+USER node
+ENV PATH="/home/node/.local/share/mise/shims:/home/node/.local/bin:${PATH}"
+RUN mise install
+
+
+# --- LSP servers ---
+RUN go install golang.org/x/tools/gopls@latest
+# --- Claude Code ---
+RUN npm install -g @anthropic-ai/claude-code
+
+USER root
+
+# --- QoL: zsh-in-docker ---
+RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" -- \
+    -t robbyrussell
+
+# --- QoL: git-delta ---
+RUN ARCH=$(dpkg --print-architecture) \
+    && curl -fsSL -o /tmp/delta.deb \
+       https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_${ARCH}.deb \
+    && dpkg -i /tmp/delta.deb \
+    && rm /tmp/delta.deb
+
+# --- Firewall scripts ---
+COPY init-firewall.sh /usr/local/bin/init-firewall.sh
+COPY warmup-dns.sh /usr/local/bin/warmup-dns.sh
+COPY dynamic-domains.conf /etc/dnsmasq.d/dynamic-domains.conf
+RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/warmup-dns.sh
+
+USER node
+WORKDIR /workspace
