@@ -29,7 +29,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 - [x] Tests pass (`go test ./...`)
 - [x] Branch pushed
 - [x] PR created
-- [ ] Automated code review passed
+- [x] Automated code review passed
 - [x] Review feedback worked in
 - [ ] ADR written (if architectural changes)
 
@@ -42,7 +42,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 | implement | complete | 1 | 2026-04-02 |
 | pr | complete | 1 | 2026-04-02 |
 | review | complete | 1 | 2026-04-02 |
-| codify | pending | | |
+| codify | in-progress | 1 | 2026-04-02 |
 
 ## Implementation Plan
 

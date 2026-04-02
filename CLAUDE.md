@@ -53,6 +53,12 @@ Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) f
 - **Sorted output**: `All()` and `IDs()` return sorted slices via `slices.Sorted(maps.Keys(m))` for deterministic templates and CLI output.
 - **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration. Package-level initialization of static, immutable data is idiomatic Go.
 
+## Testing Patterns for Registry-Backed Code
+
+When testing functions that consume registry data (e.g., `firewall.Merge`), prefer **structural invariants computed from the registry** over hardcoded expected values. Hardcoded counts break silently when registry data grows. Pair structural assertions with a few **hardcoded spot-checks** that name specific well-known entries, so the two approaches cross-validate each other.
+
+Example: assert `len(result.Static) == len(collectExpected(...))` (structural), then `assert result contains "github.com" in Static` (spot-check).
+
 ## Bean-Driven Workflow
 
 All work is tracked with `beans` CLI, not TodoWrite. The delivery pipeline:
@@ -116,6 +122,10 @@ Since the project targets Go 1.24+, prefer the `slices` and `maps` packages from
 - **Map copying**: `maps.Clone(m)` for shallow copies.
 
 These produce shorter, less error-prone code and signal to readers that the codebase follows current Go idioms.
+
+## Go Style: Prefer `default` in Category/Enum Switches
+
+When switching on a string-typed category or enum where one branch is the "safe" fallback, use `default` instead of explicitly listing all non-primary cases. This prevents silent data loss if a new category value is added to the type but not yet handled in the switch. For example, `firewall.Merge` routes unrecognized `Category` values to the Dynamic bucket (re-resolved by dnsmasq) rather than silently dropping them.
 
 ## Linting
 
