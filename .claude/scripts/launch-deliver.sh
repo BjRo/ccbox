@@ -20,7 +20,7 @@
 
 set -e
 
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+PROJECT_DIR="$(cd "${CLAUDE_PROJECT_DIR:-.}" && pwd)"
 LOGS_DIR="${PROJECT_DIR}/.claude/logs"
 WORKTREES_DIR="${PROJECT_DIR}/.claude/worktrees"
 STATE_DIR="${PROJECT_DIR}/.claude/state/slots"
