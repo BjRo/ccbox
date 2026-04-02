@@ -1,7 +1,7 @@
 package firewall
 
 import (
-	"sort"
+	"slices"
 	"testing"
 )
 
@@ -193,9 +193,7 @@ func TestStacks_Order(t *testing.T) {
 		t.Fatalf("Stacks() returned %d stacks, want %d", len(stacks), len(expected))
 	}
 
-	if !sort.SliceIsSorted(stacks, func(i, j int) bool {
-		return stacks[i] < stacks[j]
-	}) {
+	if !slices.IsSorted(stacks) {
 		t.Errorf("Stacks() not sorted: %v", stacks)
 	}
 
@@ -214,5 +212,36 @@ func TestRegistry_ReturnsDefensiveCopy(t *testing.T) {
 	reg2 := Registry()
 	if _, ok := reg2[Go]; !ok {
 		t.Error("mutating Registry() return value affected subsequent calls -- defensive copy is broken")
+	}
+
+	// Mutate a domain element inside the returned allowlist.
+	al := reg2[AlwaysOn]
+	if len(al.Domains) == 0 {
+		t.Fatal("AlwaysOn has no domains")
+	}
+	originalName := al.Domains[0].Name
+	al.Domains[0].Name = "evil.com"
+
+	reg3 := Registry()
+	if reg3[AlwaysOn].Domains[0].Name != originalName {
+		t.Error("mutating Allowlist.Domains element affected canonical registry -- deep copy is broken")
+	}
+}
+
+func TestForStack_ReturnsDefensiveCopy(t *testing.T) {
+	al1, ok := ForStack(Go)
+	if !ok {
+		t.Fatal("ForStack(Go) returned false")
+	}
+	if len(al1.Domains) == 0 {
+		t.Fatal("Go allowlist has no domains")
+	}
+
+	originalName := al1.Domains[0].Name
+	al1.Domains[0].Name = "evil.com"
+
+	al2, _ := ForStack(Go)
+	if al2.Domains[0].Name != originalName {
+		t.Error("mutating ForStack() return value affected canonical registry -- deep copy is broken")
 	}
 }
