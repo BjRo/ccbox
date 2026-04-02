@@ -1,11 +1,11 @@
 ---
 # ccbox-v9jt
 title: devcontainer.json template
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-04-02T10:35:10Z
-updated_at: 2026-04-02T15:39:57Z
+updated_at: 2026-04-02T16:02:24Z
 parent: ccbox-6z26
 ---
 
