@@ -146,10 +146,10 @@ None. The bean description is sufficiently prescriptive, and the template conten
 
 ## Checklist
 
-- [ ] Tests written
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
