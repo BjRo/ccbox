@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:35:10Z
-updated_at: 2026-04-02T15:34:38Z
+updated_at: 2026-04-02T15:37:56Z
 parent: ccbox-6z26
 ---
 
@@ -167,4 +167,4 @@ None. The bean description is sufficiently prescriptive, and the template conten
 | pr | completed | 1 | 2026-04-02 | | |
 | review | completed | 1 | 2026-04-02 | | |
 | rework | completed | 1 | 2026-04-02 | | |
-| codify | pending | | |
+| codify | in-progress | 1 | 2026-04-02 | | |
