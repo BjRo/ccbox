@@ -182,3 +182,9 @@ None -- the existing patterns in `firewall.Merge` provide clear precedent for th
 - [x] All tests pass (`go test ./...`)
 - [x] Lint clean (`golangci-lint run ./...`)
 - [x] Branch pushed
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent
+- [x] Review feedback worked in via `/rework` (3 iterations)
+- [x] ADR written via `/decision` skill (ADR-0005)
+- [x] All other checklist items above are completed
+- [ ] User notified for human review
