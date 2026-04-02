@@ -314,7 +314,7 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 - [x] PR created
 - [x] Automated code review passed
 - [x] Review feedback worked in
-- [ ] ADR written (if architectural changes)
+- [x] ADR written (if architectural changes)
 - [ ] User notified
 
 ## Pipeline State
@@ -327,4 +327,4 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 | pr | done | 1 | 2026-04-02 |
 | review | done | 1 | 2026-04-02 |
 | rework | done | 1 | 2026-04-02 |
-| codify | pending | | |
+| codify | done | 1 | 2026-04-02 |

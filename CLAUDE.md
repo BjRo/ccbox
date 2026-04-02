@@ -41,7 +41,7 @@ Key design patterns:
 - **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
-- Templates use Go's `embed` package for bundling
+- Templates use Go's `embed` package for bundling (see "Embedded Template Rendering" below and ADR-0006)
 - **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
 
 ## Package Documentation Convention
@@ -89,6 +89,61 @@ Use `fs.Stat`, `fs.ReadDir`, and `fs.Glob` (not `os.*` or `filepath.*`) inside t
 When testing functions that consume registry data (e.g., `firewall.Merge`), prefer **structural invariants computed from the registry** over hardcoded expected values. Hardcoded counts break silently when registry data grows. Pair structural assertions with a few **hardcoded spot-checks** that name specific well-known entries, so the two approaches cross-validate each other.
 
 Example: assert `len(result.Static) == len(collectExpected(...))` (structural), then `assert result contains "github.com" in Static` (spot-check).
+
+## Embedded Template Rendering
+
+All templates live in `internal/render/templates/*.tmpl` and are embedded via `//go:embed` + `embed.FS`. See ADR-0006 for the full rationale.
+
+The rendering pattern has four parts:
+
+1. **Embed and parse once at package level**: `template.Must(template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl"))`. The `Funcs()` call must come before `ParseFS` because Go's template parser needs to know about custom functions at parse time.
+2. **FuncMap helpers are minimal**: They perform a single transformation (e.g., `strings.TrimPrefix`). Input validation happens upstream in `Merge` functions, not in template helpers.
+3. **Pure rendering functions**: Each `RenderXxx(cfg GenerationConfig) (XxxFiles, error)` is a pure transformation -- config in, `[]byte` fields out, no file I/O. File writing is the orchestrator's job.
+4. **Use `text/template`, not `html/template`**: Outputs are shell scripts, config files, Dockerfiles, and JSON -- not HTML. `html/template` would corrupt shell-meaningful characters.
+
+```go
+// Pattern: embed, parse, render
+//go:embed templates/*.tmpl
+var templatesFS embed.FS
+
+var funcMap = template.FuncMap{
+    "stripWildcard": func(name string) string {
+        return strings.TrimPrefix(name, "*.")
+    },
+}
+
+var templates = template.Must(
+    template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl"),
+)
+
+func RenderFoo(cfg GenerationConfig) (FooFiles, error) {
+    var buf bytes.Buffer
+    if err := templates.ExecuteTemplate(&buf, "foo.tmpl", cfg); err != nil {
+        return FooFiles{}, err
+    }
+    return FooFiles{Content: buf.Bytes()}, nil
+}
+```
+
+## Shell Injection Defense for Generated Scripts
+
+Templates that produce shell scripts (e.g., `init-firewall.sh.tmpl`) must use two independent defense layers:
+
+1. **Input validation**: `firewall.ValidateDomain` enforces strict RFC 1123 DNS hostname syntax before any domain enters `GenerationConfig`. Shell metacharacters are structurally impossible in valid DNS names. Validation runs in `firewall.Merge` for user-supplied domains; registry domains are trusted.
+2. **Output quoting**: All user-influenced interpolations in shell templates use single quotes (e.g., `dig +short '{{.Name}}'`). Single quotes prevent shell expansion even if validation were somehow bypassed.
+
+Both layers are independently sufficient. This same two-layer approach applies to any future template that generates executable scripts from user-provided input.
+
+## Testing Template Output
+
+Template rendering tests use **structural assertions**, not golden-file snapshots. Golden files are brittle -- any whitespace or comment change breaks them. Instead:
+
+- **Shebang and structure checks**: Assert output starts with `#!/usr/bin/env bash`, contains `set -euo pipefail`, contains key structural markers (e.g., `ipset create`, `iptables`).
+- **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain name appears in the rendered output. This auto-adapts when registry data grows.
+- **Spot-checks for specific content**: Assert well-known entries (e.g., `"github.com"`, `ipset=/anthropic.com/allowed_ips`) appear in the output.
+- **Static template invariant**: If a template has no Go template variables, assert its output is identical across different configs.
+- **Empty-input safety**: Render with empty (but non-nil) slices and verify no `<no value>` artifacts appear.
+- **Defense-layer verification**: Assert single-quoted domain interpolation appears in shell script output (e.g., `'github.com'` in a `dig` command).
 
 ## Bean-Driven Workflow
 
