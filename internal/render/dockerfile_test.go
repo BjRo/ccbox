@@ -19,6 +19,9 @@ func TestDockerfile_BaseImage(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
+	if !strings.Contains(out, "# syntax=docker/dockerfile:1") {
+		t.Error("output missing BuildKit syntax directive")
+	}
 	if !strings.Contains(out, "FROM debian:bookworm-slim") {
 		t.Error("output missing FROM debian:bookworm-slim")
 	}
