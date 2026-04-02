@@ -39,9 +39,14 @@ main.go
 
 Key design patterns:
 - **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
-- **Multi-stack merging**: projects with multiple stacks get merged configurations
+- **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
+- **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
+
+## Package Documentation Convention
+
+When a package's doc comment outgrows a single line above the `package` declaration, extract it to a `doc.go` file. The original `.go` file keeps a bare `package <name>` line with no comment. This keeps the primary source file focused on implementation and avoids the doc comment drifting out of sync with the code as the package grows.
 
 ## Registry Pattern
 
