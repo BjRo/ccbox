@@ -152,8 +152,8 @@ None. The bean description is sufficiently prescriptive, and the template conten
 - [x] Tests pass
 - [x] Branch pushed
 - [x] PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] ADR written (if applicable)
 - [ ] User notified
 
@@ -165,5 +165,6 @@ None. The bean description is sufficiently prescriptive, and the template conten
 | challenge | completed | 1 | 2026-04-02 | | |
 | implement | completed | 1 | 2026-04-02 | | |
 | pr | completed | 1 | 2026-04-02 | | |
-| review | in-progress | 1 | 2026-04-02 | | |
+| review | completed | 1 | 2026-04-02 | | |
+| rework | completed | 1 | 2026-04-02 | | |
 | codify | pending | | |
