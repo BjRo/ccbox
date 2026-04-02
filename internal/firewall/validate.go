@@ -32,10 +32,7 @@ func ValidateDomain(name string) error {
 	}
 
 	// Check individual label lengths. Strip optional wildcard prefix first.
-	bareLabels := name
-	if strings.HasPrefix(bareLabels, "*.") {
-		bareLabels = bareLabels[2:]
-	}
+	bareLabels := strings.TrimPrefix(name, "*.")
 
 	for _, label := range strings.Split(bareLabels, ".") {
 		if len(label) > 63 {
