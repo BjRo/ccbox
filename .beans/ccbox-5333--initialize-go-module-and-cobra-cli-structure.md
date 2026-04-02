@@ -216,7 +216,7 @@ The plan is solid. The `newRootCmd()` constructor pattern, the `internal/render/
 - [x] Step 5: Create cmd/init.go
 - [x] Step 9: Write tests for cmd/root.go
 - [x] Step 10: Write tests for cmd/init.go
-- [ ] Step 6: Create placeholder internal packages
-- [ ] Step 7: Create .golangci.yml
-- [ ] Step 8: Update CLAUDE.md architecture section
+- [x] Step 6: Create placeholder internal packages
+- [x] Step 7: Create .golangci.yml
+- [x] Step 8: Update CLAUDE.md architecture section
 - [ ] Step 11: Final verification
