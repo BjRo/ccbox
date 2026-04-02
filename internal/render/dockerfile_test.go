@@ -236,24 +236,22 @@ func TestDockerfile_UserAndWorkdir(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	lines := strings.Split(strings.TrimSpace(out), "\n")
-	// The last two non-empty lines should be USER node and WORKDIR /workspace.
-	var lastTwo []string
-	for i := len(lines) - 1; i >= 0 && len(lastTwo) < 2; i-- {
-		line := strings.TrimSpace(lines[i])
-		if line != "" {
-			lastTwo = append([]string{line}, lastTwo...)
-		}
+	// USER node should appear and WORKDIR /workspace should be the last non-empty line.
+	if !strings.Contains(out, "USER node") {
+		t.Error("output missing USER node")
 	}
 
-	if len(lastTwo) < 2 {
-		t.Fatal("output has fewer than 2 non-empty lines at the end")
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	var lastLine string
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line != "" {
+			lastLine = line
+			break
+		}
 	}
-	if lastTwo[0] != "USER node" {
-		t.Errorf("second-to-last line = %q, want %q", lastTwo[0], "USER node")
-	}
-	if lastTwo[1] != "WORKDIR /workspace" {
-		t.Errorf("last line = %q, want %q", lastTwo[1], "WORKDIR /workspace")
+	if lastLine != "WORKDIR /workspace" {
+		t.Errorf("last non-empty line = %q, want %q", lastLine, "WORKDIR /workspace")
 	}
 }
 

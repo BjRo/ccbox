@@ -1,6 +1,6 @@
 {
+  "defaultMode": "bypassPermissions",
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "Task", "WebFetch", "WebSearch"]
   },
   "enabledPlugins": [{{range $i, $lsp := .LSPs}}{{if $i}}, {{end}}"{{$lsp.Plugin | jsonString}}"{{end}}]
