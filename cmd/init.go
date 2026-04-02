@@ -10,9 +10,9 @@ func newInitCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a devcontainer configuration",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintln(cmd.OutOrStdout(), "ccbox init: not yet implemented")
-			return nil
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			_, err := fmt.Fprintln(cmd.OutOrStdout(), "ccbox init: not yet implemented")
+			return err
 		},
 	}
 }

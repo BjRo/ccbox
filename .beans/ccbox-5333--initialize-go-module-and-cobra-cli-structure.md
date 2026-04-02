@@ -219,4 +219,4 @@ The plan is solid. The `newRootCmd()` constructor pattern, the `internal/render/
 - [x] Step 6: Create placeholder internal packages
 - [x] Step 7: Create .golangci.yml
 - [x] Step 8: Update CLAUDE.md architecture section
-- [ ] Step 11: Final verification
+- [x] Step 11: Final verification (build, test, lint, manual CLI check all pass)
