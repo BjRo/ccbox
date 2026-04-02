@@ -311,7 +311,7 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] All tests pass (`go test ./...`)
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural changes)
@@ -323,7 +323,7 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 |-------|--------|-----------|-----------|
 | refine | done | 2 | 2026-04-02 |
 | challenge | approved | 2 | 2026-04-02 |
-| implement | in-progress | 1 | 2026-04-02 |
-| pr | pending | | |
-| review | pending | | |
+| implement | done | 1 | 2026-04-02 |
+| pr | done | 1 | 2026-04-02 |
+| review | in-progress | 1 | 2026-04-02 |
 | codify | pending | | |
