@@ -166,4 +166,4 @@ When switching on a string-typed category or enum where one branch is the "safe"
 
 ## Decisions
 
-Architecture Decision Records live in `decisions/`. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.
+All important technical decisions are documented as Architecture Decision Records (ADRs). See [`decisions/README.md`](decisions/README.md) for the full index. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.
