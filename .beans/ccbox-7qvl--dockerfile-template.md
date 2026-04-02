@@ -256,10 +256,10 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 
 ## Definition of Done
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments in new code
-- [ ] Lint passes (`golangci-lint run ./...`)
-- [ ] Tests pass (`go test ./...`)
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments in new code
+- [x] Lint passes (`golangci-lint run ./...`)
+- [x] Tests pass (`go test ./...`)
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed (`@review-backend`)
@@ -267,13 +267,25 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [ ] ADR written (if architectural changes)
 - [ ] User notified
 
+## Agent Checkpoint
+
+All implementation steps complete. Steps completed:
+1. Added `SystemDeps` field to `stack.Stack` with registry data for all 5 stacks
+2. Added `SystemDeps` to `GenerationConfig` and `Merge()` with dedup/sort logic
+3. Created `Dockerfile.tmpl` template with correct whitespace handling
+4. Created `Dockerfile()` rendering function with `//go:embed`
+5. Wrote 22 tests total (5 stack, 5 merge, 17 dockerfile -- some overlap with existing)
+6. All tests pass, lint clean
+
+Next: push branch.
+
 ## Pipeline State
 
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02T17:30:00Z |
 | challenge | complete | 1 | 2026-04-02T17:35:00Z |
-| implement | pending | | |
+| implement | complete | 1 | 2026-04-02T18:00:00Z |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
