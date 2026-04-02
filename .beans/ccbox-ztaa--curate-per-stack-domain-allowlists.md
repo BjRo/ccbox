@@ -1,11 +1,11 @@
 ---
 # ccbox-ztaa
 title: Curate per-stack domain allowlists
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-04-02T10:35:44Z
-updated_at: 2026-04-02T12:38:06Z
+updated_at: 2026-04-02T12:49:32Z
 parent: ccbox-m6ll
 ---
 

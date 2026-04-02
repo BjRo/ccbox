@@ -1,11 +1,11 @@
 ---
 # ccbox-d39x
 title: Stack metadata registry
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-04-02T10:34:21Z
-updated_at: 2026-04-02T12:38:09Z
+updated_at: 2026-04-02T12:49:32Z
 parent: ccbox-2n15
 ---
 
