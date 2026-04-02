@@ -1,11 +1,11 @@
 ---
 # ccbox-v1zh
 title: Claude Code settings and sync script templates
-status: todo
+status: in-progress
 type: task
 priority: high
 created_at: 2026-04-02T10:35:16Z
-updated_at: 2026-04-02T10:35:16Z
+updated_at: 2026-04-02T16:09:03Z
 parent: ccbox-6z26
 ---
 
@@ -32,3 +32,28 @@ Port the credfolio2 version as-is. This script:
 4. Preserves runtime state written by Claude Code
 
 This script is stack-agnostic — no parameterization needed, emit as static file.
+
+## Checklist
+
+- [ ] Tests written (TDD)
+- [ ] No TODO/FIXME/HACK/XXX comments
+- [ ] Lint passes
+- [ ] Tests pass
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed
+- [ ] Review feedback worked in
+- [ ] ADR written (if architectural changes)
+- [ ] All checklist items completed
+- [ ] User notified
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | pending | | |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
