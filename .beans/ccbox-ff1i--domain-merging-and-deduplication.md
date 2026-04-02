@@ -30,7 +30,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 - [x] Branch pushed
 - [x] PR created
 - [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Review feedback worked in
 - [ ] ADR written (if architectural changes)
 
 ## Pipeline State
@@ -41,7 +41,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 | challenge | complete | 1 | 2026-04-02 |
 | implement | complete | 1 | 2026-04-02 |
 | pr | complete | 1 | 2026-04-02 |
-| review | in-progress | 1 | 2026-04-02 |
+| review | complete | 1 | 2026-04-02 |
 | codify | pending | | |
 
 ## Implementation Plan
