@@ -93,7 +93,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"registry.npmjs.org"},
 		DynamicDomains: []string{"registry.yarnpkg.com"},
-		MarkerFiles:    []string{"package.json"},
+		MarkerFiles:    []string{"package.json", "tsconfig.json"},
 	},
 	Python: {
 		ID:   Python,
