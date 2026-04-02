@@ -12,9 +12,9 @@ import (
 // claudeSettings mirrors the JSON structure of claude-user-settings.json
 // for test unmarshaling.
 type claudeSettings struct {
+	DefaultMode string `json:"defaultMode"`
 	Permissions struct {
-		DefaultMode string   `json:"defaultMode"`
-		Allow       []string `json:"allow"`
+		Allow []string `json:"allow"`
 	} `json:"permissions"`
 	EnabledPlugins []string `json:"enabledPlugins"`
 }
@@ -73,8 +73,8 @@ func TestRenderClaude_UserSettings_Permissions(t *testing.T) {
 		t.Fatalf("JSON parse: %v", err)
 	}
 
-	if settings.Permissions.DefaultMode != "bypassPermissions" {
-		t.Errorf("defaultMode = %q, want %q", settings.Permissions.DefaultMode, "bypassPermissions")
+	if settings.DefaultMode != "bypassPermissions" {
+		t.Errorf("defaultMode = %q, want %q", settings.DefaultMode, "bypassPermissions")
 	}
 
 	expectedTools := []string{"Bash", "Read", "Write", "Edit", "Grep", "Glob", "Task", "WebFetch", "WebSearch"}

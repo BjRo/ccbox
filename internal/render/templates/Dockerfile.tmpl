@@ -64,10 +64,6 @@ RUN npm install -g @anthropic-ai/claude-code
 
 USER root
 
-# --- QoL: zsh-in-docker ---
-RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" -- \
-    -t robbyrussell
-
 # --- QoL: git-delta ---
 RUN ARCH=$(dpkg --print-architecture) \
     && curl -fsSL -o /tmp/delta.deb \
@@ -84,4 +80,9 @@ COPY warmup-dns.sh /usr/local/bin/warmup-dns.sh
 RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/warmup-dns.sh
 
 USER node
+
+# --- QoL: zsh-in-docker (must run as node so config goes to /home/node) ---
+RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" -- \
+    -t robbyrussell
+
 WORKDIR /workspace
