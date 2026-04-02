@@ -10,7 +10,7 @@ import (
 //go:embed templates/init-firewall.sh.tmpl templates/warmup-dns.sh.tmpl templates/dynamic-domains.conf.tmpl
 var templatesFS embed.FS
 
-// funcMap provides template helper functions for firewall script rendering.
+// funcMap provides template helper functions shared across render templates.
 var funcMap = template.FuncMap{
 	// stripWildcard removes a leading "*." prefix from a domain name.
 	// This is needed for dnsmasq ipset directives (dnsmasq natively treats

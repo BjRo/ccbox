@@ -37,12 +37,16 @@ Never use `{{- }}` trim markers that would collapse continuation backslashes.
 
 Templates producing JSON files need two safeguards:
 
-1. **`jsonString` FuncMap helper**: Use `json.Marshal` on the string, then strip the surrounding quotes. The result is safe for interpolation inside JSON double quotes -- characters like `"`, `\`, and control characters are properly escaped. Pattern: `"{{.Field | jsonString}}"`.
-2. **Comma-separated arrays via indexed range**: JSON forbids trailing commas. Use `{{range $i, $v := .Items}}{{if $i}}, {{end}}"{{$v | jsonString}}"{{end}}` to emit commas only between elements. When the slice is empty, this produces `[]` (not `null`).
+1. **`jsonString` FuncMap helper**: Use `json.Marshal` on the string, then strip the surrounding quotes. The result is safe for interpolation inside JSON double quotes.
+2. **Comma-separated arrays via indexed range**: JSON forbids trailing commas. Use `{{range $i, $v := .Items}}{{if $i}}, {{end}}"{{$v | jsonString}}"{{end}}`.
+
+## Markdown Template Whitespace
+
+Markdown templates need different whitespace handling than Dockerfile templates. Use `{{- }}` trim markers on `{{ end }}` tags around conditional blocks to prevent double blank lines. This is the opposite guidance from Dockerfile templates, where `{{- }}` must be avoided to preserve backslash continuations.
 
 ## Shell Script Temp File Cleanup
 
-Generated shell scripts that create temp files use the `trap`/`EXIT` pattern for cleanup:
+Generated shell scripts that create temp files use the `trap`/`EXIT` pattern:
 
 ```bash
 TMPFILE="$(mktemp)"
