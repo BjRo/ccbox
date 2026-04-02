@@ -29,6 +29,7 @@ cmd/
   root.go              # Root Cobra command
   init.go              # `ccbox init` subcommand (interactive wizard + CLI flags)
 internal/
+  stack/               # Stack metadata registry (pure data, zero internal dependencies)
   detect/              # Stack detection (scans for marker files like go.mod, package.json, etc.)
   render/              # Template rendering engine (Go templates → Dockerfile, devcontainer.json, scripts)
   firewall/            # Domain allowlist logic (per-stack defaults, merging, deduplication)
@@ -37,22 +38,20 @@ main.go
 ```
 
 Key design patterns:
-- **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains)
+- **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: projects with multiple stacks get merged configurations
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
 
-## Registry Pattern (defensive-copy accessors)
+## Registry Pattern
 
-Packages that own static lookup data (e.g., `internal/firewall/`) follow a consistent accessor pattern:
+Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) follow a consistent pattern:
 
-- **Package-level `var registry`** holds the canonical data. It is unexported and never handed out directly.
-- **`Registry() map[K]V`** returns a deep copy of the full map. Callers can mutate freely without corrupting shared state.
-- **`ForX(key) (V, bool)`** returns a deep copy of a single entry (comma-ok style).
-- **`Keys() []K`** (or `Stacks()`, etc.) returns a sorted slice of registry keys for deterministic iteration and display.
-- Deep copies use `slices.Clone` on slices of value types. If the element type contains pointers or nested slices, copy those too.
-- Sorted key iteration uses `slices.Sorted(maps.Keys(m))` (Go 1.24+ -- uses `maps` and `slices` from the standard library, no third-party deps).
-- Tests validate defensive copying by mutating a returned value and asserting the canonical data is unchanged.
+- **Unexported `var registry` map**: Public API via accessor functions only. No exported map or mutable state.
+- **Defensive-copy accessors**: `All() []T`, `Get(id) (T, bool)`, `IDs() []ID` all return deep copies. Slice fields cloned via `slices.Clone`. Tests verify mutations don't corrupt canonical data.
+- **String-based type IDs**: Use `type FooID string` (not integer enums) when IDs appear in config files, CLI flags, or template output.
+- **Sorted output**: `All()` and `IDs()` return sorted slices via `slices.Sorted(maps.Keys(m))` for deterministic templates and CLI output.
+- **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration. Package-level initialization of static, immutable data is idiomatic Go.
 
 ## Bean-Driven Workflow
 
