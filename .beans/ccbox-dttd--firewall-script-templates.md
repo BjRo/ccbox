@@ -315,7 +315,7 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 - [x] Automated code review passed
 - [x] Review feedback worked in
 - [x] ADR written (if architectural changes)
-- [ ] User notified
+- [x] User notified
 
 ## Pipeline State
 
