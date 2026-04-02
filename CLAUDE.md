@@ -43,15 +43,15 @@ Key design patterns:
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
 - Templates use Go's `embed` package for bundling
 
-## Immutable Registry Pattern
+## Registry Pattern
 
-The `internal/stack` package establishes the pattern for read-only data registries in ccbox:
+Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) follow a consistent pattern:
 
-- **Package-level map, accessor functions**: Data lives in an unexported `var registry` map. Public API is `Get(id) (T, bool)`, `All() []T`, `IDs() []ID`. No exported map or mutable state.
-- **Copy semantics on all accessors**: Every returned value is a deep copy. Slice fields are cloned via `slices.Clone` so callers cannot corrupt registry data. Tests verify this explicitly.
-- **String-based type IDs**: Use `type FooID string` (not integer enums) when the ID appears in config files, CLI flags, or template output. Self-describing values avoid a marshaling/display layer.
-- **Sorted output for determinism**: `All()` and `IDs()` return sorted slices so templates and CLI output are stable across runs.
-- **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration (hurts test isolation). Package-level `init()` or `var` initialization for static, immutable data is idiomatic Go and has no testability downside.
+- **Unexported `var registry` map**: Public API via accessor functions only. No exported map or mutable state.
+- **Defensive-copy accessors**: `All() []T`, `Get(id) (T, bool)`, `IDs() []ID` all return deep copies. Slice fields cloned via `slices.Clone`. Tests verify mutations don't corrupt canonical data.
+- **String-based type IDs**: Use `type FooID string` (not integer enums) when IDs appear in config files, CLI flags, or template output.
+- **Sorted output**: `All()` and `IDs()` return sorted slices via `slices.Sorted(maps.Keys(m))` for deterministic templates and CLI output.
+- **`init()` acceptable for static data**: The `init()` prohibition in Cobra CLI Patterns applies to command registration. Package-level initialization of static, immutable data is idiomatic Go.
 
 ## Bean-Driven Workflow
 
@@ -105,6 +105,17 @@ Root command wiring:
 Version injection:
 - `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
 - GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
+
+## Go Style: Prefer Modern stdlib Packages
+
+Since the project targets Go 1.24+, prefer the `slices` and `maps` packages from the standard library over older patterns:
+
+- **Sorting**: `slices.Sort(s)` or `slices.SortFunc(s, cmp)` instead of `sort.Slice(s, less)`.
+- **Sorted map keys**: `slices.Sorted(maps.Keys(m))` instead of manually collecting keys, sorting, and returning.
+- **Slice copying**: `slices.Clone(s)` instead of manual `make` + `copy`.
+- **Map copying**: `maps.Clone(m)` for shallow copies.
+
+These produce shorter, less error-prone code and signal to readers that the codebase follows current Go idioms.
 
 ## Linting
 

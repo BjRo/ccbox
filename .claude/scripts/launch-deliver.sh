@@ -131,11 +131,6 @@ else
     git worktree add -b "deliver-${BEAN_ID}" "$WORKTREE_PATH" "$BASE_BRANCH"
 fi
 
-# --- Copy untracked settings into worktree ---
-if [ -f "${PROJECT_DIR}/.claude/settings.local.json" ]; then
-    cp "${PROJECT_DIR}/.claude/settings.local.json" "${WORKTREE_PATH}/.claude/settings.local.json"
-fi
-
 # --- Log setup ---
 mkdir -p "$LOGS_DIR"
 LOG_FILE="${LOGS_DIR}/deliver-${BEAN_ID}.log"
@@ -165,7 +160,6 @@ echo "" | env \
     -u CLAUDE_CODE_ENTRYPOINT \
     -u CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING \
     claude -p \
-        --permission-mode bypassPermissions \
         --agent deliver \
         "$PROMPT" \
     > "$LOG_FILE" 2>&1
