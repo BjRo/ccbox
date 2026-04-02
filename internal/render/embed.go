@@ -2,5 +2,5 @@ package render
 
 import "embed"
 
-//go:embed templates/devcontainer.json.tmpl
+//go:embed templates/*
 var templateFS embed.FS
