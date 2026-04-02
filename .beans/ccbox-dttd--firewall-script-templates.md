@@ -312,8 +312,8 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 - [x] All tests pass (`go test ./...`)
 - [x] Branch pushed
 - [x] PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] ADR written (if architectural changes)
 - [ ] User notified
 
@@ -325,5 +325,6 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 | challenge | approved | 2 | 2026-04-02 |
 | implement | done | 1 | 2026-04-02 |
 | pr | done | 1 | 2026-04-02 |
-| review | in-progress | 1 | 2026-04-02 |
+| review | done | 1 | 2026-04-02 |
+| rework | done | 1 | 2026-04-02 |
 | codify | pending | | |

@@ -10,6 +10,10 @@ import (
 // leading "*." for wildcard domains. Each label must be 1-63 alphanumeric
 // characters or hyphens, must not start or end with a hyphen, and labels
 // are separated by dots.
+//
+// Single-character labels (e.g., "a.b") are intentionally permitted. DNS
+// allows labels of length 1, and the regex reflects this by making the
+// inner group ([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])? optional.
 var domainPattern = regexp.MustCompile(
 	`^(\*\.)?([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$`,
 )
