@@ -30,7 +30,10 @@ func TestMerge_SingleStack(t *testing.T) {
 	}
 
 	// Domains should match firewall.Merge for the same inputs.
-	wantDomains := firewall.Merge([]stack.StackID{stack.Go}, nil)
+	wantDomains, fwErr := firewall.Merge([]stack.StackID{stack.Go}, nil)
+	if fwErr != nil {
+		t.Fatalf("firewall.Merge unexpected error: %v", fwErr)
+	}
 	if len(cfg.Domains.Static) != len(wantDomains.Static) {
 		t.Errorf("Static domains count = %d, want %d", len(cfg.Domains.Static), len(wantDomains.Static))
 	}
@@ -151,7 +154,10 @@ func TestMerge_EmptyStacks(t *testing.T) {
 	}
 
 	// Domains should still include always-on entries.
-	wantDomains := firewall.Merge(nil, nil)
+	wantDomains, fwErr := firewall.Merge(nil, nil)
+	if fwErr != nil {
+		t.Fatalf("firewall.Merge unexpected error: %v", fwErr)
+	}
 	if len(cfg.Domains.Static) != len(wantDomains.Static) {
 		t.Errorf("Static domains count = %d, want %d", len(cfg.Domains.Static), len(wantDomains.Static))
 	}
@@ -186,7 +192,10 @@ func TestMerge_NilStacks(t *testing.T) {
 	}
 
 	// Domains should still include always-on entries.
-	wantDomains := firewall.Merge(nil, nil)
+	wantDomains, fwErr := firewall.Merge(nil, nil)
+	if fwErr != nil {
+		t.Fatalf("firewall.Merge unexpected error: %v", fwErr)
+	}
 	if len(cfg.Domains.Static) != len(wantDomains.Static) {
 		t.Errorf("Static domains count = %d, want %d", len(cfg.Domains.Static), len(wantDomains.Static))
 	}

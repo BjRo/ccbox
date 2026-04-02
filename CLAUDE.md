@@ -41,7 +41,7 @@ Key design patterns:
 - **Stack metadata registry**: single source of truth per stack (runtime versions, LSP servers, default domains). Data lives in `internal/stack/`, separate from behavior packages (`detect`, `firewall`, `render`) to avoid import cycles. See ADR-0003.
 - **Multi-stack merging**: `render.Merge` is the single entry point -- it validates and deduplicates stack IDs, collects runtimes and LSPs from the stack registry, delegates domain merging to `firewall.Merge`, and returns a `GenerationConfig` struct. See ADR-0005.
 - **Dual-mode UX**: interactive wizard (default) and non-interactive CLI flags (`--stacks=go,node --domains=...`)
-- **Template rendering**: Embedded Go templates in `internal/render/`, parsed once at startup. See "Template Rendering Pattern" section below.
+- **Template rendering**: Embedded Go templates in `internal/render/`, parsed once at startup via `template.Must`. See "Template Rendering Pattern" section below and ADR-0006.
 - **Non-nil empty slices for templates**: Functions that produce slices consumed by Go templates (e.g., `render.Merge`, `firewall.Merge`) must return `[]T{}` instead of `nil` when the result is empty. This avoids `nil` vs empty confusion in `{{range}}` and `{{if}}` template actions.
 - **Node always included**: Node/npm is always present in generated containers because Claude Code requires it. The Dockerfile template hardcodes `node = "lts"` in the mise config and skips Node in the `{{ range .Runtimes }}` loop via `{{ if ne .Tool "node" }}`. This invariant applies to all templates that reference runtimes.
 
@@ -119,6 +119,26 @@ When testing functions that consume registry data (e.g., `firewall.Merge`), pref
 
 Example: assert `len(result.Static) == len(collectExpected(...))` (structural), then `assert result contains "github.com" in Static` (spot-check).
 
+## Embedded Template Rendering
+
+All templates live in `internal/render/templates/*.tmpl` and are embedded via `//go:embed` + `embed.FS`. See ADR-0006 for the full rationale.
+
+The rendering pattern has four parts:
+
+1. **Embed and parse once at package level**: `template.Must(template.New("").Funcs(funcMap).ParseFS(templatesFS, "templates/*.tmpl"))`. The `Funcs()` call must come before `ParseFS` because Go's template parser needs to know about custom functions at parse time.
+2. **FuncMap helpers are minimal**: They perform a single transformation (e.g., `strings.TrimPrefix`). Input validation happens upstream in `Merge` functions, not in template helpers.
+3. **Pure rendering functions**: Each `RenderXxx(cfg GenerationConfig) (XxxFiles, error)` is a pure transformation -- config in, `[]byte` fields out, no file I/O. File writing is the orchestrator's job.
+4. **Use `text/template`, not `html/template`**: Outputs are shell scripts, config files, Dockerfiles, and JSON -- not HTML. `html/template` would corrupt shell-meaningful characters.
+
+## Shell Injection Defense for Generated Scripts
+
+Templates that produce shell scripts (e.g., `init-firewall.sh.tmpl`) must use two independent defense layers:
+
+1. **Input validation**: `firewall.ValidateDomain` enforces strict RFC 1123 DNS hostname syntax before any domain enters `GenerationConfig`. Shell metacharacters are structurally impossible in valid DNS names. Validation runs in `firewall.Merge` for user-supplied domains; registry domains are trusted.
+2. **Output quoting**: All user-influenced interpolations in shell templates use single quotes (e.g., `dig +short '{{.Name}}'`). Single quotes prevent shell expansion even if validation were somehow bypassed.
+
+Both layers are independently sufficient. This same two-layer approach applies to any future template that generates executable scripts from user-provided input.
+
 ## Go Template Whitespace in Dockerfile Continuations
 
 Dockerfile `RUN` blocks use backslash (`\`) continuation lines. When a `{{ range }}` loop appends items to such a block, the template must handle both the non-empty and empty cases without producing dangling backslashes or blank lines inside the shell command.
@@ -131,16 +151,18 @@ The established pattern places the `{{ range }}` inline on the last static line,
     && rm -rf /var/lib/apt/lists/*
 ```
 
-When `.SystemDeps` is empty, this renders as `build-essential jq fzf \` followed by `&& rm -rf ...`. When non-empty, each dep gets its own continuation line. The key constraint: never use `{{- }}` trim markers that would collapse the continuation backslashes. Always add a `TestDockerfile_AptGetValidShellSyntax` test that asserts no bare backslash lines, no double backslashes, and no blank lines inside the RUN block across all stack combinations.
+When `.SystemDeps` is empty, this renders as `build-essential jq fzf \` followed by `&& rm -rf ...`. When non-empty, each dep gets its own continuation line. The key constraint: never use `{{- }}` trim markers that would collapse the continuation backslashes.
 
-## Template Testing: Two-Tier Strategy
+## Template Testing
 
-Template tests use two complementary approaches:
+Template tests use **structural assertions**, not golden-file snapshots:
 
-1. **Integration tests (through `Merge`)**: Call `Merge(stacks, extras)` then `Dockerfile(cfg)` to test the full pipeline. These verify that registry data flows correctly into rendered output. Most tests use this tier.
-2. **Isolation tests (direct `GenerationConfig`)**: Hand-build a `GenerationConfig` with synthetic data (e.g., fictional runtimes like `deno`, `zig`) to test template logic independently of the registry. These catch template bugs that would be masked by real registry data.
-
-Both tiers use structural assertions (`strings.Contains`, `strings.Count`) rather than golden files. See "Testing Patterns for Registry-Backed Code" for the spot-check approach.
+- **Two-tier strategy**: Integration tests (through `Merge` + render) verify full pipeline; isolation tests (hand-built `GenerationConfig`) test template logic independently of the registry.
+- **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain appears in rendered output.
+- **Spot-checks**: Assert well-known entries (e.g., `"github.com"`, `ipset=/anthropic.com/allowed_ips`) appear in output.
+- **Empty-input safety**: Render with empty (but non-nil) slices and verify no `<no value>` artifacts.
+- **Shell syntax validation**: `TestDockerfile_AptGetValidShellSyntax` asserts no bare backslash lines, no double backslashes, and no blank lines inside RUN blocks.
+- **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
 
 ## Bean-Driven Workflow
 
