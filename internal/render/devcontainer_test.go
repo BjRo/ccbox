@@ -71,12 +71,12 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 	}
 	foundClaude := false
 	for _, ext := range extensions {
-		if ext == "anthropics.claude-code" {
+		if ext == "anthropic.claude-code" {
 			foundClaude = true
 		}
 	}
 	if !foundClaude {
-		t.Error("customizations.vscode.extensions missing 'anthropics.claude-code'")
+		t.Error("customizations.vscode.extensions missing 'anthropic.claude-code'")
 	}
 
 	// capAdd
