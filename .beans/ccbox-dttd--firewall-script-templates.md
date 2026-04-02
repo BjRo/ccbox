@@ -310,7 +310,7 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 - [x] No TODO/FIXME/HACK/XXX comments in new code
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] All tests pass (`go test ./...`)
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
