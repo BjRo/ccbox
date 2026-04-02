@@ -27,7 +27,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 - [x] No TODO/FIXME/HACK/XXX in new code
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] Tests pass (`go test ./...`)
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
