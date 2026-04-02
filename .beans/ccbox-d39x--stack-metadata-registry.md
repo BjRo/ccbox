@@ -186,4 +186,4 @@ None. The test file fully specifies the API contract. The data values (tool name
 | pr | complete | 1 | 2026-04-02 |
 | review | complete | 1 | 2026-04-02 |
 | rework | complete | 1 | 2026-04-02 |
-| codify | pending | | |
+| codify | complete | 1 | 2026-04-02 |
