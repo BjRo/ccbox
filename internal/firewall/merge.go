@@ -41,7 +41,9 @@ func Merge(stacks []stack.StackID, userExtras []string) MergedDomains {
 		switch d.Category {
 		case Static:
 			staticDomains = append(staticDomains, d)
-		case Dynamic:
+		default:
+			// Dynamic is the safe default for any unrecognized category,
+			// since dnsmasq re-resolution handles IP changes gracefully.
 			dynamicDomains = append(dynamicDomains, d)
 		}
 	}
@@ -63,8 +65,10 @@ func Merge(stacks []stack.StackID, userExtras []string) MergedDomains {
 	}
 
 	// Step 3: Collect user extras (always Dynamic).
+	// DNS names are case-insensitive, so we normalize to lowercase to ensure
+	// "GitHub.com" deduplicates against "github.com".
 	for _, extra := range userExtras {
-		name := strings.TrimSpace(extra)
+		name := strings.ToLower(strings.TrimSpace(extra))
 		if name == "" {
 			continue
 		}

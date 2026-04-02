@@ -61,6 +61,23 @@ func TestMerge_AlwaysOnIncluded(t *testing.T) {
 		}
 	}
 
+	// Hardcoded spot-checks: verify specific well-known domains land in the
+	// correct category, independent of the collectExpected helper.
+	staticNames := make(map[string]bool)
+	for _, d := range result.Static {
+		staticNames[d.Name] = true
+	}
+	dynamicNames := make(map[string]bool)
+	for _, d := range result.Dynamic {
+		dynamicNames[d.Name] = true
+	}
+	if !staticNames["github.com"] {
+		t.Error("github.com should be in Static")
+	}
+	if !dynamicNames["*.anthropic.com"] {
+		t.Error("*.anthropic.com should be in Dynamic")
+	}
+
 	// Verify sorted order within each list.
 	if !slices.IsSortedFunc(result.Static, func(a, b Domain) int {
 		return strings.Compare(a.Name, b.Name)
@@ -93,6 +110,18 @@ func TestMerge_SingleStack(t *testing.T) {
 	}
 	for _, d := range result.Dynamic {
 		allDomains[d.Name] = true
+	}
+
+	// Hardcoded spot-checks: verify specific domains land in the right lists.
+	if !allDomains["proxy.golang.org"] {
+		t.Error("proxy.golang.org should be present in Go merge result")
+	}
+	dynamicNames := make(map[string]bool)
+	for _, d := range result.Dynamic {
+		dynamicNames[d.Name] = true
+	}
+	if !dynamicNames["proxy.golang.org"] {
+		t.Error("proxy.golang.org should be in Dynamic")
 	}
 
 	// Verify Go-specific domains are present.
@@ -371,5 +400,40 @@ func TestMerge_UserExtraWhitespaceTrimmed(t *testing.T) {
 
 	if !found {
 		t.Error("trimmed.example.com not found in Dynamic")
+	}
+}
+
+func TestMerge_UserExtraCaseInsensitive(t *testing.T) {
+	// DNS names are case-insensitive. "GitHub.com" should deduplicate against
+	// the always-on "github.com" entry (Static), and mixed-case user extras
+	// should deduplicate against each other.
+	result := Merge(nil, []string{"GitHub.com", "CUSTOM.Example.COM", "custom.example.com"})
+
+	// github.com is Static in AlwaysOn; the mixed-case user extra should not
+	// create a second entry.
+	githubCount := 0
+	for _, d := range result.Static {
+		if d.Name == "github.com" {
+			githubCount++
+		}
+	}
+	for _, d := range result.Dynamic {
+		if d.Name == "github.com" {
+			githubCount++
+		}
+	}
+	if githubCount != 1 {
+		t.Errorf("github.com appears %d times, want 1", githubCount)
+	}
+
+	// The two custom.example.com variants should collapse into one entry.
+	customCount := 0
+	for _, d := range result.Dynamic {
+		if d.Name == "custom.example.com" {
+			customCount++
+		}
+	}
+	if customCount != 1 {
+		t.Errorf("custom.example.com appears %d times, want 1", customCount)
 	}
 }
