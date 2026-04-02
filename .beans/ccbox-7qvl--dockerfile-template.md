@@ -272,7 +272,7 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02T17:30:00Z |
-| challenge | pending | | |
+| challenge | complete | 1 | 2026-04-02T17:35:00Z |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
