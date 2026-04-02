@@ -28,7 +28,7 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] Tests pass (`go test ./...`)
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural changes)
@@ -39,9 +39,9 @@ Dedup across all sources. User extras go into dynamic domains by default (safer 
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02 |
 | challenge | complete | 1 | 2026-04-02 |
-| implement | in-progress | 1 | 2026-04-02 |
-| pr | pending | | |
-| review | pending | | |
+| implement | complete | 1 | 2026-04-02 |
+| pr | complete | 1 | 2026-04-02 |
+| review | in-progress | 1 | 2026-04-02 |
 | codify | pending | | |
 
 ## Implementation Plan
