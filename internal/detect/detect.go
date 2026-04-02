@@ -80,6 +80,8 @@ func detect(fsys fs.FS) ([]stack.StackID, error) {
 		}
 	}
 
+	// Defensive: re-sort in case stack.All() iteration order changes in
+	// the future. On already-sorted input this is a no-op.
 	slices.SortFunc(result, func(a, b stack.StackID) int {
 		return strings.Compare(string(a), string(b))
 	})

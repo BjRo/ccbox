@@ -1,6 +1,7 @@
 package detect
 
 import (
+	"os"
 	"slices"
 	"testing"
 	"testing/fstest"
@@ -346,5 +347,20 @@ func TestDetect_PublicAPI_InvalidDir(t *testing.T) {
 	_, err := Detect("/nonexistent/path/that/does/not/exist")
 	if err == nil {
 		t.Error("expected error for nonexistent directory, got nil")
+	}
+}
+
+func TestDetect_PublicAPI_NotADirectory(t *testing.T) {
+	f, err := os.CreateTemp(t.TempDir(), "notadir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = Detect(f.Name())
+	if err == nil {
+		t.Error("expected error for file path, got nil")
 	}
 }

@@ -30,8 +30,8 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 - [x] Tests pass
 - [x] Branch pushed
 - [x] PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] ADR written (if architectural)
 - [ ] User notified
 
@@ -43,7 +43,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 | challenge | completed | 1 | 2026-04-02 | | |
 | implement | completed | 1 | 2026-04-02 |
 | pr | completed | 1 | 2026-04-02 |
-| review | pending | | |
+| review | completed | 1 | 2026-04-02 |
 | codify | pending | | |
 
 ## Implementation Plan
