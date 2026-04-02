@@ -260,7 +260,7 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [x] No TODO/FIXME/HACK/XXX comments in new code
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] Tests pass (`go test ./...`)
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed (`@review-backend`)
 - [ ] Review feedback worked in
