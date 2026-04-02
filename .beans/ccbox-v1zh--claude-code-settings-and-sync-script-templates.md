@@ -1,11 +1,11 @@
 ---
 # ccbox-v1zh
 title: Claude Code settings and sync script templates
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-04-02T10:35:16Z
-updated_at: 2026-04-02T16:11:55Z
+updated_at: 2026-04-02T22:13:01Z
 parent: ccbox-6z26
 ---
 

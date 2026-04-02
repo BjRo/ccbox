@@ -1,11 +1,11 @@
 ---
 # ccbox-780o
 title: README.md template for generated devcontainer
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:35:29Z
-updated_at: 2026-04-02T16:11:38Z
+updated_at: 2026-04-02T22:13:01Z
 parent: ccbox-6z26
 ---
 
