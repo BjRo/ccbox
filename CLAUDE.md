@@ -107,6 +107,17 @@ Version injection:
 - `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
 - GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
 
+## Go Style: Prefer Modern stdlib Packages
+
+Since the project targets Go 1.24+, prefer the `slices` and `maps` packages from the standard library over older patterns:
+
+- **Sorting**: `slices.Sort(s)` or `slices.SortFunc(s, cmp)` instead of `sort.Slice(s, less)`.
+- **Sorted map keys**: `slices.Sorted(maps.Keys(m))` instead of manually collecting keys, sorting, and returning.
+- **Slice copying**: `slices.Clone(s)` instead of manual `make` + `copy`.
+- **Map copying**: `maps.Clone(m)` for shallow copies.
+
+These produce shorter, less error-prone code and signal to readers that the codebase follows current Go idioms.
+
 ## Linting
 
 - Config: `.golangci.yml` using golangci-lint **v2** format (`version: "2"`).
