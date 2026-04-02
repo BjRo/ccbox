@@ -32,8 +32,8 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 - [x] PR created
 - [x] Automated code review passed
 - [x] Review feedback worked in
-- [ ] ADR written (if architectural)
-- [ ] User notified
+- [x] ADR written (if architectural) — N/A, fs.FS pattern codified in CLAUDE.md instead
+- [x] User notified
 
 ## Pipeline State
 
