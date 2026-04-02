@@ -1,13 +1,15 @@
 // Package firewall manages domain allowlists for network isolation.
 //
 // The registry returned by [Registry] is a curated set of per-stack domain
-// allowlists. Each call returns a shallow copy of the internal map so callers
-// cannot mutate the canonical data. The [Allowlist] and [Domain] values within
-// the map should be treated as read-only; while they are technically mutable
-// (slices share underlying arrays), modifying them leads to undefined behavior.
+// allowlists. Each call returns a deep copy of the internal data so callers
+// cannot mutate the canonical registry. Both [Registry] and [ForStack] copy
+// the Domains slice, making returned values safe for unrestricted mutation.
 package firewall
 
-import "sort"
+import (
+	"maps"
+	"slices"
+)
 
 // Stack identifies a technology stack or a pseudo-stack (e.g., AlwaysOn).
 type Stack string
@@ -108,33 +110,37 @@ var registry = map[Stack]Allowlist{
 	},
 }
 
+// copyAllowlist returns a deep copy of an Allowlist. Because Domain is a pure
+// value type (no pointers or nested slices), cloning the slice is sufficient.
+func copyAllowlist(al Allowlist) Allowlist {
+	return Allowlist{Stack: al.Stack, Domains: slices.Clone(al.Domains)}
+}
+
 // Registry returns the full curated domain allowlist registry. Each call
-// returns a fresh shallow copy of the internal map to prevent callers from
-// mutating the canonical data.
+// returns a deep copy of the internal data -- callers can freely mutate
+// the returned map and its Allowlist values without affecting the canonical
+// registry.
 func Registry() map[Stack]Allowlist {
 	out := make(map[Stack]Allowlist, len(registry))
 	for k, v := range registry {
-		out[k] = v
+		out[k] = copyAllowlist(v)
 	}
 	return out
 }
 
 // ForStack returns the allowlist for the given stack. The second return value
-// is false if the stack is not found in the registry.
+// is false if the stack is not found in the registry. The returned Allowlist
+// is a deep copy; callers can mutate it freely.
 func ForStack(stack Stack) (Allowlist, bool) {
 	al, ok := registry[stack]
-	return al, ok
+	if !ok {
+		return Allowlist{}, false
+	}
+	return copyAllowlist(al), true
 }
 
 // Stacks returns all registered stack names in sorted (deterministic) order.
 // Useful for iteration and display in the CLI wizard.
 func Stacks() []Stack {
-	stacks := make([]Stack, 0, len(registry))
-	for k := range registry {
-		stacks = append(stacks, k)
-	}
-	sort.Slice(stacks, func(i, j int) bool {
-		return stacks[i] < stacks[j]
-	})
-	return stacks
+	return slices.Sorted(maps.Keys(registry))
 }
