@@ -264,7 +264,7 @@ Tests use structural assertions on the rendered string. Each test calls `Merge()
 - [x] PR created (https://github.com/BjRo/ccbox/pull/8)
 - [x] Automated code review passed (`@review-backend`)
 - [x] Review feedback worked in (ccbox-9ium)
-- [ ] ADR written (if architectural changes)
+- [x] ADR written (if architectural changes) -- N/A, follows existing registry pattern
 - [ ] User notified
 
 ## Agent Checkpoint
@@ -287,6 +287,6 @@ Next: push branch.
 | challenge | complete | 1 | 2026-04-02T17:35:00Z |
 | implement | complete | 1 | 2026-04-02T18:00:00Z |
 | pr | complete | 1 | 2026-04-02T18:10:00Z |
-| review | complete | 1 | 2026-04-02T18:20:00Z |
+| review | clean | 2 | 2026-04-02T18:30:00Z |
 | rework | complete | 1 | 2026-04-02T19:00:00Z |
 | codify | pending | | |
