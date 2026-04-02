@@ -33,21 +33,30 @@ Dockerfile `RUN` blocks use backslash continuation. When `{{ range }}` appends i
 
 Never use `{{- }}` trim markers that would collapse continuation backslashes.
 
+## JSON Safety in Templates
+
+Templates producing JSON files need two safeguards:
+
+1. **`jsonString` FuncMap helper**: Use `json.Marshal` on the string, then strip the surrounding quotes. The result is safe for interpolation inside JSON double quotes.
+2. **Comma-separated arrays via indexed range**: JSON forbids trailing commas. Use `{{range $i, $v := .Items}}{{if $i}}, {{end}}"{{$v | jsonString}}"{{end}}`.
+
 ## Markdown Template Whitespace
 
-Markdown templates need different whitespace handling than Dockerfile templates. Use `{{- }}` trim markers on `{{ end }}` (and optionally `{{ if }}`) tags around conditional blocks to prevent double blank lines in rendered output. Markdown parsers collapse extra blank lines, so this is cosmetic, but clean output is preferred.
+Markdown templates need different whitespace handling than Dockerfile templates. Use `{{- }}` trim markers on `{{ end }}` tags around conditional blocks to prevent double blank lines. This is the opposite guidance from Dockerfile templates, where `{{- }}` must be avoided to preserve backslash continuations.
 
+## Shell Script Temp File Cleanup
+
+Generated shell scripts that create temp files use the `trap`/`EXIT` pattern:
+
+```bash
+TMPFILE="$(mktemp)"
+trap 'rm -f "$TMPFILE"' EXIT
+# ... use $TMPFILE ...
+mv "$TMPFILE" "$DESTINATION"
+trap - EXIT
 ```
-{{- if .Items }}
 
-**Items:**
-{{ range .Items }}
-- {{ . }}
-{{- end }}
-{{- end }}
-```
-
-This is the opposite guidance from Dockerfile templates, where `{{- }}` must be avoided to preserve backslash continuations.
+Clear the trap after successful `mv` so the moved file is not deleted.
 
 ## Shell Injection Defense
 

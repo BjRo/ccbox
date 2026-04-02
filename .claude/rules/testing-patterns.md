@@ -31,4 +31,13 @@ Use **structural assertions**, not golden-file snapshots:
 - **Empty-input safety**: Render with empty (non-nil) slices, verify no `<no value>` artifacts.
 - **Shell syntax validation**: Assert no bare backslash lines, no double backslashes, no blank lines inside RUN blocks.
 - **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
-- **Anchor assertions to rendered structure**: When checking for short tokens (e.g., stack ID `"go"`), assert against the rendered format (`"- go\n"` for a list item, `"| go |"` for a table cell) rather than bare `strings.Contains(out, "go")`. Bare substring matches produce false positives when the token appears in unrelated prose (e.g., `"go get"` in domain rationale text).
+- **Anchor assertions to rendered structure**: When checking for short tokens (e.g., stack ID `"go"`), assert against the rendered format (`"- go\n"` for a list item, `"| go |"` for a table cell) rather than bare `strings.Contains(out, "go")`. Bare substring matches produce false positives.
+
+## JSON Template Testing
+
+Templates that produce JSON require targeted validation:
+
+- **Unmarshal validity**: `json.Unmarshal` the rendered output into a typed struct. This catches trailing commas, unescaped quotes, and malformed arrays.
+- **Raw array form**: Use `json.RawMessage` to verify empty arrays render as `[]` not `null`.
+- **Special character round-trip**: Test with strings containing `"`, `\`, and control characters to verify the `jsonString` FuncMap helper produces valid JSON that round-trips correctly through marshal/unmarshal.
+- **Static template verification**: When a template has no Go template actions, render with different configs and assert byte-equality to prove it is truly stack-agnostic.
