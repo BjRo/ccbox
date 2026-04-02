@@ -1,11 +1,11 @@
 ---
 # ccbox-tv1t
 title: Multi-stack merging logic
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:34:25Z
-updated_at: 2026-04-02T15:08:49Z
+updated_at: 2026-04-02T15:25:00Z
 parent: ccbox-2n15
 ---
 
