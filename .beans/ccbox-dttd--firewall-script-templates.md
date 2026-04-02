@@ -306,10 +306,10 @@ None -- all design decisions are grounded in the existing codebase patterns and 
 
 ## Checklist
 
-- [ ] Tests written and passing (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments in new code
-- [ ] Lint passes (`golangci-lint run ./...`)
-- [ ] All tests pass (`go test ./...`)
+- [x] Tests written and passing (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments in new code
+- [x] Lint passes (`golangci-lint run ./...`)
+- [x] All tests pass (`go test ./...`)
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
