@@ -181,8 +181,8 @@ None. The test file fully specifies the API contract. The data values (tool name
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02 |
-| challenge | pending | | |
+| challenge | complete | 1 | 2026-04-02 |
 | implement | complete | 1 | 2026-04-02 |
 | pr | complete | 1 | 2026-04-02 |
-| review | pending | | |
+| review | in-progress | 1 | 2026-04-02 |
 | codify | pending | | |
