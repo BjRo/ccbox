@@ -218,7 +218,7 @@ func TestDockerfile_FirewallScriptsCopied(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	for _, file := range []string{"init-firewall.sh", "warmup-dns.sh", "dynamic-domains.conf"} {
+	for _, file := range []string{"init-firewall.sh", "warmup-dns.sh"} {
 		if !strings.Contains(out, "COPY "+file) {
 			t.Errorf("output missing COPY %s", file)
 		}

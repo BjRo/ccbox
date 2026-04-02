@@ -76,9 +76,11 @@ RUN ARCH=$(dpkg --print-architecture) \
     && rm /tmp/delta.deb
 
 # --- Firewall scripts ---
+# Note: dynamic-domains.conf is a reference file, not a dnsmasq config.
+# The init-firewall.sh script writes the actual dnsmasq ipset directives
+# to /etc/dnsmasq.d/ccbox-dynamic.conf at container start.
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 COPY warmup-dns.sh /usr/local/bin/warmup-dns.sh
-COPY dynamic-domains.conf /etc/dnsmasq.d/dynamic-domains.conf
 RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/warmup-dns.sh
 
 USER node
