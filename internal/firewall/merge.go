@@ -1,6 +1,7 @@
 package firewall
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -24,11 +25,16 @@ type MergedDomains struct {
 // and Dynamic). Unknown stack IDs are silently skipped. User extras are
 // classified as Dynamic by default.
 //
+// User-provided extra domains are validated against strict DNS hostname rules
+// via [ValidateDomain]. If any user extra fails validation, Merge returns a
+// zero MergedDomains and the validation error. Registry domains are trusted
+// and not validated at runtime.
+//
 // Deduplication uses first-occurrence-wins: always-on domains are processed
 // first, then per-stack domains in the order given, then user extras. If a
 // domain appears in multiple sources, the first entry's category and rationale
 // are retained.
-func Merge(stacks []stack.StackID, userExtras []string) MergedDomains {
+func Merge(stacks []stack.StackID, userExtras []string) (MergedDomains, error) {
 	seen := make(map[string]bool)
 	var staticDomains []Domain
 	var dynamicDomains []Domain
@@ -72,6 +78,9 @@ func Merge(stacks []stack.StackID, userExtras []string) MergedDomains {
 		if name == "" {
 			continue
 		}
+		if err := ValidateDomain(name); err != nil {
+			return MergedDomains{}, fmt.Errorf("firewall: invalid user domain: %w", err)
+		}
 		addDomain(Domain{
 			Name:      name,
 			Category:  Dynamic,
@@ -97,5 +106,5 @@ func Merge(stacks []stack.StackID, userExtras []string) MergedDomains {
 	return MergedDomains{
 		Static:  staticDomains,
 		Dynamic: dynamicDomains,
-	}
+	}, nil
 }

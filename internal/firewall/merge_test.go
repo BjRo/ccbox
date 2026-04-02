@@ -39,7 +39,10 @@ func collectExpected(stacks ...Stack) (staticNames, dynamicNames map[string]bool
 }
 
 func TestMerge_AlwaysOnIncluded(t *testing.T) {
-	result := Merge(nil, nil)
+	result, err := Merge(nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	wantStatic, wantDynamic := collectExpected(AlwaysOn)
 
@@ -92,7 +95,10 @@ func TestMerge_AlwaysOnIncluded(t *testing.T) {
 }
 
 func TestMerge_SingleStack(t *testing.T) {
-	result := Merge([]stack.StackID{stack.Go}, nil)
+	result, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// Collect expected domains from AlwaysOn + Go.
 	wantStatic, wantDynamic := collectExpected(AlwaysOn, Go)
@@ -142,7 +148,10 @@ func TestMerge_SingleStack(t *testing.T) {
 }
 
 func TestMerge_MultipleStacks(t *testing.T) {
-	result := Merge([]stack.StackID{stack.Go, stack.Node}, nil)
+	result, err := Merge([]stack.StackID{stack.Go, stack.Node}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	wantStatic, wantDynamic := collectExpected(AlwaysOn, Go, Node)
 
@@ -170,7 +179,10 @@ func TestMerge_MultipleStacks(t *testing.T) {
 }
 
 func TestMerge_UserExtras(t *testing.T) {
-	result := Merge(nil, []string{"custom.example.com", "another.example.com"})
+	result, err := Merge(nil, []string{"custom.example.com", "another.example.com"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// User extras should appear in Dynamic list.
 	dynamicNames := make(map[string]bool)
@@ -207,7 +219,10 @@ func TestMerge_UserExtras(t *testing.T) {
 
 func TestMerge_UserExtraDuplicatesRegistry(t *testing.T) {
 	// proxy.golang.org is in the Go registry.
-	result := Merge([]stack.StackID{stack.Go}, []string{"proxy.golang.org"})
+	result, err := Merge([]stack.StackID{stack.Go}, []string{"proxy.golang.org"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	count := 0
 	for _, d := range result.Dynamic {
@@ -231,7 +246,10 @@ func TestMerge_UserExtraDuplicatesRegistry(t *testing.T) {
 }
 
 func TestMerge_UserExtraDuplicatesAlwaysOn(t *testing.T) {
-	result := Merge(nil, []string{"github.com"})
+	result, err := Merge(nil, []string{"github.com"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// github.com is Static in AlwaysOn; it should stay in Static, not move to Dynamic.
 	staticCount := 0
@@ -256,7 +274,10 @@ func TestMerge_UserExtraDuplicatesAlwaysOn(t *testing.T) {
 }
 
 func TestMerge_DeduplicateUserExtras(t *testing.T) {
-	result := Merge(nil, []string{"dup.example.com", "dup.example.com"})
+	result, err := Merge(nil, []string{"dup.example.com", "dup.example.com"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	count := 0
 	for _, d := range result.Dynamic {
@@ -271,7 +292,10 @@ func TestMerge_DeduplicateUserExtras(t *testing.T) {
 }
 
 func TestMerge_UnknownStackSkipped(t *testing.T) {
-	result := Merge([]stack.StackID{"elixir"}, nil)
+	result, err := Merge([]stack.StackID{"elixir"}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// Only always-on domains should appear.
 	wantStatic, wantDynamic := collectExpected(AlwaysOn)
@@ -285,7 +309,10 @@ func TestMerge_UnknownStackSkipped(t *testing.T) {
 }
 
 func TestMerge_EmptyUserExtrasSkipped(t *testing.T) {
-	result := Merge(nil, []string{"", "  ", "valid.example.com"})
+	result, err := Merge(nil, []string{"", "  ", "valid.example.com"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// Only valid.example.com should appear from user extras.
 	userDomains := make(map[string]bool)
@@ -310,7 +337,10 @@ func TestMerge_EmptyUserExtrasSkipped(t *testing.T) {
 }
 
 func TestMerge_SortedOutput(t *testing.T) {
-	result := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
+	result, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if !slices.IsSortedFunc(result.Static, func(a, b Domain) int {
 		return strings.Compare(a.Name, b.Name)
@@ -334,8 +364,14 @@ func TestMerge_SortedOutput(t *testing.T) {
 }
 
 func TestMerge_DuplicateStackIDs(t *testing.T) {
-	single := Merge([]stack.StackID{stack.Go}, nil)
-	double := Merge([]stack.StackID{stack.Go, stack.Go}, nil)
+	single, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	double, err := Merge([]stack.StackID{stack.Go, stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if len(single.Static) != len(double.Static) {
 		t.Errorf("Static: single=%d, double=%d -- duplicate stack ID caused different count",
@@ -349,7 +385,10 @@ func TestMerge_DuplicateStackIDs(t *testing.T) {
 
 func TestMerge_AllStacks(t *testing.T) {
 	allIDs := []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}
-	result := Merge(allIDs, nil)
+	result, err := Merge(allIDs, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// Compute expected unique domains from all stacks + AlwaysOn.
 	firewallStacks := []Stack{AlwaysOn, Go, Node, Python, Rust, Ruby}
@@ -386,7 +425,10 @@ func TestMerge_AllStacks(t *testing.T) {
 }
 
 func TestMerge_UserExtraWhitespaceTrimmed(t *testing.T) {
-	result := Merge(nil, []string{"  trimmed.example.com  "})
+	result, err := Merge(nil, []string{"  trimmed.example.com  "})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	found := false
 	for _, d := range result.Dynamic {
@@ -407,7 +449,10 @@ func TestMerge_UserExtraCaseInsensitive(t *testing.T) {
 	// DNS names are case-insensitive. "GitHub.com" should deduplicate against
 	// the always-on "github.com" entry (Static), and mixed-case user extras
 	// should deduplicate against each other.
-	result := Merge(nil, []string{"GitHub.com", "CUSTOM.Example.COM", "custom.example.com"})
+	result, err := Merge(nil, []string{"GitHub.com", "CUSTOM.Example.COM", "custom.example.com"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	// github.com is Static in AlwaysOn; the mixed-case user extra should not
 	// create a second entry.
@@ -435,5 +480,38 @@ func TestMerge_UserExtraCaseInsensitive(t *testing.T) {
 	}
 	if customCount != 1 {
 		t.Errorf("custom.example.com appears %d times, want 1", customCount)
+	}
+}
+
+func TestMerge_InvalidUserExtra_ShellInjection(t *testing.T) {
+	_, err := Merge(nil, []string{"; rm -rf /"})
+	if err == nil {
+		t.Fatal("expected error for shell injection attempt, got nil")
+	}
+}
+
+func TestMerge_InvalidUserExtra_CommandSubstitution(t *testing.T) {
+	_, err := Merge(nil, []string{"$(whoami)"})
+	if err == nil {
+		t.Fatal("expected error for command substitution attempt, got nil")
+	}
+}
+
+func TestMerge_ValidUserExtras_StillWork(t *testing.T) {
+	result, err := Merge(nil, []string{"valid.example.com", "another-valid.example.org"})
+	if err != nil {
+		t.Fatalf("unexpected error for valid user extras: %v", err)
+	}
+
+	dynamicNames := make(map[string]bool)
+	for _, d := range result.Dynamic {
+		dynamicNames[d.Name] = true
+	}
+
+	if !dynamicNames["valid.example.com"] {
+		t.Error("missing valid.example.com in Dynamic")
+	}
+	if !dynamicNames["another-valid.example.org"] {
+		t.Error("missing another-valid.example.org in Dynamic")
 	}
 }
