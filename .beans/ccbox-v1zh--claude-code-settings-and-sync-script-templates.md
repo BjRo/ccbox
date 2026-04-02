@@ -153,7 +153,7 @@ None. The approach is straightforward and all decisions are grounded in existing
 - [x] Lint passes
 - [x] Tests pass
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural changes)
@@ -166,7 +166,7 @@ None. The approach is straightforward and all decisions are grounded in existing
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-02 |
 | challenge | complete | 1 | 2026-04-02 |
-| implement | in-progress | 1 | 2026-04-02 |
-| pr | pending | | |
+| implement | complete | 1 | 2026-04-02 |
+| pr | complete | 1 | 2026-04-02 |
 | review | pending | | |
 | codify | pending | | |
