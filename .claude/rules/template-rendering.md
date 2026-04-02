@@ -33,6 +33,27 @@ Dockerfile `RUN` blocks use backslash continuation. When `{{ range }}` appends i
 
 Never use `{{- }}` trim markers that would collapse continuation backslashes.
 
+## JSON Safety in Templates
+
+Templates producing JSON files need two safeguards:
+
+1. **`jsonString` FuncMap helper**: Use `json.Marshal` on the string, then strip the surrounding quotes. The result is safe for interpolation inside JSON double quotes -- characters like `"`, `\`, and control characters are properly escaped. Pattern: `"{{.Field | jsonString}}"`.
+2. **Comma-separated arrays via indexed range**: JSON forbids trailing commas. Use `{{range $i, $v := .Items}}{{if $i}}, {{end}}"{{$v | jsonString}}"{{end}}` to emit commas only between elements. When the slice is empty, this produces `[]` (not `null`).
+
+## Shell Script Temp File Cleanup
+
+Generated shell scripts that create temp files use the `trap`/`EXIT` pattern for cleanup:
+
+```bash
+TMPFILE="$(mktemp)"
+trap 'rm -f "$TMPFILE"' EXIT
+# ... use $TMPFILE ...
+mv "$TMPFILE" "$DESTINATION"
+trap - EXIT
+```
+
+Clear the trap after successful `mv` so the moved file is not deleted.
+
 ## Shell Injection Defense
 
 Templates producing shell scripts use two independent defense layers:
