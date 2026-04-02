@@ -220,3 +220,17 @@ The plan is solid. The `newRootCmd()` constructor pattern, the `internal/render/
 - [x] Step 7: Create .golangci.yml
 - [x] Step 8: Update CLAUDE.md architecture section
 - [x] Step 11: Final verification (build, test, lint, manual CLI check all pass)
+
+## Definition of Done
+
+- [x] Tests written (TDD: write tests before implementation)
+- [x] No new TODO/FIXME/HACK/XXX comments introduced
+- [x] `golangci-lint run ./...` passes with no errors
+- [x] `go test ./...` passes with no failures
+- [x] Branch pushed to remote
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
+- [x] All other checklist items above are completed
+- [ ] User notified for human review
