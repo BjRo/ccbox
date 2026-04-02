@@ -76,6 +76,31 @@ Automated reviews use the Go engineer persona (`.claude/personas/go-engineer.md`
 
 Engineering calibration: flag repetition (DRY), flag over-engineering (premature abstractions), flag under-engineering (missing error handling/edge cases).
 
+## Cobra CLI Patterns
+
+All commands follow the **unexported constructor pattern** established in `cmd/root.go`:
+
+- Each command file exposes `newXxxCmd() *cobra.Command` (unexported).
+- `newRootCmd()` builds the full command tree by calling sub-command constructors and wiring them via `AddCommand`.
+- The package-level `var rootCmd = newRootCmd()` is the single production instance. No `init()` functions for command registration.
+- Tests call `newRootCmd()` per test to get a fresh, isolated command tree. Use `cmd.SetOut()`, `cmd.SetErr()`, and `cmd.SetArgs()` for test I/O.
+- Tests live in `package cmd` (internal), not `package cmd_test`, because they need access to unexported constructors. True black-box CLI testing belongs in integration tests.
+
+Root command wiring:
+- `SilenceErrors: true` -- Cobra does not print errors; `main.go` handles all error output.
+- `SilenceUsage: true` -- Cobra does not dump usage on errors; users run `--help` explicitly.
+- `main.go` prints the error to stderr and exits with code 1.
+
+Version injection:
+- `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
+- GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
+
+## Linting
+
+- Config: `.golangci.yml` using golangci-lint **v2** format (`version: "2"`).
+- Enabled linters: govet, errcheck, staticcheck, unused, ineffassign.
+- Run with `golangci-lint run ./...`.
+
 ## Decisions
 
 Architecture Decision Records live in `decisions/`. Create new ones with `/decision` when introducing dependencies, patterns, or architectural changes.
