@@ -1,11 +1,11 @@
 ---
 # ccbox-dttd
 title: Firewall script templates
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-04-02T10:35:24Z
-updated_at: 2026-04-02T15:36:12Z
+updated_at: 2026-04-02T16:02:24Z
 parent: ccbox-6z26
 ---
 
