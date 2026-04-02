@@ -28,7 +28,7 @@ This registry is the single source of truth for all stack-specific behavior.
 - [x] No TODO/FIXME/HACK/XXX comments
 - [x] Lint passes (`golangci-lint run ./...`)
 - [x] Tests pass (`go test ./...`)
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
