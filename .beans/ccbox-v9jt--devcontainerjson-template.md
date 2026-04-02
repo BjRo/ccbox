@@ -150,7 +150,7 @@ None. The bean description is sufficiently prescriptive, and the template conten
 - [x] No TODO/FIXME/HACK/XXX comments
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
