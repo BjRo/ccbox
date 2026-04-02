@@ -44,7 +44,7 @@ Returns a list of detected stacks. Only scan root and one level deep (avoid vend
 | implement | completed | 1 | 2026-04-02 |
 | pr | completed | 1 | 2026-04-02 |
 | review | completed | 1 | 2026-04-02 |
-| codify | pending | | |
+| codify | completed | 1 | 2026-04-02 |
 
 ## Implementation Plan
 
