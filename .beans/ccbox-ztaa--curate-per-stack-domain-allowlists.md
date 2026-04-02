@@ -149,7 +149,7 @@ None. The test file fully specifies the API contract, the domain list is defined
 - [x] Lint passes
 - [x] Tests pass
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 
@@ -160,6 +160,6 @@ None. The test file fully specifies the API contract, the domain list is defined
 | refine | complete | 1 | 2026-04-02 |
 | challenge | complete | 1 | 2026-04-02 |
 | implement | complete | 1 | 2026-04-02 |
-| pr | pending | | |
+| pr | complete | 1 | 2026-04-02 |
 | review | pending | | |
 | codify | pending | | |
