@@ -324,3 +324,105 @@ func TestRenderFirewall_InitFirewall_SingleQuotedDomains(t *testing.T) {
 		t.Error("InitFirewall does not contain any single-quoted domain in dig context; expected defense-in-depth quoting")
 	}
 }
+
+func TestRenderFirewall_Deterministic(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files1, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall (first): %v", err)
+	}
+
+	files2, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall (second): %v", err)
+	}
+
+	if !bytes.Equal(files1.InitFirewall, files2.InitFirewall) {
+		t.Error("InitFirewall output is not deterministic across two renders")
+	}
+	if !bytes.Equal(files1.WarmupDNS, files2.WarmupDNS) {
+		t.Error("WarmupDNS output is not deterministic across two renders")
+	}
+	if !bytes.Equal(files1.DynamicDomains, files2.DynamicDomains) {
+		t.Error("DynamicDomains output is not deterministic across two renders")
+	}
+}
+
+func TestRenderFirewall_AllShellScripts_ShebangAndStrictMode(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	// Both init-firewall.sh and warmup-dns.sh must have the standard bash
+	// shebang and strict mode. This consolidates individual checks into a
+	// single systematic sweep of all firewall shell scripts.
+	scripts := []struct {
+		name    string
+		content []byte
+	}{
+		{"init-firewall.sh", files.InitFirewall},
+		{"warmup-dns.sh", files.WarmupDNS},
+	}
+
+	for _, s := range scripts {
+		output := string(s.content)
+		if !strings.HasPrefix(output, "#!/usr/bin/env bash") {
+			t.Errorf("%s: missing '#!/usr/bin/env bash' shebang", s.name)
+		}
+		if !strings.Contains(output, "set -euo pipefail") {
+			t.Errorf("%s: missing 'set -euo pipefail' strict mode", s.name)
+		}
+	}
+}
+
+func TestRenderFirewall_PythonDomainsInInitFirewall(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	// Python domains (pypi.org, files.pythonhosted.org) are classified as Static
+	// in the firewall registry. They should appear in InitFirewall, not in
+	// DynamicDomains.
+	pythonStaticDomains := []string{"pypi.org", "files.pythonhosted.org"}
+	for _, name := range pythonStaticDomains {
+		if !bytes.Contains(files.InitFirewall, []byte(name)) {
+			t.Errorf("InitFirewall missing Python static domain %q", name)
+		}
+	}
+
+	// Python has no dynamic domains in the firewall registry. Verify that no
+	// Python-specific domain appears as a first-field entry in DynamicDomains.
+	lines := strings.Split(string(files.DynamicDomains), "\n")
+	for _, name := range pythonStaticDomains {
+		for _, line := range lines {
+			fields := strings.Fields(line)
+			if len(fields) > 0 && fields[0] == name {
+				t.Errorf("DynamicDomains contains Python static domain %q as entry", name)
+			}
+		}
+	}
+
+	// Structural assertion: every cfg.Domains.Static domain with a Python-relevant
+	// name must appear in InitFirewall.
+	for _, d := range cfg.Domains.Static {
+		if !bytes.Contains(files.InitFirewall, []byte(d.Name)) {
+			t.Errorf("InitFirewall missing static domain %q", d.Name)
+		}
+	}
+}
