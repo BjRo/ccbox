@@ -1,5 +1,5 @@
 ---
-description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, CLI test isolation
+description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface fakes, CLI test isolation
 globs: "**/*_test.go"
 ---
 
@@ -15,13 +15,19 @@ Packages that perform filesystem I/O should use Go's `fs.FS` interface:
 - Use `fs.Stat`, `fs.ReadDir`, `fs.Glob` (not `os.*` or `filepath.*`) in the core function.
 - Reserve one integration-style test that calls the public API with a real path.
 
+## Interface-Based Test Doubles
+
+When a dependency cannot be unit-tested (terminal I/O, network), define a narrow interface and inject via constructor parameters:
+
+- **Interface in the owning package**: e.g., `wizard.Prompter` with a single `Run(detected) (Choices, error)` method.
+- **Fake in test files**: Struct with canned return values. Add `failIfCalled` guard to assert code paths that must NOT invoke the dependency.
+- **Nil means default**: Constructor accepts the interface; `nil` triggers real implementation.
+
 ## CLI Test Directory Isolation
 
-Tests for Cobra commands that operate on a target directory should avoid `os.Chdir()` for test isolation:
-
-- **Prefer `--dir` flag over `os.Chdir()`**: Pass the target directory explicitly via `cmd.SetArgs([]string{"init", "--dir", dir})`. This avoids global state mutation and allows parallel test execution.
-- **Use `t.Chdir()` (Go 1.24+) when `--dir` is not available**: For tests that must exercise the "no --dir means current directory" fallback, use `t.Chdir(dir)` which automatically restores the original directory on cleanup. Never use manual `os.Chdir()` + `t.Cleanup()`.
-- **Use `t.TempDir()` for output directories**: When `--stack` is provided explicitly, the temp dir does not need marker files (detection is skipped).
+- **Prefer `--dir` flag over `os.Chdir()`** for parallel test execution.
+- **Use `t.Chdir()` (Go 1.24+)** when testing the "no --dir means current directory" fallback.
+- **Use `t.TempDir()`** for output directories.
 
 ## Registry-Backed Code
 
