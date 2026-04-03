@@ -1,11 +1,11 @@
 ---
 # ccbox-txxy
 title: 'Integration tests: end-to-end generation'
-status: todo
+status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-02T10:36:03Z
-updated_at: 2026-04-02T10:36:03Z
+updated_at: 2026-04-03T08:35:19Z
 parent: ccbox-6g75
 ---
 
@@ -19,3 +19,27 @@ End-to-end tests that run `ccbox init` against sample project directories and va
 5. Verify .ccbox.yml is written with correct stacks and options
 
 Run as `go test -tags=integration` to separate from unit tests.
+
+## Checklist
+
+- [ ] Tests written (TDD)
+- [ ] No TODO/FIXME/HACK/XXX comments
+- [ ] Lint passes
+- [ ] Tests pass
+- [ ] Branch pushed
+- [ ] PR created
+- [ ] Automated code review passed
+- [ ] Review feedback worked in
+- [ ] All other checklist items completed
+- [ ] User notified
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | pending | | |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
