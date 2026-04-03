@@ -241,6 +241,75 @@ Create `decisions/0007-huh-forms-for-interactive-wizard.md` documenting:
 
 2. **Theme/styling.** The `huh` library supports themes (Charm, Dracula, Catppuccin, Base16, default). The plan uses the default theme, which looks good in most terminals. A custom theme could be added later to match ccbox branding, but this is cosmetic and out of scope for this bean.
 
+
+## Challenge Report
+
+**Scope: BIG CHANGE** (6 files created/modified + go.mod/go.sum)
+
+### Scope Assessment
+
+| Metric | Value | Threshold |
+|--------|-------|-----------|
+| Files | 8 (including go.mod/go.sum) | >15 = recommend split |
+
+The scope is manageable. New package + cmd wiring + dependency addition is a natural unit of work.
+
+### Findings
+
+#### Go Engineer
+
+> **Finding 1: Package-level `wizardPrompter` function variable breaks test parallelism** (severity: WARNING)
+>
+> Step 5 proposes `var wizardPrompter = func(cmd *cobra.Command) wizard.Prompter` as the test seam. Tests override this package-level variable and restore it in cleanup. This is shared mutable state: tests that override `wizardPrompter` cannot run with `t.Parallel()`. The existing `TestInitCommand_GeneratesDevcontainer` test (which does NOT set `--stacks`) will also be affected -- it currently succeeds because `isTerminal` returns false in test, but if any test overwrites `wizardPrompter` concurrently, behavior is undefined.
+>
+> The plan acknowledges this tradeoff but dismisses the alternative (passing `Prompter` through `newInitCmd`) too quickly. The Cobra constructor pattern from ADR-0001 is about unexported constructors returning fresh command trees -- it does not prohibit parameters. Adding `func newInitCmd(opts ...InitOption)` or simply `func newInitCmd(prompter wizard.Prompter)` is a one-line signature change that eliminates shared state entirely.
+>
+> **Option A (recommended):** Accept a `wizard.Prompter` parameter in `newInitCmd()`. Production code passes `nil` (meaning "use default HuhPrompter"), and the function falls back internally: `if prompter == nil { prompter = &wizard.HuhPrompter{} }`. Tests pass their fake directly. This is a trivial change to `newRootCmd()` (pass `nil`) and keeps all tests parallelizable.
+>
+> **Option B:** Keep the function variable but document that all wizard-related tests in `cmd/init_test.go` must NOT use `t.Parallel()`. Add a comment at the top of the test file explaining the constraint.
+>
+> **Option C:** Use a context value to carry the prompter. Overly indirect -- not recommended.
+
+> **Finding 2: Empty stack selection after wizard has no guard** (severity: WARNING)
+>
+> Step 5's pseudocode shows that when the wizard returns successfully, `stackIDs = choices.Stacks` is used directly. If the user deselects all stacks in the multi-select and confirms, `choices.Stacks` will be an empty slice. This flows into `render.Merge([]stack.StackID{}, extraDomains)` which returns an empty `GenerationConfig`. The downstream render calls will produce degenerate output (e.g., a Dockerfile with no runtimes). The plan's testing checklist item "Empty stack selection after wizard shows appropriate message" (line 235) correctly identifies this risk but the implementation pseudocode has no corresponding guard.
+>
+> The existing non-TTY fallback path has a `len(stackIDs) == 0` check (line 174), but the wizard success path (line 168) does not.
+>
+> **Option A (recommended):** After `stackIDs = choices.Stacks`, add the same empty-stack guard that already exists in the non-TTY fallback path. Print a message and return nil.
+>
+> **Option B:** Enforce minimum one stack selection inside `HuhPrompter.Run` using `huh.MultiSelect`'s `Validate` callback. Return an error if the selection is empty. This is better UX (inline feedback) but should be paired with Option A as defense-in-depth.
+
+> **Finding 3: Confirmation group cannot access form state from prior groups** (severity: WARNING)
+>
+> Step 3, Group 3 says the confirmation description is "dynamically built" to show selected stacks and extra domains. In `huh`, a `Form` with multiple `Group`s runs each group sequentially, but the description string for Group 3 must be set at form construction time. The form does not re-evaluate description strings between groups. This means the confirmation summary will show the initially-detected stacks and empty domain text -- NOT the user's actual selections from Groups 1 and 2.
+>
+> This is a fundamental `huh` API constraint. The description is a static string, not a function.
+>
+> **Option A (recommended):** Split into two sequential forms. Form 1 has Groups 1 and 2 (stack selection + domain input). After Form 1 completes, parse the results, build the summary string, then run Form 2 (a single `huh.Confirm` with the dynamic description). This is a minor structural change that makes the confirmation accurate.
+>
+> **Option B:** Use `huh`'s `WithDescription` on the confirm with a pointer-based dynamic value via a closure that reads from the multi-select's bound variable. This works for stacks (bound to a `*[]stack.StackID`) but is fragile for the domain text which needs parsing.
+>
+> **Option C:** Drop the dynamic confirmation summary and use a static message like "Proceed with the selections above?". Less informative but simpler.
+
+> **Finding 4: `--domains` flag is silently ignored during wizard flow** (severity: SUGGESTION)
+>
+> In the plan's Step 5 pseudocode, when the wizard runs (TTY + no `--stacks` flag), the `domains` CLI flag variable is never consulted. The wizard collects its own extra domains via the text input. If a user runs `ccbox init --domains api.example.com` without `--stacks`, the wizard fires and the `--domains` value is silently dropped.
+>
+> This is arguably correct behavior (the wizard supersedes flags), but it could surprise users. The sibling bean ccbox-nvf1 will add `--non-interactive` to address this fully, but until then there is a gap.
+>
+> **Suggestion:** When `--domains` is set but `--stacks` is not, either (a) pre-populate the domain text field in the wizard with the flag values, or (b) skip the wizard domain step and use the flag values. Option (a) is the better UX and straightforward to implement -- initialize the `huh.Text` value pointer with the joined flag domains.
+
+### Verdict
+
+**APPROVED** -- with Findings 1-3 addressed during implementation.
+
+The overall architecture is sound. The `Prompter` interface, the `Choices` data struct, the new `internal/wizard` package, and the TTY detection strategy are all well-considered. The `charmbracelet/huh` dependency is the right choice for this use case -- it is actively maintained, it matches the form-style UX the bean describes, and the alternative (`survey`) is archived.
+
+Finding 1 (function variable) is a WARNING because it introduces shared mutable test state into a codebase that currently has none. The fix is simple. Finding 2 (empty stack guard) is a WARNING because it is a missing edge case that the plan itself identified but did not implement. Finding 3 (confirmation summary) is a WARNING because it will produce incorrect output if implemented as described -- the `huh` API does not support dynamic descriptions across groups.
+
+Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
+
 ## Checklist
 
 - [ ] Tests written (TDD)
@@ -258,7 +327,7 @@ Create `decisions/0007-huh-forms-for-interactive-wizard.md` documenting:
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | done | 1 | 2026-04-03 |
-| challenge | pending | | |
+| challenge | done | 1 | 2026-04-03 |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
