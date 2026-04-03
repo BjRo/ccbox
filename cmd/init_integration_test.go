@@ -313,7 +313,11 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	startTime := time.Now().UTC()
+	// Truncate to second precision because yaml.v3 truncates time.Time to
+	// whole seconds during the write/load round-trip. Without truncation,
+	// a nanosecond-precise startTime captured mid-second could be After
+	// the truncated GeneratedAt value from the same second, causing flaky failures.
+	startTime := time.Now().UTC().Truncate(time.Second)
 
 	cmd := newRootCmd(nil)
 	cmd.SetArgs([]string{"init", "--dir", dir, "--non-interactive", "--extra-domains", "api.example.com"})
