@@ -331,4 +331,4 @@ Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
 | implement | done | 1 | 2026-04-03 |
 | pr | done | 1 | 2026-04-03 |
 | review | done | 2 | 2026-04-03 |
-| codify | pending | | |
+| codify | done | 1 | 2026-04-03 |
