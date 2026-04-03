@@ -173,7 +173,7 @@ None. The implementation plan is fully grounded in the current codebase.
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
 | challenge | complete | 2 | 2026-04-03 |
-| implement | pending | | |
+| implement | complete | 1 | 2026-04-03 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
