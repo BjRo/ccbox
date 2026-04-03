@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-02T10:33:59Z
-updated_at: 2026-04-03T09:18:48Z
+updated_at: 2026-04-03T09:23:38Z
 parent: ccbox-jxut
 ---
 
@@ -20,10 +20,10 @@ Set up GitHub Actions:
 - Release workflow: triggered on tag push, runs GoReleaser
 
 ## Checklist
-- [ ] Tests written
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -74,6 +74,7 @@ GoReleaser v2 config with these sections:
 **brews**: Homebrew tap formula generation.
 - `repository.owner: bjro`
 - `repository.name: homebrew-tap`
+- `repository.token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"` (dedicated PAT for cross-repo push)
 - `directory: Formula` (standard Homebrew convention)
 - `homepage: https://github.com/BjRo/ccbox`
 - `description: Generate devcontainer setups for Claude Code`
@@ -81,7 +82,7 @@ GoReleaser v2 config with these sections:
 - `install`: Standard `bin.install "ccbox"` formula
 - `test`: `system "#{bin}/ccbox", "--version"` to verify the formula works
 
-Note: The `brews` section requires a `HOMEBREW_TAP_TOKEN` GitHub token with write access to the `bjro/homebrew-tap` repository. This must be configured as a repository secret. The release workflow will pass it via `GITHUB_TOKEN` or a dedicated PAT.
+Note: The `brews` section requires a `HOMEBREW_TAP_TOKEN` GitHub token with write access to the `bjro/homebrew-tap` repository. This must be configured as a repository secret.
 
 #### 2. Create `.github/workflows/ci.yml`
 
@@ -102,7 +103,7 @@ CI workflow triggered on pull requests and pushes to `main`.
 - Steps:
   1. `actions/checkout@v4`
   2. `actions/setup-go@v5` with `go-version-file: go.mod` (reads version from go.mod so we never need to update the workflow when Go version changes)
-  3. `golangci/golangci-lint-action@v7` with `version: v2.11` (pin to minor version to match the v2 config format in `.golangci.yml`; using v7 of the action which supports golangci-lint v2)
+  3. `golangci/golangci-lint-action@v7` with `version: v2` (tracks latest v2.x release; using v7 of the action which supports golangci-lint v2)
 
 **test** job:
 - `runs-on: ubuntu-latest`
@@ -144,9 +145,7 @@ Release workflow triggered on version tag pushes.
      - `version: "~> v2"` (match GoReleaser v2 config format)
      - `args: release --clean`
   4. `env.GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` — for creating releases
-  5. `env.HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}` — for pushing to the Homebrew tap repo (GoReleaser uses this to authenticate when pushing the formula to `bjro/homebrew-tap`)
-
-Note on Homebrew tap token: GoReleaser needs a PAT (Personal Access Token) or fine-grained token with `contents: write` permission on the `bjro/homebrew-tap` repository. The default `GITHUB_TOKEN` only has permissions for the current repo. This token must be added as a repository secret named `HOMEBREW_TAP_TOKEN`. In the `.goreleaser.yml`, the brews section references this via `repository.token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"`.
+  5. `env.HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}` — for pushing to the Homebrew tap repo
 
 #### 4. Update `.gitignore`
 
@@ -156,35 +155,25 @@ Add `dist/` to `.gitignore`. GoReleaser creates a `dist/` directory for build ar
 
 Since the deliverables are declarative config files (YAML), not Go source code, the standard Go unit test approach does not apply. Instead:
 
-1. **GoReleaser schema validation**: Run `goreleaser check` (or `goreleaser build --snapshot --clean` for a dry-run build) in the CI pipeline or locally to verify the `.goreleaser.yml` config is valid. This is a manual verification step during implementation, not an automated test.
-
-2. **GitHub Actions syntax validation**: GitHub validates workflow YAML on push. Syntax errors surface immediately as failed workflow runs. For local pre-validation, `actionlint` can be used if available.
-
-3. **Smoke test after first tag**: The sibling bean `ccbox-xeg2` covers the end-to-end release verification (tag v0.1.0, verify binaries, verify Homebrew install). This bean only sets up the config; the first actual release is out of scope.
-
-4. **CI workflow verification**: After the PR is created, the CI workflow will run against the PR itself, providing immediate validation that lint/test/build jobs work correctly. This is a self-validating deliverable.
-
-5. **No Go test changes needed**: No Go source files are modified, so existing tests remain valid. The `go test ./...` and `golangci-lint run ./...` commands in CI exercise the exact same commands documented in CLAUDE.md.
+1. **GoReleaser schema validation**: Run `goreleaser check` locally to verify the `.goreleaser.yml` config is valid.
+2. **GitHub Actions syntax validation**: GitHub validates workflow YAML on push. Syntax errors surface immediately as failed workflow runs.
+3. **Smoke test after first tag**: The sibling bean `ccbox-xeg2` covers the end-to-end release verification.
+4. **CI workflow verification**: After the PR is created, the CI workflow will run against the PR itself, providing immediate validation.
+5. **No Go test changes needed**: No Go source files are modified, so existing tests remain valid.
 
 ### Design Decisions
 
-- **Three jobs in CI, not one**: Lint, test, and build run as separate parallel jobs. This gives faster feedback (a lint failure shows immediately without waiting for tests) and clearer status checks on PRs.
-
-- **`go-version-file: go.mod`**: Instead of hardcoding `go-version: "1.25"`, we read from `go.mod`. This is the single-source-of-truth approach — when Go version bumps, only `go.mod` changes.
-
-- **No integration tests in CI**: The CI workflow runs `go test ./...` (unit tests only). Integration tests (`-tags integration`) are excluded because they exercise real filesystem operations that may need specific setup. They can be added to a separate CI job later if needed.
-
-- **GoReleaser v2 config format**: Matches the project setup. Key difference from v1: the `version: 2` field at the top of `.goreleaser.yml` and updated schema for `brews` (was `brews` in v1 too, but field names differ slightly in v2).
-
-- **Separate Homebrew tap token**: The `GITHUB_TOKEN` provided by GitHub Actions only has permissions for the current repository. Writing to `bjro/homebrew-tap` requires a separate PAT stored as `HOMEBREW_TAP_TOKEN` secret.
-
-- **`CGO_ENABLED=0`**: ccbox is a pure Go project with no C dependencies. Static binaries simplify distribution and avoid glibc version mismatches across Linux distributions.
-
-- **Tag pattern `v*`**: Matches Go module versioning conventions (`v0.1.0`, `v1.0.0`). The release workflow ignores non-version tags.
+- **Three jobs in CI, not one**: Lint, test, and build run as separate parallel jobs for faster feedback.
+- **`go-version-file: go.mod`**: Single-source-of-truth for Go version.
+- **No integration tests in CI**: Keep `go test ./...` fast for TDD loops.
+- **GoReleaser v2 config format**: Matches the project setup.
+- **Separate Homebrew tap token**: The `GITHUB_TOKEN` only has permissions for the current repository.
+- **`CGO_ENABLED=0`**: Static binaries for a pure-Go CLI.
+- **Tag pattern `v*`**: Matches Go module versioning conventions.
 
 ### Open Questions
 
-None. The scope is well-defined by the bean description and existing project conventions. The Homebrew tap repository (`bjro/homebrew-tap`) and its PAT secret are prerequisites for the release workflow but are out of scope for this bean (covered by `ccbox-xeg2`).
+None.
 
 ## Challenge Report
 
@@ -227,7 +216,17 @@ Finding 1 is the only one that matters for implementation correctness. The `repo
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
 | challenge | complete | 1 | 2026-04-03 |
-| implement | pending | | |
+| implement | in-progress | 1 | 2026-04-03 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
+
+## Agent Checkpoint
+
+Implementation complete. All 4 files created/updated:
+1. `.goreleaser.yml` - with repository.token per Finding 1
+2. `.github/workflows/ci.yml` - with golangci-lint version: "v2" per Finding 2
+3. `.github/workflows/release.yml` - with HOMEBREW_TAP_TOKEN env
+4. `.gitignore` - added dist/
+
+Lint passes, tests pass. Ready for commit and push.

@@ -1,5 +1,6 @@
 # Build
 ccbox
+dist/
 
 # Claude Code ephemeral state
 .claude/logs/
