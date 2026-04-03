@@ -1,10 +1,14 @@
 package cmd
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/bjro/ccbox/internal/config"
 )
 
 func TestInitCommand_GeneratesDevcontainer(t *testing.T) {
@@ -347,5 +351,82 @@ func TestInitCommand_StackFlagEmptyValuesFiltered(t *testing.T) {
 	path := filepath.Join(dir, ".devcontainer", "Dockerfile")
 	if _, err := os.Stat(path); err != nil {
 		t.Error("missing Dockerfile")
+	}
+}
+
+func TestInitCommand_CcboxYmlContent(t *testing.T) {
+	dir := t.TempDir()
+	before := time.Now().UTC()
+
+	cmd := newRootCmd()
+	cmd.SetArgs([]string{"init", "--stack", "go,node", "--extra-domains", "api.example.com", "--dir", dir})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, config.Filename))
+	if err != nil {
+		t.Fatalf("read %s: %v", config.Filename, err)
+	}
+
+	cfg, err := config.Load(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if cfg.Version != 1 {
+		t.Errorf("Version = %d, want 1", cfg.Version)
+	}
+
+	wantStacks := []string{"go", "node"}
+	if len(cfg.Stacks) != len(wantStacks) {
+		t.Fatalf("Stacks = %v, want %v", cfg.Stacks, wantStacks)
+	}
+	for i, s := range cfg.Stacks {
+		if s != wantStacks[i] {
+			t.Errorf("Stacks[%d] = %q, want %q", i, s, wantStacks[i])
+		}
+	}
+
+	wantDomains := []string{"api.example.com"}
+	if len(cfg.ExtraDomains) != len(wantDomains) {
+		t.Fatalf("ExtraDomains = %v, want %v", cfg.ExtraDomains, wantDomains)
+	}
+
+	if cfg.GeneratedAt.Before(before) || cfg.GeneratedAt.After(time.Now().UTC()) {
+		t.Errorf("GeneratedAt = %v, expected between %v and now", cfg.GeneratedAt, before)
+	}
+
+	if cfg.CcboxVersion != version {
+		t.Errorf("CcboxVersion = %q, want %q", cfg.CcboxVersion, version)
+	}
+}
+
+func TestInitCommand_CcboxYmlEmptyDomains(t *testing.T) {
+	dir := t.TempDir()
+
+	cmd := newRootCmd()
+	cmd.SetArgs([]string{"init", "--stack", "go", "--dir", dir})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, config.Filename))
+	if err != nil {
+		t.Fatalf("read %s: %v", config.Filename, err)
+	}
+
+	cfg, err := config.Load(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+
+	if cfg.ExtraDomains == nil {
+		t.Error("ExtraDomains should be non-nil empty slice, got nil")
+	}
+	if len(cfg.ExtraDomains) != 0 {
+		t.Errorf("ExtraDomains = %v, want empty slice", cfg.ExtraDomains)
 	}
 }
