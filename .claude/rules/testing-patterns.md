@@ -1,5 +1,5 @@
 ---
-description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing
+description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface-based fakes
 globs: "**/*_test.go"
 ---
 
@@ -14,6 +14,16 @@ Packages that perform filesystem I/O should use Go's `fs.FS` interface:
 - **Tests use `fstest.MapFS`**: In-memory filesystem, zero disk I/O, deterministic.
 - Use `fs.Stat`, `fs.ReadDir`, `fs.Glob` (not `os.*` or `filepath.*`) in the core function.
 - Reserve one integration-style test that calls the public API with a real path.
+
+## Interface-Based Test Doubles
+
+When a dependency cannot be unit-tested (terminal I/O, network, external processes), define a narrow interface and inject via constructor parameters:
+
+- **Interface in the owning package**: e.g., `wizard.Prompter` with a single `Run(detected []stack.StackID) (Choices, error)` method.
+- **Production implementation**: `HuhPrompter` uses the real library. Tests cannot exercise it without a terminal.
+- **Fake in test files**: A struct with canned return values. Keep it minimal -- just the fields needed to control test behavior.
+- **`failIfCalled` guard**: Add a boolean field to the fake that calls `t.Fatal()` in the method body. Use this to assert that a code path does NOT invoke the dependency (e.g., `--stacks` flag bypasses the wizard).
+- **Nil means default**: Constructor accepts the interface; `nil` triggers real implementation. Tests pass fakes explicitly.
 
 ## Registry-Backed Code
 
