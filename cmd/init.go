@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/bjro/ccbox/internal/config"
 	"github.com/bjro/ccbox/internal/detect"
 	"github.com/bjro/ccbox/internal/render"
 	"github.com/bjro/ccbox/internal/stack"
@@ -109,7 +112,30 @@ func newInitCmd() *cobra.Command {
 				}
 			}
 
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Generated .devcontainer/ with %d files\n", len(files))
+			// Write .ccbox.yml to the project root.
+			ccboxCfg := config.Config{
+				Version:      1,
+				Stacks:       make([]string, len(cfg.Stacks)),
+				ExtraDomains: domains,
+				GeneratedAt:  time.Now().UTC(),
+				CcboxVersion: version,
+			}
+			for i, id := range cfg.Stacks {
+				ccboxCfg.Stacks[i] = string(id)
+			}
+			if ccboxCfg.ExtraDomains == nil {
+				ccboxCfg.ExtraDomains = []string{}
+			}
+
+			var ccboxBuf bytes.Buffer
+			if err := config.Write(&ccboxBuf, ccboxCfg); err != nil {
+				return fmt.Errorf("write %s: %w", config.Filename, err)
+			}
+			if err := os.WriteFile(filepath.Join(dir, config.Filename), ccboxBuf.Bytes(), 0o644); err != nil {
+				return fmt.Errorf("write %s: %w", config.Filename, err)
+			}
+
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Generated .devcontainer/ with %d files and %s\n", len(files), config.Filename)
 			return nil
 		},
 	}
