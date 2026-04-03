@@ -309,6 +309,30 @@ func TestInitCommand_OldFlagNames_NotAccepted(t *testing.T) {
 	})
 }
 
+func TestInitCommand_ExtraDomainsFlagWithSpaces(t *testing.T) {
+	dir := t.TempDir()
+
+	cmd := newRootCmd()
+	// Cobra StringSlice splits on commas but preserves spaces.
+	// The code should TrimSpace each value, just like it does for stacks.
+	cmd.SetArgs([]string{"init", "--stack", "go", "--extra-domains", "api.example.com, cdn.example.com", "--dir", dir})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	// Verify both domains appear in dynamic-domains.conf (trimmed correctly).
+	content, err := os.ReadFile(filepath.Join(dir, ".devcontainer", "dynamic-domains.conf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, domain := range []string{"api.example.com", "cdn.example.com"} {
+		if !strings.Contains(string(content), domain) {
+			t.Errorf("extra domain %s not found in dynamic-domains.conf", domain)
+		}
+	}
+}
+
 func TestInitCommand_StackFlagEmptyValuesFiltered(t *testing.T) {
 	dir := t.TempDir()
 
