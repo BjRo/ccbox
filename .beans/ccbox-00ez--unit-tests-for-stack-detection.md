@@ -1,11 +1,11 @@
 ---
 # ccbox-00ez
 title: Unit tests for stack detection
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:35:53Z
-updated_at: 2026-04-03T00:00:00Z
+updated_at: 2026-04-03T08:42:41Z
 parent: ccbox-6g75
 ---
 
