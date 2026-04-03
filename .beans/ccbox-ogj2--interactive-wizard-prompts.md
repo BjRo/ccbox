@@ -1,11 +1,11 @@
 ---
 # ccbox-ogj2
 title: Interactive wizard prompts
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:34:37Z
-updated_at: 2026-04-03T07:23:59Z
+updated_at: 2026-04-03T08:30:30Z
 parent: ccbox-puuq
 ---
 
