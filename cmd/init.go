@@ -54,21 +54,13 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 
 				// Determine whether to run the wizard.
 				// When a prompter is explicitly provided (test injection),
-				// always use it. Otherwise check for a real TTY.
+				// always use it. Otherwise check for a real TTY and
+				// instantiate HuhPrompter for terminal sessions.
+				if prompter == nil && isTerminal(cmd.InOrStdin()) {
+					prompter = &wizard.HuhPrompter{}
+				}
 				if prompter != nil {
 					choices, wizErr := prompter.Run(detected)
-					if wizErr != nil {
-						if errors.Is(wizErr, wizard.ErrAborted) {
-							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
-							return nil
-						}
-						return wizErr
-					}
-					stackIDs = choices.Stacks
-					extraDomains = choices.ExtraDomains
-				} else if isTerminal(cmd.InOrStdin()) {
-					p := &wizard.HuhPrompter{}
-					choices, wizErr := p.Run(detected)
 					if wizErr != nil {
 						if errors.Is(wizErr, wizard.ErrAborted) {
 							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")

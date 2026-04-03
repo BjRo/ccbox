@@ -3,6 +3,7 @@ package wizard
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/bjro/ccbox/internal/firewall"
@@ -45,8 +46,7 @@ func (h *HuhPrompter) Run(detected []stack.StackID) (Choices, error) {
 	}
 
 	// Initialize selected stacks with detected ones.
-	selected := make([]stack.StackID, len(detected))
-	copy(selected, detected)
+	selected := slices.Clone(detected)
 
 	var domainsText string
 
@@ -68,13 +68,14 @@ func (h *HuhPrompter) Run(detected []stack.StackID) (Choices, error) {
 				Title("Extra domains to allowlist (optional)").
 				Description("Enter additional domains for the firewall allowlist, one per line. Leave empty to skip.").
 				Value(&domainsText).
-				Validate(func(s string) error {
-					return validateDomainsText(s)
-				}),
+				Validate(validateDomainsText),
 		),
 	)
 
 	if err := form1.Run(); err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return Choices{}, ErrAborted
+		}
 		return Choices{}, err
 	}
 
@@ -96,6 +97,9 @@ func (h *HuhPrompter) Run(detected []stack.StackID) (Choices, error) {
 	)
 
 	if err := form2.Run(); err != nil {
+		if errors.Is(err, huh.ErrUserAborted) {
+			return Choices{}, ErrAborted
+		}
 		return Choices{}, err
 	}
 

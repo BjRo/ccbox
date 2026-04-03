@@ -155,10 +155,10 @@ func TestBuildSummary_StacksOnly(t *testing.T) {
 		t.Fatal("buildSummary should not return empty string")
 	}
 	// Should contain stack names
-	if !containsSubstring(summary, "Go") {
+	if !strings.Contains(summary, "Go") {
 		t.Error("summary should contain 'Go'")
 	}
-	if !containsSubstring(summary, "Node/TypeScript") {
+	if !strings.Contains(summary, "Node/TypeScript") {
 		t.Error("summary should contain 'Node/TypeScript'")
 	}
 }
@@ -168,10 +168,10 @@ func TestBuildSummary_WithDomains(t *testing.T) {
 	stacks := []stack.StackID{stack.Go}
 	domains := []string{"api.example.com", "cdn.example.com"}
 	summary := buildSummary(stacks, domains)
-	if !containsSubstring(summary, "api.example.com") {
+	if !strings.Contains(summary, "api.example.com") {
 		t.Error("summary should contain 'api.example.com'")
 	}
-	if !containsSubstring(summary, "cdn.example.com") {
+	if !strings.Contains(summary, "cdn.example.com") {
 		t.Error("summary should contain 'cdn.example.com'")
 	}
 }
@@ -180,7 +180,7 @@ func TestBuildSummary_NoDomains(t *testing.T) {
 	t.Parallel()
 	stacks := []stack.StackID{stack.Go}
 	summary := buildSummary(stacks, nil)
-	if containsSubstring(summary, "Extra domains") {
+	if strings.Contains(summary, "Extra domains") {
 		t.Error("summary should not mention extra domains when none provided")
 	}
 }
@@ -215,9 +215,4 @@ type fakePrompter struct {
 
 func (f *fakePrompter) Run(_ []stack.StackID) (Choices, error) {
 	return f.choices, f.err
-}
-
-// containsSubstring is a test helper.
-func containsSubstring(s, substr string) bool {
-	return len(s) > 0 && len(substr) > 0 && strings.Contains(s, substr)
 }
