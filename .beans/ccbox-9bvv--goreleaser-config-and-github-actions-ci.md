@@ -216,8 +216,8 @@ Finding 1 is the only one that matters for implementation correctness. The `repo
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
 | challenge | complete | 1 | 2026-04-03 |
-| implement | in-progress | 1 | 2026-04-03 |
-| pr | pending | | |
+| implement | complete | 1 | 2026-04-03 |
+| pr | blocked | | 2026-04-03 |
 | review | pending | | |
 | codify | pending | | |
 
