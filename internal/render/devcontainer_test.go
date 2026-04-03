@@ -215,6 +215,35 @@ func TestDevContainer_MountsContent(t *testing.T) {
 	}
 }
 
+func TestDevContainer_IsStatic(t *testing.T) {
+	// The devcontainer.json template has no Go template actions (it is fully
+	// static). Rendering with different configs must produce byte-identical
+	// output. This proves the template is truly stack-agnostic, as required
+	// by the JSON template testing rules.
+	cfgGo, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge (Go): %v", err)
+	}
+
+	cfgMulti, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("Merge (Go+Node+Python): %v", err)
+	}
+
+	var bufGo, bufMulti bytes.Buffer
+	if err := DevContainer(&bufGo, cfgGo); err != nil {
+		t.Fatalf("DevContainer (Go): %v", err)
+	}
+	if err := DevContainer(&bufMulti, cfgMulti); err != nil {
+		t.Fatalf("DevContainer (Go+Node+Python): %v", err)
+	}
+
+	if !bytes.Equal(bufGo.Bytes(), bufMulti.Bytes()) {
+		t.Errorf("devcontainer.json differs between Go-only and Go+Node+Python configs; template should be fully static\n--- Go-only ---\n%s\n--- Go+Node+Python ---\n%s",
+			bufGo.String(), bufMulti.String())
+	}
+}
+
 func TestDevContainer_Deterministic(t *testing.T) {
 	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
 	if err != nil {

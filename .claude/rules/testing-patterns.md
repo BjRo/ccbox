@@ -42,6 +42,8 @@ Use **structural assertions**, not golden-file snapshots:
 - **Two-tier strategy**: Integration tests (through `Merge` + render) for full pipeline; isolation tests (hand-built `GenerationConfig`) for template logic independent of registry.
 - **Registry-computed completeness**: Iterate `cfg.Domains.Static` and assert each domain appears in output.
 - **Spot-checks**: Assert well-known entries appear in output.
+- **Determinism**: Render the same `GenerationConfig` twice, assert byte-equality. Every render function (Dockerfile, DevContainer, Claude, Firewall, README) should have a determinism test to guard against map iteration order or other non-deterministic behavior.
+- **Template artifact checks**: Assert rendered output does not contain `<no value>`, `<nil>`, `{{`, or `}}`. Use an all-stacks config (all 5 stacks) to exercise every conditional template branch; a single-stack config may skip branches where artifacts hide.
 - **Empty-input safety**: Render with empty (non-nil) slices, verify no `<no value>` artifacts.
 - **Shell syntax validation**: Assert no bare backslash lines, no double backslashes, no blank lines inside RUN blocks.
 - **Defense-layer verification**: Assert single-quoted domain interpolation in shell script output.
