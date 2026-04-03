@@ -40,9 +40,9 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				return err
 			}
 
-			// Fail fast if .devcontainer/ already exists.
+			// Fail fast if .devcontainer/ already exists (file or directory).
 			outDir := filepath.Join(targetDir, ".devcontainer")
-			if info, statErr := os.Stat(outDir); statErr == nil && info.IsDir() {
+			if _, statErr := os.Stat(outDir); statErr == nil {
 				return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
 			}
 

@@ -36,6 +36,7 @@ func readFile(t *testing.T, path string) string {
 }
 
 // expectedFiles lists the 8 files that ccbox init generates inside .devcontainer/.
+// Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedFiles = []string{
 	"Dockerfile",
 	"devcontainer.json",
@@ -48,6 +49,7 @@ var expectedFiles = []string{
 }
 
 // executableScripts lists the shell scripts that must have the executable bit set.
+// Intentionally coupled with the chmod list in cmd/init.go's RunE -- update both together.
 var executableScripts = []string{
 	"init-firewall.sh",
 	"warmup-dns.sh",
@@ -95,6 +97,7 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	}
 
 	// devcontainer.json: valid JSON with expected fields.
+	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	devcontainer := readFile(t, filepath.Join(devcontainerDir, "devcontainer.json"))
 	var devcontainerMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(devcontainer), &devcontainerMap); err != nil {
@@ -132,6 +135,7 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	}
 
 	// claude-user-settings.json: valid JSON with gopls plugin.
+	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	claudeSettings := readFile(t, filepath.Join(devcontainerDir, "claude-user-settings.json"))
 	var claudeMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(claudeSettings), &claudeMap); err != nil {
@@ -217,6 +221,7 @@ func TestIntegration_MultiStack(t *testing.T) {
 	}
 
 	// claude-user-settings.json: both plugins.
+	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	claudeSettings := readFile(t, filepath.Join(devcontainerDir, "claude-user-settings.json"))
 	var claudeMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(claudeSettings), &claudeMap); err != nil {
@@ -308,7 +313,7 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	before := time.Now().UTC().Add(-1 * time.Second)
+	startTime := time.Now().UTC()
 
 	cmd := newRootCmd(nil)
 	cmd.SetArgs([]string{"init", "--dir", dir, "--non-interactive", "--extra-domains", "api.example.com"})
@@ -316,8 +321,6 @@ func TestIntegration_ConfigFile(t *testing.T) {
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("init: %v", err)
 	}
-
-	after := time.Now().UTC().Add(1 * time.Second)
 
 	// .ccbox.yml exists.
 	cfgPath := filepath.Join(dir, ".ccbox.yml")
@@ -351,7 +354,8 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Errorf("ccbox_version: got %q, want %q", cfg.CcboxVersion, "dev")
 	}
 
-	if cfg.GeneratedAt.Before(before) || cfg.GeneratedAt.After(after) {
-		t.Errorf("generated_at %v is not within expected range [%v, %v]", cfg.GeneratedAt, before, after)
+	// generated_at should be between startTime and now.
+	if cfg.GeneratedAt.Before(startTime) || cfg.GeneratedAt.After(time.Now().UTC()) {
+		t.Errorf("generated_at %v is not within expected range [%v, now]", cfg.GeneratedAt, startTime)
 	}
 }
