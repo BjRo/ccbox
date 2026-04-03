@@ -186,12 +186,47 @@ Since the deliverables are declarative config files (YAML), not Go source code, 
 
 None. The scope is well-defined by the bean description and existing project conventions. The Homebrew tap repository (`bjro/homebrew-tap`) and its PAT secret are prerequisites for the release workflow but are out of scope for this bean (covered by `ccbox-xeg2`).
 
+## Challenge Report
+
+**Scope: SMALL CHANGE** (4 files: `.goreleaser.yml`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `.gitignore` update)
+
+### Scope Assessment
+
+| Metric | Value | Threshold |
+|--------|-------|-----------|
+| Files | 4 (3 new, 1 modified) | >15 = recommend split |
+
+### Findings
+
+#### Go Engineer
+
+> **Finding 1: `repository.token` missing from Step 1 brews specification** (severity: WARNING)
+>
+> Step 1 lists the `.goreleaser.yml` `brews` section fields (lines 74-82) but omits `repository.token`. The token reference (`repository.token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"`) only appears in a prose note at the bottom of Step 3 (line 149). An implementer following Step 1's bullet-point structure literally will produce a `.goreleaser.yml` that creates the GitHub release successfully but silently fails to push the Homebrew formula -- GoReleaser will skip the brew step without a token rather than erroring. This is the kind of "works on first glance, fails in production" gap that causes hours of debugging.
+>
+> **Option A (recommended):** Add `repository.token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"` as an explicit bullet under the `brews` field list in Step 1, right after `repository.name`. Remove the ambiguous note on line 84 that says "pass it via `GITHUB_TOKEN` or a dedicated PAT" since the decision is clearly a dedicated PAT.
+> **Option B:** Keep the current structure but add a cross-reference from Step 1 to Step 3's note (e.g., "See Step 3 for token configuration").
+
+> **Finding 2: `golangci-lint` version `v2.11` may not exist and pinning strategy is fragile** (severity: SUGGESTION)
+>
+> Step 2 pins golangci-lint to `version: v2.11`. As of the plan date, the latest golangci-lint v2 release may be at a different minor version. The golangci-lint-action@v7 `version` field expects an exact version or `latest`. Pinning to a non-existent version will cause the lint job to fail on the very first CI run -- a bad first impression for a self-validating deliverable. More practically, pinning to an exact minor version means the workflow needs manual updates for golangci-lint patches, which adds maintenance burden with no safety benefit (the `.golangci.yml` config format is stable across v2 minors).
+>
+> **Suggestion:** Use `version: "v2"` to track the latest v2.x release, or verify the exact latest version at implementation time and document why it was chosen.
+
+### Verdict
+
+**APPROVED**
+
+The plan is solid and well-structured for its scope. The GoReleaser v2 syntax (`version: 2`, `formats`, `brews` with `repository` sub-fields), GitHub Actions patterns (`fetch-depth: 0`, `go-version-file`, separate permissions), and the overall architecture (parallel CI jobs, tag-triggered release, separate Homebrew tap token) are all correct. The `ldflags` path matches the existing `var version = "dev"` in `cmd/root.go`. The decision to use `CGO_ENABLED=0` is appropriate for a pure-Go CLI. The testing strategy is pragmatic -- these are declarative config files, and the CI workflow is self-validating on the first PR.
+
+Finding 1 is the only one that matters for implementation correctness. The `repository.token` field must appear in the `.goreleaser.yml` or the Homebrew tap push will silently not happen. This is fixable during implementation without plan revision.
+
 ## Pipeline State
 
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
-| challenge | pending | | |
+| challenge | complete | 1 | 2026-04-03 |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
