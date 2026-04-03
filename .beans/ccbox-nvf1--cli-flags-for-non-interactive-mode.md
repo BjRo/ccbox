@@ -144,5 +144,5 @@ None -- the scope is well-defined. The `--non-interactive` flag is a no-op in th
 | challenge | done (APPROVED) | 1 | 2026-04-03 |
 | implement | done | 1 | 2026-04-03 |
 | pr | done | 1 | 2026-04-03 |
-| review | done | 1 | 2026-04-03 |
-| codify | pending | | |
+| review | done (clean) | 2 | 2026-04-03 |
+| codify | done | 1 | 2026-04-03 |
