@@ -95,6 +95,19 @@ The `cmd` layer writes files via `bytes.Buffer` + `os.WriteFile`, not `os.Create
 
 When a package exposes a `Write(w io.Writer, ...)` function, the command renders to a `bytes.Buffer` first, then calls `os.WriteFile` with the buffer contents.
 
+## Pre-existence Guards for Output Directories
+
+When a command creates an output directory (e.g., `.devcontainer/`), check for conflicts before doing any work:
+
+```go
+if _, statErr := os.Stat(outDir); statErr == nil {
+    return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
+}
+```
+
+- **Use `os.Stat` without `IsDir()`**: Treat any existing entry (file or directory) at the target path as a conflict. Checking only `IsDir()` lets a regular file slip through, causing an opaque `os.MkdirAll` failure downstream.
+- **Fail before side effects**: Place the guard before any rendering, merging, or I/O so the command exits cleanly with no partial output.
+
 ## YAML with `gopkg.in/yaml.v3`
 
 - Use `yaml.NewEncoder(w)` / `yaml.NewDecoder(r)` rather than `yaml.Marshal` / `yaml.Unmarshal` for streaming-friendly I/O.

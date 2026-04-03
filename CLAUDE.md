@@ -11,11 +11,13 @@ The project is in early development. All planned work is tracked as beans (see `
 ## Build & Development Commands
 
 ```bash
-go build ./...                  # Build
-go test ./...                   # Run all tests
-go test ./internal/detect/...   # Run tests for a specific package
-go test -run TestName ./...     # Run a single test
-golangci-lint run ./...         # Lint
+go build ./...                              # Build
+go test ./...                               # Run unit tests
+go test -tags integration ./...             # Run all tests (unit + integration)
+go test -tags integration ./cmd/...         # Run integration tests for cmd package
+go test ./internal/detect/...               # Run tests for a specific package
+go test -run TestName ./...                 # Run a single test
+golangci-lint run ./...                     # Lint
 ```
 
 - **Go version**: 1.24+

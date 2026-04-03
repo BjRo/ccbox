@@ -1,5 +1,5 @@
 ---
-description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface fakes, CLI test isolation
+description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface fakes, CLI test isolation, integration tests
 globs: "**/*_test.go"
 ---
 
@@ -67,3 +67,25 @@ Packages that marshal/unmarshal YAML (`internal/config/`) use round-trip verific
 - **Empty vs nil slices**: Verify both `nil` and `[]T{}` inputs render as `[]` (not `null`). Verify omitted fields decode to non-nil empty slices.
 - **Schema version validation**: Test that `Load` rejects unknown version numbers with a clear error.
 - **Timestamp precision**: `yaml.v3` truncates `time.Time` to second precision. Test round-trips with second-level precision only; do not rely on sub-second accuracy.
+- **Timestamp capture for range assertions**: When capturing a `time.Now()` before an operation and comparing it to a YAML-round-tripped timestamp after, truncate the capture with `time.Now().UTC().Truncate(time.Second)`. Without truncation, a nanosecond-precise capture at `10:00:00.700` will be `After` a round-tripped value truncated to `10:00:00.000`, causing flaky failures.
+
+## Build Tag Isolation for Integration Tests
+
+End-to-end tests that exercise the full CLI pipeline (real filesystem, real command execution) use `//go:build integration` to separate them from unit tests:
+
+- **File naming**: `*_integration_test.go` with `//go:build integration` as the first line.
+- **Run command**: `go test -tags integration ./...` to include them; plain `go test ./...` skips them.
+- **Why separate**: Integration tests are slower (real disk I/O, multi-package rendering) and may have environment dependencies. Build tags keep `go test ./...` fast for TDD loops.
+
+## CLI Integration Test Structure
+
+Integration tests for CLI commands that generate files follow a consistent pattern:
+
+1. **Seed environment**: Create marker files in `t.TempDir()` (e.g., `go.mod`, `package.json`) to trigger stack detection.
+2. **Execute command**: `newRootCmd(nil)` with `cmd.SetArgs([]string{"init", "--dir", dir, "--non-interactive"})`.
+3. **Assert file manifest**: Verify all expected files exist and are non-empty. Use a package-level `expectedFiles` slice that mirrors the file map in the command's `RunE`.
+4. **Assert file content**: Per-file structural checks -- JSON unmarshal validity, domain spot-checks via `strings.Contains`, negative assertions for absent stacks/plugins.
+5. **Assert permissions**: Verify executable bit on shell scripts via `info.Mode().Perm()&0o111`.
+6. **Assert config round-trip**: Load `.ccbox.yml` via `config.Load` and verify field values.
+
+**Intentional coupling comments**: When test-side lists (e.g., `expectedFiles`, `executableScripts`) duplicate knowledge from production code, add a comment noting the coupling: `// Intentionally coupled with <location> -- update both together.` This makes silent staleness visible to future maintainers.
