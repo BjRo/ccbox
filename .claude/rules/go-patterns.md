@@ -24,6 +24,33 @@ Version injection:
 - `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
 - GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
 
+## Cobra Flag Conventions
+
+**Singular nouns for multi-value flags**: Use `--stack` not `--stacks` for flags that accept comma-separated values. This matches Go CLI conventions (e.g., `go build -tags`, `docker run --volume`). The comma-separated format `--stack go,node` reads more naturally with singular nouns.
+
+**`trimAndFilter` for `StringSliceVar` flags**: Cobra's `StringSliceVar` splits on commas but preserves surrounding whitespace. Always trim and filter flag values before use:
+
+```go
+func trimAndFilter(values []string) []string {
+    var result []string
+    for _, v := range values {
+        v = strings.TrimSpace(v)
+        if v != "" {
+            result = append(result, v)
+        }
+    }
+    return result
+}
+```
+
+This handles both `--stack "go, node"` (spaces after commas) and `--stack "go,,node"` (empty elements).
+
+**`resolveDir` pattern for `--dir` flags**: Directory flags follow a standard resolution pattern: empty means `os.Getwd()`, non-empty means `filepath.Abs()` + `os.Stat()` validation (exists and is a directory). Extract this into a named helper (`resolveDir`) rather than inlining in `RunE`.
+
+**Early validation against registries**: When a flag value references registry entries (e.g., stack IDs), validate immediately after flag parsing with a clear error listing valid options. Do not defer validation to downstream functions that may produce less helpful error messages. Build the valid-options string lazily (only on error) to avoid allocation in the happy path.
+
+**No-op flags for API contracts**: When a future feature has a known CLI interface (e.g., `--non-interactive` for a wizard that does not exist yet), add the flag now as a no-op with `_ = flagVar` to suppress the unused warning. This establishes the contract so scripts can be written before the feature ships, and prevents flag-name bikeshedding later.
+
 ## Prefer Modern stdlib Packages
 
 Since the project targets Go 1.24+, prefer `slices` and `maps` from the standard library:

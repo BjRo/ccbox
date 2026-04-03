@@ -7,7 +7,7 @@ import (
 
 // StackID identifies a supported technology stack.
 // It uses string values rather than integer enums because stack IDs appear
-// in configuration files (.ccbox.yml), CLI flags (--stacks=go,node), and
+// in configuration files (.ccbox.yml), CLI flags (--stack=go,node), and
 // template output, where self-describing values avoid a marshaling layer.
 type StackID string
 
@@ -179,7 +179,7 @@ func All() []Stack {
 }
 
 // IDs returns all registered stack IDs sorted alphabetically.
-// It is useful for validating CLI --stacks flag values and displaying
+// It is useful for validating CLI --stack flag values and displaying
 // available options in help text.
 func IDs() []StackID {
 	ids := make([]StackID, 0, len(registry))
