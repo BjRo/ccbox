@@ -200,7 +200,9 @@ ccbox_version: "0.1.0"
 }
 
 func TestTimestamp_RoundTrip(t *testing.T) {
-	// Use a timestamp with sub-second precision to verify it survives.
+	// Verify that a timestamp with second-level precision survives a
+	// Write/Load round-trip. Note: yaml.v3 truncates to seconds, so
+	// sub-second precision is not preserved.
 	now := time.Date(2026, 4, 2, 10, 30, 45, 0, time.UTC)
 	cfg := Config{
 		Version:      1,

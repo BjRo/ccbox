@@ -159,7 +159,7 @@ None. The bean description is clear and all necessary patterns exist in the code
 - [x] Lint passes
 - [x] Tests pass
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] ADR written (if architectural changes)
@@ -172,8 +172,8 @@ None. The bean description is clear and all necessary patterns exist in the code
 | refine | done | 1 | 2026-04-03 |
 | challenge | done | 1 | 2026-04-03 |
 | implement | done | 1 | 2026-04-03 |
-| pr | in-progress | 1 | 2026-04-03 |
-| review | pending | | |
+| pr | done | 1 | 2026-04-03 |
+| review | in-progress | 1 | 2026-04-03 |
 | codify | pending | | |
 
 ## Challenge Report

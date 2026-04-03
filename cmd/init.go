@@ -135,7 +135,7 @@ func newInitCmd() *cobra.Command {
 				return fmt.Errorf("write %s: %w", config.Filename, err)
 			}
 
-			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Generated .devcontainer/ with %d files\n", len(files))
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Generated .devcontainer/ with %d files and %s\n", len(files), config.Filename)
 			return nil
 		},
 	}
