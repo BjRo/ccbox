@@ -174,7 +174,7 @@ None. The bean description is clear and all necessary patterns exist in the code
 | implement | done | 1 | 2026-04-03 |
 | pr | done | 1 | 2026-04-03 |
 | review | done | 2 | 2026-04-03 |
-| codify | in-progress | 1 | 2026-04-03 |
+| codify | done | 1 | 2026-04-03 |
 
 ## Challenge Report
 
