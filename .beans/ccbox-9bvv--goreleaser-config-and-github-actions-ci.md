@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-02T10:33:59Z
-updated_at: 2026-04-03T09:23:38Z
+updated_at: 2026-04-03T09:25:19Z
 parent: ccbox-jxut
 ---
 
@@ -229,4 +229,11 @@ Implementation complete. All 4 files created/updated:
 3. `.github/workflows/release.yml` - with HOMEBREW_TAP_TOKEN env
 4. `.gitignore` - added dist/
 
-Lint passes, tests pass. Ready for commit and push.
+Lint passes, tests pass. Committed as d6425ea.
+
+Push blocked: The current OAuth token (gho_ prefix) lacks the `workflow` scope required
+to push `.github/workflows/` files. This requires either:
+- A PAT with `workflow` scope, or
+- SSH key access configured in this environment
+
+The user needs to push manually with appropriate credentials.
