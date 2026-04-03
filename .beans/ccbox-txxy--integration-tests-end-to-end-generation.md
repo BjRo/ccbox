@@ -72,8 +72,9 @@ Assertions:
 - **File non-empty**: `os.Stat` each file, verify `Size() > 0`.
 - **Dockerfile content**: Contains `go = "latest"` (Go runtime in mise config). Contains `go install golang.org/x/tools/gopls@latest` (LSP install). Does NOT contain `python`, `ruby`, or `rust` runtime entries.
 - **devcontainer.json**: Valid JSON (`json.Unmarshal` succeeds). Contains `"dockerfile": "Dockerfile"`.
-- **init-firewall.sh**: Contains `proxy.golang.org` (Go static domain). Is executable (`0755` mode bits check via `os.Stat` mode).
+- **init-firewall.sh**: Contains AlwaysOn static domains (`api.github.com`, `github.com`) in the dig-resolution section. Does NOT contain `proxy.golang.org` in the static section (it is Dynamic in the firewall registry). Is executable (`0755` mode bits check via `os.Stat` mode).
 - **dynamic-domains.conf**: Contains `proxy.golang.org` (Go dynamic domain from firewall registry).
+- **claude-user-settings.json**: Valid JSON (`json.Unmarshal` succeeds). Contains `"gopls"` in `enabledPlugins`. Does NOT contain `"typescript"` (single-stack, no Node detection).
 - **README.md**: Contains `- go` (stack listed in detected stacks section).
 - **Shell script permissions**: `init-firewall.sh`, `warmup-dns.sh`, `sync-claude-settings.sh` all have executable bit set (check `info.Mode().Perm() & 0o111 != 0`).
 
@@ -171,7 +172,7 @@ None. The implementation plan is fully grounded in the current codebase.
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
-| challenge | pending | | |
+| challenge | revised | 1 | 2026-04-03 |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
