@@ -39,7 +39,7 @@ All tests are `t.Parallel()` safe because each uses its own `t.TempDir()` and `-
 
 #### 1. Add `.devcontainer/` pre-existence guard to `cmd/init.go`
 
-Insert a check between the render calls and the `os.MkdirAll` call (around line 129). Before creating the output directory:
+Insert a check immediately after `resolveDir` returns (before stack detection), to fail fast and avoid unnecessary work:
 
 ```go
 outDir := filepath.Join(targetDir, ".devcontainer")
@@ -72,7 +72,7 @@ Assertions:
 - **File non-empty**: `os.Stat` each file, verify `Size() > 0`.
 - **Dockerfile content**: Contains `go = "latest"` (Go runtime in mise config). Contains `go install golang.org/x/tools/gopls@latest` (LSP install). Does NOT contain `python`, `ruby`, or `rust` runtime entries.
 - **devcontainer.json**: Valid JSON (`json.Unmarshal` succeeds). Contains `"dockerfile": "Dockerfile"`.
-- **init-firewall.sh**: Contains AlwaysOn static domains (`api.github.com`, `github.com`) in the dig-resolution section. Does NOT contain `proxy.golang.org` in the static section (it is Dynamic in the firewall registry). Is executable (`0755` mode bits check via `os.Stat` mode).
+- **init-firewall.sh**: Contains AlwaysOn static domains (`api.github.com`, `github.com`) in the dig-resolution section. Negative check uses anchored assertion: `!strings.Contains(content, "dig +short 'proxy.golang.org'")` to specifically target the static section (the string does appear in the dnsmasq section, so bare substring would fail). Is executable (`0755` mode bits check via `os.Stat` mode).
 - **dynamic-domains.conf**: Contains `proxy.golang.org` (Go dynamic domain from firewall registry).
 - **claude-user-settings.json**: Valid JSON (`json.Unmarshal` succeeds). Contains `"gopls"` in `enabledPlugins`. Does NOT contain `"typescript"` (single-stack, no Node detection).
 - **README.md**: Contains `- go` (stack listed in detected stacks section).
@@ -172,7 +172,7 @@ None. The implementation plan is fully grounded in the current codebase.
 | Phase | Status | Iteration | Timestamp |
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
-| challenge | revised | 1 | 2026-04-03 |
+| challenge | complete | 2 | 2026-04-03 |
 | implement | pending | | |
 | pr | pending | | |
 | review | pending | | |
