@@ -29,7 +29,7 @@ Write the ccbox project README.md:
 - [x] No TODO/FIXME/HACK/XXX in code
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
