@@ -57,6 +57,23 @@ func TestDetect_SingleStack_Node_TsconfigOnly(t *testing.T) {
 	}
 }
 
+func TestDetect_SingleStack_Node_BothMarkers(t *testing.T) {
+	fsys := fstest.MapFS{
+		"package.json":  &fstest.MapFile{},
+		"tsconfig.json": &fstest.MapFile{},
+	}
+
+	got, err := detect(fsys)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	want := []stack.StackID{stack.Node}
+	if !slices.Equal(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
 func TestDetect_SingleStack_Python(t *testing.T) {
 	markers := []string{"requirements.txt", "pyproject.toml", "setup.py", "Pipfile"}
 
