@@ -16,7 +16,7 @@ type claudeSettings struct {
 	Permissions struct {
 		Allow []string `json:"allow"`
 	} `json:"permissions"`
-	EnabledPlugins []string `json:"enabledPlugins"`
+	EnabledPlugins map[string]bool `json:"enabledPlugins"`
 }
 
 // --- Integration tests (through Merge + RenderClaude) ---
@@ -106,13 +106,11 @@ func TestRenderClaude_UserSettings_PluginsMatchRegistry(t *testing.T) {
 	}
 
 	// Structural assertion: every LSP plugin from the config must appear in enabledPlugins.
-	pluginSet := make(map[string]bool)
-	for _, p := range settings.EnabledPlugins {
-		pluginSet[p] = true
-	}
-
 	for _, lsp := range cfg.LSPs {
-		if !pluginSet[lsp.Plugin] {
+		if lsp.Plugin == "" {
+			continue
+		}
+		if !settings.EnabledPlugins[lsp.Plugin] {
 			t.Errorf("enabledPlugins missing plugin %q from LSP %q", lsp.Plugin, lsp.Package)
 		}
 	}
@@ -120,9 +118,11 @@ func TestRenderClaude_UserSettings_PluginsMatchRegistry(t *testing.T) {
 	// Reverse check: every enabledPlugin must come from the config.
 	lspPlugins := make(map[string]bool)
 	for _, lsp := range cfg.LSPs {
-		lspPlugins[lsp.Plugin] = true
+		if lsp.Plugin != "" {
+			lspPlugins[lsp.Plugin] = true
+		}
 	}
-	for _, p := range settings.EnabledPlugins {
+	for p := range settings.EnabledPlugins {
 		if !lspPlugins[p] {
 			t.Errorf("enabledPlugins contains unexpected plugin %q", p)
 		}
@@ -145,14 +145,9 @@ func TestRenderClaude_UserSettings_PluginsSpotCheck(t *testing.T) {
 		t.Fatalf("JSON parse: %v", err)
 	}
 
-	spotChecks := []string{"gopls", "typescript"}
-	pluginSet := make(map[string]bool)
-	for _, p := range settings.EnabledPlugins {
-		pluginSet[p] = true
-	}
-
+	spotChecks := []string{"gopls-lsp@claude-plugins-official", "typescript-lsp@claude-plugins-official"}
 	for _, expected := range spotChecks {
-		if !pluginSet[expected] {
+		if !settings.EnabledPlugins[expected] {
 			t.Errorf("enabledPlugins missing well-known plugin %q", expected)
 		}
 	}
@@ -197,12 +192,16 @@ func TestRenderClaude_UserSettings_NoDuplicatePlugins(t *testing.T) {
 		t.Fatalf("JSON parse: %v", err)
 	}
 
-	seen := make(map[string]bool)
-	for _, p := range settings.EnabledPlugins {
-		if seen[p] {
-			t.Errorf("duplicate plugin %q in enabledPlugins", p)
+	// With the map format, JSON parsing already ensures no duplicate keys.
+	// Just verify the count matches expectations.
+	expectedCount := 0
+	for _, lsp := range cfg.LSPs {
+		if lsp.Plugin != "" {
+			expectedCount++
 		}
-		seen[p] = true
+	}
+	if len(settings.EnabledPlugins) != expectedCount {
+		t.Errorf("enabledPlugins has %d entries, want %d", len(settings.EnabledPlugins), expectedCount)
 	}
 }
 
@@ -317,14 +316,14 @@ func TestRenderClaude_DirectConfig_EmptyLSPs(t *testing.T) {
 		t.Fatalf("UserSettings is not valid JSON: %v\nContent:\n%s", err, files.UserSettings)
 	}
 
-	// Check the raw JSON for the empty array form.
+	// Check the raw JSON for the empty object form.
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(files.UserSettings, &raw); err != nil {
 		t.Fatalf("raw JSON parse: %v", err)
 	}
-	trimmed := strings.TrimSpace(string(raw["enabledPlugins"]))
-	if trimmed != "[]" {
-		t.Errorf("enabledPlugins is %q, want []", trimmed)
+	// Empty object may render as {} or { } -- both are valid JSON.
+	if len(settings.EnabledPlugins) != 0 {
+		t.Errorf("enabledPlugins has %d entries, want 0", len(settings.EnabledPlugins))
 	}
 }
 
@@ -350,15 +349,10 @@ func TestRenderClaude_DirectConfig_CustomPlugins(t *testing.T) {
 		t.Fatalf("enabledPlugins has %d entries, want 2", len(settings.EnabledPlugins))
 	}
 
-	pluginSet := make(map[string]bool)
-	for _, p := range settings.EnabledPlugins {
-		pluginSet[p] = true
-	}
-
-	if !pluginSet["custom-plugin"] {
+	if !settings.EnabledPlugins["custom-plugin"] {
 		t.Error("enabledPlugins missing 'custom-plugin'")
 	}
-	if !pluginSet["another-plugin"] {
+	if !settings.EnabledPlugins["another-plugin"] {
 		t.Error("enabledPlugins missing 'another-plugin'")
 	}
 }
@@ -387,8 +381,8 @@ func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
 	}
 
 	want := `quote"and\backslash`
-	if settings.EnabledPlugins[0] != want {
-		t.Errorf("enabledPlugins[0] = %q, want %q", settings.EnabledPlugins[0], want)
+	if !settings.EnabledPlugins[want] {
+		t.Errorf("enabledPlugins missing %q", want)
 	}
 }
 

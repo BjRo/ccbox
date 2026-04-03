@@ -3,5 +3,5 @@
   "permissions": {
     "allow": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "Task", "WebFetch", "WebSearch"]
   },
-  "enabledPlugins": ["gopls"]
+  "enabledPlugins": {"gopls-lsp@claude-plugins-official": true }
 }
