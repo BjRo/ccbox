@@ -1,11 +1,11 @@
 ---
 # ccbox-txxy
 title: 'Integration tests: end-to-end generation'
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:36:03Z
-updated_at: 2026-04-03T08:38:29Z
+updated_at: 2026-04-03T09:04:53Z
 parent: ccbox-6g75
 ---
 
