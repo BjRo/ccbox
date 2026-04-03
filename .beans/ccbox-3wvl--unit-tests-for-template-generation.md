@@ -97,10 +97,10 @@ Add targeted tests to fill the 9 gaps above. No changes to source code. All new 
 - [x] No TODO/FIXME/HACK/XXX comments
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
-- [ ] PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Branch pushed
+- [x] PR created
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] All checklist items completed
 - [ ] User notified
 
@@ -111,6 +111,6 @@ Add targeted tests to fill the 9 gaps above. No changes to source code. All new 
 | refine | done | 1 | 2026-04-03 |
 | challenge | done | 1 | 2026-04-03 |
 | implement | done | 1 | 2026-04-03 |
-| pr | pending | | |
-| review | pending | | |
+| pr | done | 1 | 2026-04-03 |
+| review | done | 1 | 2026-04-03 |
 | codify | pending | | |

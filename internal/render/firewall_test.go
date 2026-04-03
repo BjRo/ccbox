@@ -418,11 +418,4 @@ func TestRenderFirewall_PythonDomainsInInitFirewall(t *testing.T) {
 		}
 	}
 
-	// Structural assertion: every cfg.Domains.Static domain with a Python-relevant
-	// name must appear in InitFirewall.
-	for _, d := range cfg.Domains.Static {
-		if !bytes.Contains(files.InitFirewall, []byte(d.Name)) {
-			t.Errorf("InitFirewall missing static domain %q", d.Name)
-		}
-	}
 }

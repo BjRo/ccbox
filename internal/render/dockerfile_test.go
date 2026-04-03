@@ -557,7 +557,8 @@ func TestDockerfile_AllStacks(t *testing.T) {
 }
 
 func TestDockerfile_NoTemplateArtifacts(t *testing.T) {
-	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	allIDs := []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}
+	cfg, err := Merge(allIDs, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
 	}

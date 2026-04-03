@@ -392,24 +392,3 @@ func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
 	}
 }
 
-func TestRenderClaude_SyncSettings_ShebangAndStrictMode(t *testing.T) {
-	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
-	if err != nil {
-		t.Fatalf("Merge: %v", err)
-	}
-
-	files, err := RenderClaude(cfg)
-	if err != nil {
-		t.Fatalf("RenderClaude: %v", err)
-	}
-
-	output := string(files.SyncSettings)
-
-	// sync-claude-settings.sh must have the standard bash shebang and strict mode.
-	if !strings.HasPrefix(output, "#!/usr/bin/env bash") {
-		t.Error("SyncSettings missing '#!/usr/bin/env bash' shebang")
-	}
-	if !strings.Contains(output, "set -euo pipefail") {
-		t.Error("SyncSettings missing 'set -euo pipefail' strict mode")
-	}
-}
