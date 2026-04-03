@@ -316,7 +316,7 @@ Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
 - [x] No TODO/FIXME/HACK/XXX comments
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed
+- [x] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
