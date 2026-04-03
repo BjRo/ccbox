@@ -172,7 +172,7 @@ None. The bean description is clear and all necessary patterns exist in the code
 | refine | done | 1 | 2026-04-03 |
 | challenge | done | 1 | 2026-04-03 |
 | implement | done | 1 | 2026-04-03 |
-| pr | pending | | |
+| pr | in-progress | 1 | 2026-04-03 |
 | review | pending | | |
 | codify | pending | | |
 
