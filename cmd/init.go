@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,10 +14,16 @@ import (
 	"github.com/bjro/ccbox/internal/detect"
 	"github.com/bjro/ccbox/internal/render"
 	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/ccbox/internal/wizard"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
-func newInitCmd() *cobra.Command {
+// newInitCmd creates the init subcommand. The prompter parameter controls
+// the interactive wizard: when non-nil it is used directly (test path),
+// when nil the command checks for a TTY and instantiates HuhPrompter
+// for real terminal sessions.
+func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 	var stacks []string
 	var domains []string
 	var dir string
@@ -36,35 +44,57 @@ func newInitCmd() *cobra.Command {
 			stacks = trimAndFilter(stacks)
 			domains = trimAndFilter(domains)
 
-			// Determine stacks: from flag or auto-detect.
 			var stackIDs []stack.StackID
-			if len(stacks) > 0 {
-				// Validate stack IDs against the registry.
+			var extraDomains []string
+
+			stackFlagSet := len(stacks) > 0
+
+			if stackFlagSet {
+				// CLI flag path: validate and parse --stack directly.
 				if err := validateStackIDs(stacks); err != nil {
 					return err
 				}
 				for _, s := range stacks {
 					stackIDs = append(stackIDs, stack.StackID(s))
 				}
+				extraDomains = domains
 			} else {
-				detected, err := detect.Detect(targetDir)
-				if err != nil {
-					return fmt.Errorf("detect stacks: %w", err)
+				// Auto-detect stacks.
+				detected, detectErr := detect.Detect(targetDir)
+				if detectErr != nil {
+					return fmt.Errorf("detect stacks: %w", detectErr)
 				}
-				stackIDs = detected
+
+				// Determine whether to run the wizard.
+				if !nonInteractive && prompter == nil && isTerminal(cmd.InOrStdin()) {
+					prompter = &wizard.HuhPrompter{}
+				}
+				if prompter != nil {
+					choices, wizErr := prompter.Run(detected)
+					if wizErr != nil {
+						if errors.Is(wizErr, wizard.ErrAborted) {
+							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
+							return nil
+						}
+						return wizErr
+					}
+					stackIDs = choices.Stacks
+					extraDomains = choices.ExtraDomains
+				} else {
+					// Non-interactive fallback: use detected stacks as-is.
+					stackIDs = detected
+					extraDomains = domains
+				}
+
 				if len(stackIDs) == 0 {
 					return fmt.Errorf("no stacks detected; use --stack to specify manually")
 				}
 			}
 
-			// Suppress unused variable warning for nonInteractive.
-			// The flag is accepted to establish the API contract for the future wizard (ccbox-ogj2).
-			_ = nonInteractive
-
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Stacks: %v\n", stackIDs)
 
 			// Merge configuration.
-			cfg, err := render.Merge(stackIDs, domains)
+			cfg, err := render.Merge(stackIDs, extraDomains)
 			if err != nil {
 				return fmt.Errorf("merge config: %w", err)
 			}
@@ -127,26 +157,19 @@ func newInitCmd() *cobra.Command {
 				}
 			}
 
-			// Write .ccbox.yml to the project root.
+			// Write .ccbox.yml config file.
 			ccboxCfg := config.Config{
 				Version:      1,
-				Stacks:       make([]string, len(cfg.Stacks)),
-				ExtraDomains: domains,
+				Stacks:       stackIDsToStrings(stackIDs),
+				ExtraDomains: extraDomains,
 				GeneratedAt:  time.Now().UTC(),
 				CcboxVersion: version,
 			}
-			for i, id := range cfg.Stacks {
-				ccboxCfg.Stacks[i] = string(id)
+			var cfgBuf bytes.Buffer
+			if err := config.Write(&cfgBuf, ccboxCfg); err != nil {
+				return fmt.Errorf("render %s: %w", config.Filename, err)
 			}
-			if ccboxCfg.ExtraDomains == nil {
-				ccboxCfg.ExtraDomains = []string{}
-			}
-
-			var ccboxBuf bytes.Buffer
-			if err := config.Write(&ccboxBuf, ccboxCfg); err != nil {
-				return fmt.Errorf("write %s: %w", config.Filename, err)
-			}
-			if err := os.WriteFile(filepath.Join(dir, config.Filename), ccboxBuf.Bytes(), 0o644); err != nil {
+			if err := os.WriteFile(filepath.Join(targetDir, config.Filename), cfgBuf.Bytes(), 0o644); err != nil {
 				return fmt.Errorf("write %s: %w", config.Filename, err)
 			}
 
@@ -163,9 +186,16 @@ func newInitCmd() *cobra.Command {
 	return cmd
 }
 
+// isTerminal reports whether r is a terminal file descriptor.
+func isTerminal(r io.Reader) bool {
+	f, ok := r.(*os.File)
+	if !ok {
+		return false
+	}
+	return term.IsTerminal(int(f.Fd()))
+}
+
 // resolveDir resolves the target directory from the --dir flag value.
-// If dir is empty, it falls back to the current working directory.
-// It validates that the resolved path exists and is a directory.
 func resolveDir(dir string) (string, error) {
 	if dir == "" {
 		wd, err := os.Getwd()
@@ -175,43 +205,23 @@ func resolveDir(dir string) (string, error) {
 		return wd, nil
 	}
 
-	absDir, err := filepath.Abs(dir)
+	abs, err := filepath.Abs(dir)
 	if err != nil {
-		return "", fmt.Errorf("resolve path: %w", err)
+		return "", fmt.Errorf("resolve path %q: %w", dir, err)
 	}
 
-	info, err := os.Stat(absDir)
+	info, err := os.Stat(abs)
 	if err != nil {
-		return "", fmt.Errorf("--dir %s: %w", dir, err)
+		return "", fmt.Errorf("--dir %q: %w", dir, err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("--dir %s: not a directory", dir)
+		return "", fmt.Errorf("--dir %q: not a directory", dir)
 	}
 
-	return absDir, nil
+	return abs, nil
 }
 
-// validateStackIDs checks that each stack ID is known in the registry.
-func validateStackIDs(stacks []string) error {
-	validIDs := stack.IDs()
-	validSet := make(map[stack.StackID]bool, len(validIDs))
-	for _, id := range validIDs {
-		validSet[id] = true
-	}
-
-	for _, s := range stacks {
-		if !validSet[stack.StackID(s)] {
-			validStrings := make([]string, len(validIDs))
-			for i, id := range validIDs {
-				validStrings[i] = string(id)
-			}
-			return fmt.Errorf("unknown stack %q; valid stacks: %s", s, strings.Join(validStrings, ", "))
-		}
-	}
-	return nil
-}
-
-// trimAndFilter trims whitespace from each value and filters out empty strings.
+// trimAndFilter trims whitespace and removes empty strings from a slice.
 func trimAndFilter(values []string) []string {
 	var result []string
 	for _, v := range values {
@@ -219,6 +229,25 @@ func trimAndFilter(values []string) []string {
 		if v != "" {
 			result = append(result, v)
 		}
+	}
+	return result
+}
+
+// validateStackIDs checks that all provided stack ID strings are valid.
+func validateStackIDs(ids []string) error {
+	for _, id := range ids {
+		if _, ok := stack.Get(stack.StackID(id)); !ok {
+			return fmt.Errorf("unknown stack %q; valid stacks: %v", id, stack.IDs())
+		}
+	}
+	return nil
+}
+
+// stackIDsToStrings converts a slice of stack.StackID to []string.
+func stackIDsToStrings(ids []stack.StackID) []string {
+	result := make([]string, len(ids))
+	for i, id := range ids {
+		result[i] = string(id)
 	}
 	return result
 }

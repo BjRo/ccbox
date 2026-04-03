@@ -7,7 +7,7 @@ import (
 )
 
 func TestRootCommand_Version(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newRootCmd(nil)
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetErr(buf)
@@ -26,7 +26,7 @@ func TestRootCommand_Version(t *testing.T) {
 }
 
 func TestRootCommand_Help(t *testing.T) {
-	cmd := newRootCmd()
+	cmd := newRootCmd(nil)
 	buf := new(bytes.Buffer)
 	cmd.SetOut(buf)
 	cmd.SetArgs([]string{"--help"})

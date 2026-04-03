@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/bjro/ccbox/internal/wizard"
 	"github.com/spf13/cobra"
 )
 
@@ -9,9 +10,13 @@ import (
 //	go build -ldflags "-X github.com/bjro/ccbox/cmd.version=1.0.0"
 var version = "dev"
 
-var rootCmd = newRootCmd()
+var rootCmd = newRootCmd(nil)
 
-func newRootCmd() *cobra.Command {
+// newRootCmd builds the full command tree. The prompter parameter is
+// threaded to newInitCmd for the interactive wizard. Production code
+// passes nil (HuhPrompter is used when stdin is a terminal); tests
+// pass a fake.
+func newRootCmd(prompter wizard.Prompter) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "ccbox",
 		Short:         "Generate devcontainer setups for Claude Code",
@@ -23,7 +28,7 @@ func newRootCmd() *cobra.Command {
 
 	cmd.SetVersionTemplate("ccbox version {{.Version}}\n")
 
-	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newInitCmd(prompter))
 
 	return cmd
 }
