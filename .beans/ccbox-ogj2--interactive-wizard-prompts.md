@@ -320,7 +320,7 @@ Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
 - [x] PR created
 - [x] Automated code review passed
 - [x] Review feedback worked in
-- [ ] All other checklist items
+- [x] All other checklist items
 
 ## Pipeline State
 
