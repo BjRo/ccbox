@@ -1,11 +1,11 @@
 ---
 # ccbox-3wvl
 title: Unit tests for template generation
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:36:00Z
-updated_at: 2026-04-03T08:38:14Z
+updated_at: 2026-04-03T09:00:49Z
 parent: ccbox-6g75
 ---
 
