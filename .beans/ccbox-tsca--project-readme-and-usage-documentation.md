@@ -25,10 +25,10 @@ Write the ccbox project README.md:
 
 ## Checklist
 
-- [ ] README.md written with all sections
-- [ ] No TODO/FIXME/HACK/XXX in code
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] README.md written with all sections
+- [x] No TODO/FIXME/HACK/XXX in code
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -41,7 +41,7 @@ Write the ccbox project README.md:
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
 | challenge | complete | 1 | 2026-04-03 |
-| implement | pending | | |
+| implement | in-progress | 1 | 2026-04-03 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
