@@ -1,11 +1,11 @@
 ---
 # ccbox-nvf1
 title: CLI flags for non-interactive mode
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:34:41Z
-updated_at: 2026-04-03T07:21:17Z
+updated_at: 2026-04-03T08:30:30Z
 parent: ccbox-puuq
 ---
 
