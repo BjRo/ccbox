@@ -30,8 +30,9 @@ func newInitCmd() *cobra.Command {
 				return err
 			}
 
-			// Trim and filter stack values.
+			// Trim and filter flag values.
 			stacks = trimAndFilter(stacks)
+			domains = trimAndFilter(domains)
 
 			// Determine stacks: from flag or auto-detect.
 			var stackIDs []stack.StackID
@@ -173,13 +174,12 @@ func validateStackIDs(stacks []string) error {
 		validSet[id] = true
 	}
 
-	validStrings := make([]string, len(validIDs))
-	for i, id := range validIDs {
-		validStrings[i] = string(id)
-	}
-
 	for _, s := range stacks {
 		if !validSet[stack.StackID(s)] {
+			validStrings := make([]string, len(validIDs))
+			for i, id := range validIDs {
+				validStrings[i] = string(id)
+			}
 			return fmt.Errorf("unknown stack %q; valid stacks: %s", s, strings.Join(validStrings, ", "))
 		}
 	}

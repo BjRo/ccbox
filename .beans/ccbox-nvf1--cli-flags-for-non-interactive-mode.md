@@ -131,9 +131,9 @@ None -- the scope is well-defined. The `--non-interactive` flag is a no-op in th
 - [x] No TODO/FIXME/HACK/XXX comments in new code
 - [x] Lint passes
 - [x] Tests pass
-- [ ] Branch pushed and PR created
-- [ ] Automated code review passed
-- [ ] Review feedback worked in
+- [x] Branch pushed and PR created (https://github.com/BjRo/ccbox/pull/13)
+- [x] Automated code review passed
+- [x] Review feedback worked in
 - [ ] User notified
 
 ## Pipeline State
@@ -143,6 +143,6 @@ None -- the scope is well-defined. The `--non-interactive` flag is a no-op in th
 | refine | done | 1 | 2026-04-03 |
 | challenge | done (APPROVED) | 1 | 2026-04-03 |
 | implement | done | 1 | 2026-04-03 |
-| pr | pending | | |
-| review | pending | | |
+| pr | done | 1 | 2026-04-03 |
+| review | done | 1 | 2026-04-03 |
 | codify | pending | | |
