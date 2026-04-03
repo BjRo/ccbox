@@ -47,6 +47,36 @@ Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) f
 - **Sorted output**: `All()` and `IDs()` return sorted slices for deterministic output.
 - **`init()` acceptable for static data**: The `init()` prohibition applies to command registration, not immutable data initialization.
 
+## Non-nil Empty Slices for Serialization
+
+Slices that will be serialized (YAML, JSON, or Go templates) must be initialized as `[]T{}` rather than left as `nil`. This applies in two places:
+
+- **Before marshaling**: Defensive nil-to-empty conversion prevents `null` output. For `yaml.v3`, pair this with the `,flow` struct tag to render `[]` instead of a block-style empty sequence.
+- **After unmarshaling**: Fields omitted in the source document decode as `nil`. Normalize to `[]T{}` after decode for consistent downstream behavior.
+
+The `internal/render` package applies this for Go templates; `internal/config` applies it for YAML. The principle is the same: callers should never need to distinguish nil from empty.
+
+## Serialization Boundary Packages
+
+Packages that sit at a serialization boundary (`internal/config/` for YAML, future API clients, etc.) use **primitive types only** in their exported structs -- `string`, `int`, `time.Time`, `[]string` -- not domain types like `stack.StackID`. The `cmd` layer converts between domain types and primitives. This keeps the serialization package free of imports from other internal packages and avoids import cycles.
+
+## File Writing in Commands
+
+The `cmd` layer writes files via `bytes.Buffer` + `os.WriteFile`, not `os.Create` + `defer Close`. This avoids two problems:
+
+1. **Swallowed close errors**: `defer f.Close()` discards the error, which can hide filesystem failures (disk full, NFS errors).
+2. **Consistency**: The `.devcontainer/` file writes already use `os.WriteFile`. New file writes should match.
+
+When a package exposes a `Write(w io.Writer, ...)` function, the command renders to a `bytes.Buffer` first, then calls `os.WriteFile` with the buffer contents.
+
+## YAML with `gopkg.in/yaml.v3`
+
+- Use `yaml.NewEncoder(w)` / `yaml.NewDecoder(r)` rather than `yaml.Marshal` / `yaml.Unmarshal` for streaming-friendly I/O.
+- Call `enc.SetIndent(2)` for human-readable output.
+- Call `enc.Close()` to flush the encoder's internal buffer -- this is easy to forget.
+- `time.Time` fields marshal as unquoted YAML timestamps (e.g., `generated_at: 2026-04-02T10:00:00Z`). This is valid YAML and round-trips correctly. Do not force quoting.
+- Use the `,flow` struct tag on slice fields to render `[]` for empties and `[a, b]` for short lists, instead of block-style sequences.
+
 ## Package Documentation
 
 When a package's doc comment outgrows a single line, extract it to a `doc.go` file. The original `.go` file keeps a bare `package <name>` line.

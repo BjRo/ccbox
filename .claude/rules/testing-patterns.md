@@ -41,3 +41,13 @@ Templates that produce JSON require targeted validation:
 - **Raw array form**: Use `json.RawMessage` to verify empty arrays render as `[]` not `null`.
 - **Special character round-trip**: Test with strings containing `"`, `\`, and control characters to verify the `jsonString` FuncMap helper produces valid JSON that round-trips correctly through marshal/unmarshal.
 - **Static template verification**: When a template has no Go template actions, render with different configs and assert byte-equality to prove it is truly stack-agnostic.
+
+## YAML Serialization Testing
+
+Packages that marshal/unmarshal YAML (`internal/config/`) use round-trip verification:
+
+- **Write-then-Load round-trip**: Create a struct, write it to a `bytes.Buffer`, load it back, verify all fields match. This is the primary correctness test.
+- **Format spot-checks**: Write to a buffer and assert expected YAML strings appear (`version: 1`, `stacks: [go, node]`). Do not assert exact full output -- timestamps and field ordering may vary.
+- **Empty vs nil slices**: Verify both `nil` and `[]T{}` inputs render as `[]` (not `null`). Verify omitted fields decode to non-nil empty slices.
+- **Schema version validation**: Test that `Load` rejects unknown version numbers with a clear error.
+- **Timestamp precision**: `yaml.v3` truncates `time.Time` to second precision. Test round-trips with second-level precision only; do not rely on sub-second accuracy.
