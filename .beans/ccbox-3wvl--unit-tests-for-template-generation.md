@@ -113,4 +113,4 @@ Add targeted tests to fill the 9 gaps above. No changes to source code. All new 
 | implement | done | 1 | 2026-04-03 |
 | pr | done | 1 | 2026-04-03 |
 | review | done | 1 | 2026-04-03 |
-| codify | pending | | |
+| codify | done | 1 | 2026-04-03 |
