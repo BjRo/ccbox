@@ -1,11 +1,11 @@
 ---
 # ccbox-tsca
 title: Project README and usage documentation
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:36:14Z
-updated_at: 2026-04-03T10:15:00Z
+updated_at: 2026-04-03T09:56:23Z
 parent: ccbox-vydo
 ---
 
