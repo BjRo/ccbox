@@ -1,5 +1,5 @@
 ---
-description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface-based fakes
+description: Testing strategies — fs.FS testability, registry-backed assertions, template output testing, interface fakes, CLI test isolation
 globs: "**/*_test.go"
 ---
 
@@ -17,13 +17,17 @@ Packages that perform filesystem I/O should use Go's `fs.FS` interface:
 
 ## Interface-Based Test Doubles
 
-When a dependency cannot be unit-tested (terminal I/O, network, external processes), define a narrow interface and inject via constructor parameters:
+When a dependency cannot be unit-tested (terminal I/O, network), define a narrow interface and inject via constructor parameters:
 
-- **Interface in the owning package**: e.g., `wizard.Prompter` with a single `Run(detected []stack.StackID) (Choices, error)` method.
-- **Production implementation**: `HuhPrompter` uses the real library. Tests cannot exercise it without a terminal.
-- **Fake in test files**: A struct with canned return values. Keep it minimal -- just the fields needed to control test behavior.
-- **`failIfCalled` guard**: Add a boolean field to the fake that calls `t.Fatal()` in the method body. Use this to assert that a code path does NOT invoke the dependency (e.g., `--stacks` flag bypasses the wizard).
-- **Nil means default**: Constructor accepts the interface; `nil` triggers real implementation. Tests pass fakes explicitly.
+- **Interface in the owning package**: e.g., `wizard.Prompter` with a single `Run(detected) (Choices, error)` method.
+- **Fake in test files**: Struct with canned return values. Add `failIfCalled` guard to assert code paths that must NOT invoke the dependency.
+- **Nil means default**: Constructor accepts the interface; `nil` triggers real implementation.
+
+## CLI Test Directory Isolation
+
+- **Prefer `--dir` flag over `os.Chdir()`** for parallel test execution.
+- **Use `t.Chdir()` (Go 1.24+)** when testing the "no --dir means current directory" fallback.
+- **Use `t.TempDir()`** for output directories.
 
 ## Registry-Backed Code
 
@@ -51,3 +55,13 @@ Templates that produce JSON require targeted validation:
 - **Raw array form**: Use `json.RawMessage` to verify empty arrays render as `[]` not `null`.
 - **Special character round-trip**: Test with strings containing `"`, `\`, and control characters to verify the `jsonString` FuncMap helper produces valid JSON that round-trips correctly through marshal/unmarshal.
 - **Static template verification**: When a template has no Go template actions, render with different configs and assert byte-equality to prove it is truly stack-agnostic.
+
+## YAML Serialization Testing
+
+Packages that marshal/unmarshal YAML (`internal/config/`) use round-trip verification:
+
+- **Write-then-Load round-trip**: Create a struct, write it to a `bytes.Buffer`, load it back, verify all fields match. This is the primary correctness test.
+- **Format spot-checks**: Write to a buffer and assert expected YAML strings appear (`version: 1`, `stacks: [go, node]`). Do not assert exact full output -- timestamps and field ordering may vary.
+- **Empty vs nil slices**: Verify both `nil` and `[]T{}` inputs render as `[]` (not `null`). Verify omitted fields decode to non-nil empty slices.
+- **Schema version validation**: Test that `Load` rejects unknown version numbers with a clear error.
+- **Timestamp precision**: `yaml.v3` truncates `time.Time` to second precision. Test round-trips with second-level precision only; do not rely on sub-second accuracy.

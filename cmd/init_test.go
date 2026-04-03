@@ -68,7 +68,7 @@ func TestInitCommand_WithStacksFlag(t *testing.T) {
 	}
 
 	cmd := newRootCmd(nil)
-	cmd.SetArgs([]string{"init", "--stacks", "go,node"})
+	cmd.SetArgs([]string{"init", "--stack", "go,node"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("init: %v", err)
@@ -101,7 +101,7 @@ func TestInitCommand_StacksFlagSkipsWizard(t *testing.T) {
 	}
 
 	cmd := newRootCmd(fake)
-	cmd.SetArgs([]string{"init", "--stacks", "go"})
+	cmd.SetArgs([]string{"init", "--stack", "go"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("init: %v", err)
@@ -244,9 +244,13 @@ func TestInitCommand_WizardEmptyStacks(t *testing.T) {
 	cmd := newRootCmd(fake)
 	cmd.SetArgs([]string{"init"})
 
-	// Should succeed (empty stacks prints a message and returns nil).
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("init: %v", err)
+	// Should return an error since no stacks were selected.
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error for empty stacks")
+	}
+	if !strings.Contains(err.Error(), "no stacks") {
+		t.Errorf("error should mention 'no stacks'; got: %s", err.Error())
 	}
 
 	// Verify no .devcontainer/ was created.
