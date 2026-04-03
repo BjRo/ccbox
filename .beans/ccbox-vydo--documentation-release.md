@@ -1,10 +1,11 @@
 ---
 # ccbox-vydo
 title: Documentation & Release
-status: todo
+status: completed
 type: epic
+priority: normal
 created_at: 2026-04-02T10:33:43Z
-updated_at: 2026-04-02T10:33:43Z
+updated_at: 2026-04-03T09:57:38Z
 parent: ccbox-el52
 ---
 
