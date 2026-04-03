@@ -2,16 +2,25 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+
 	"github.com/bjro/ccbox/internal/detect"
 	"github.com/bjro/ccbox/internal/render"
 	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/ccbox/internal/wizard"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
-func newInitCmd() *cobra.Command {
+// newInitCmd creates the init subcommand. The prompter parameter controls
+// the interactive wizard: when non-nil it is used directly (test path),
+// when nil the command checks for a TTY and instantiates HuhPrompter
+// for real terminal sessions.
+func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 	var stacks []string
 	var domains []string
 
@@ -25,20 +34,59 @@ func newInitCmd() *cobra.Command {
 				return fmt.Errorf("get working directory: %w", err)
 			}
 
-			// Determine stacks: from flag or auto-detect.
 			var stackIDs []stack.StackID
-			if len(stacks) > 0 {
+			var extraDomains []string
+
+			stacksFlagSet := cmd.Flags().Changed("stacks")
+
+			if stacksFlagSet {
+				// CLI flag path: parse --stacks directly (existing behavior).
 				for _, s := range stacks {
 					stackIDs = append(stackIDs, stack.StackID(s))
 				}
+				extraDomains = domains
 			} else {
-				detected, err := detect.Detect(dir)
-				if err != nil {
-					return fmt.Errorf("detect stacks: %w", err)
+				// Auto-detect stacks.
+				detected, detectErr := detect.Detect(dir)
+				if detectErr != nil {
+					return fmt.Errorf("detect stacks: %w", detectErr)
 				}
-				stackIDs = detected
+
+				// Determine whether to run the wizard.
+				// When a prompter is explicitly provided (test injection),
+				// always use it. Otherwise check for a real TTY.
+				if prompter != nil {
+					choices, wizErr := prompter.Run(detected)
+					if wizErr != nil {
+						if errors.Is(wizErr, wizard.ErrAborted) {
+							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
+							return nil
+						}
+						return wizErr
+					}
+					stackIDs = choices.Stacks
+					extraDomains = choices.ExtraDomains
+				} else if isTerminal(cmd.InOrStdin()) {
+					p := &wizard.HuhPrompter{}
+					choices, wizErr := p.Run(detected)
+					if wizErr != nil {
+						if errors.Is(wizErr, wizard.ErrAborted) {
+							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
+							return nil
+						}
+						return wizErr
+					}
+					stackIDs = choices.Stacks
+					extraDomains = choices.ExtraDomains
+				} else {
+					// Non-interactive fallback: use detected stacks as-is.
+					stackIDs = detected
+					extraDomains = domains
+				}
+
+				// Empty-stack guard (challenge finding 2).
 				if len(stackIDs) == 0 {
-					_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "No stacks detected. Use --stacks to specify manually.")
+					_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "No stacks selected. Use --stacks to specify manually.")
 					return nil
 				}
 			}
@@ -46,7 +94,7 @@ func newInitCmd() *cobra.Command {
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Stacks: %v\n", stackIDs)
 
 			// Merge configuration.
-			cfg, err := render.Merge(stackIDs, domains)
+			cfg, err := render.Merge(stackIDs, extraDomains)
 			if err != nil {
 				return fmt.Errorf("merge config: %w", err)
 			}
@@ -84,14 +132,14 @@ func newInitCmd() *cobra.Command {
 			}
 
 			files := map[string][]byte{
-				"Dockerfile":                  []byte(dockerfile),
-				"devcontainer.json":           devcontainerBuf.Bytes(),
-				"init-firewall.sh":            fw.InitFirewall,
-				"warmup-dns.sh":               fw.WarmupDNS,
-				"dynamic-domains.conf":        fw.DynamicDomains,
-				"claude-user-settings.json":   cl.UserSettings,
-				"sync-claude-settings.sh":     cl.SyncSettings,
-				"README.md":                   []byte(readme),
+				"Dockerfile":                []byte(dockerfile),
+				"devcontainer.json":         devcontainerBuf.Bytes(),
+				"init-firewall.sh":          fw.InitFirewall,
+				"warmup-dns.sh":             fw.WarmupDNS,
+				"dynamic-domains.conf":      fw.DynamicDomains,
+				"claude-user-settings.json": cl.UserSettings,
+				"sync-claude-settings.sh":   cl.SyncSettings,
+				"README.md":                 []byte(readme),
 			}
 
 			for name, content := range files {
@@ -120,3 +168,11 @@ func newInitCmd() *cobra.Command {
 	return cmd
 }
 
+// isTerminal reports whether r is a terminal file descriptor.
+func isTerminal(r io.Reader) bool {
+	f, ok := r.(*os.File)
+	if !ok {
+		return false
+	}
+	return term.IsTerminal(int(f.Fd()))
+}
