@@ -1,10 +1,11 @@
 ---
 # ccbox-2n15
 title: Stack Detection Engine
-status: todo
+status: completed
 type: epic
+priority: normal
 created_at: 2026-04-02T10:33:37Z
-updated_at: 2026-04-02T10:33:37Z
+updated_at: 2026-04-03T08:33:03Z
 parent: ccbox-el52
 ---
 

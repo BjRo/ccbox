@@ -1,10 +1,11 @@
 ---
 # ccbox-puuq
 title: Interactive Wizard & CLI Flags
-status: todo
+status: completed
 type: epic
+priority: normal
 created_at: 2026-04-02T10:33:38Z
-updated_at: 2026-04-02T10:33:38Z
+updated_at: 2026-04-03T08:32:50Z
 parent: ccbox-el52
 ---
 
