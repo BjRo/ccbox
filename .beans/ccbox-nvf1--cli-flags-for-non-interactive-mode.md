@@ -134,7 +134,7 @@ None -- the scope is well-defined. The `--non-interactive` flag is a no-op in th
 - [x] Branch pushed and PR created (https://github.com/BjRo/ccbox/pull/13)
 - [x] Automated code review passed
 - [x] Review feedback worked in
-- [ ] User notified
+- [x] User notified
 
 ## Pipeline State
 
