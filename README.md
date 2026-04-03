@@ -78,13 +78,15 @@ Print the version string and exit.
 
 ## Supported Stacks
 
-| Stack | Name | Runtime | LSP | Marker Files |
-|-------|------|---------|-----|--------------|
+| Stack | Name | Runtime | LSP | Detection Triggers |
+|-------|------|---------|-----|--------------------|
 | `go` | Go | go@latest | gopls | `go.mod` |
 | `node` | Node/TypeScript | node@lts | typescript-language-server | `package.json`, `tsconfig.json` |
 | `python` | Python | python@latest | pyright | `requirements.txt`, `pyproject.toml`, `setup.py`, `Pipfile` |
 | `rust` | Rust | rust@latest | rust-analyzer | `Cargo.toml` |
-| `ruby` | Ruby | ruby@latest | solargraph | `Gemfile`, `*.gemspec` |
+| `ruby` | Ruby | ruby@latest | solargraph | `Gemfile`, `*.gemspec`\* |
+
+\* `*.gemspec` is detected via glob pattern in the detection engine, not as an exact filename in the stack registry.
 
 Node/npm is always included in the generated container regardless of detected stacks, because Claude Code requires it.
 
@@ -113,21 +115,23 @@ The firewall uses a three-layer architecture to enforce domain-level network iso
                               |
                     postStartCommand runs
                               |
-                  +-----------+-----------+
-                  |                       |
-          sync-claude-settings.sh   init-firewall.sh
-                                          |
-                  +-----------------------+-----------------------+
-                  |                       |                       |
-        Resolve static domains    Configure dnsmasq        Set iptables
-        into ipset hash:ip        for dynamic domains      OUTPUT -> DROP
-                  |                       |                       |
-        (dig once, cache IPs)     (re-resolve on TTL)     (allow ipset only)
-                  |                       |                       |
-                  +-----------------------+-----------------------+
-                                          |
-                                Claude Code ready
-                          (network limited to allowlist)
+                      chown volumes
+                              |
+                  sync-claude-settings.sh
+                              |
+                      init-firewall.sh
+                              |
+          +-----------------------+-----------------------+
+          |                       |                       |
+Resolve static domains    Configure dnsmasq        Set iptables
+into ipset hash:ip        for dynamic domains      OUTPUT -> DROP
+          |                       |                       |
+(dig once, cache IPs)     (re-resolve on TTL)     (allow ipset only)
+          |                       |                       |
+          +-----------------------+-----------------------+
+                                  |
+                          Claude Code ready
+                    (network limited to allowlist)
 ```
 
 **Static domains** (e.g., `api.github.com`, `registry.npmjs.org`) have stable IPs. They are resolved once at startup and cached in an ipset.
@@ -142,7 +146,7 @@ The always-on allowlist includes domains required for Claude Code to function re
 | `api.github.com` | static | GitHub REST API |
 | `*.anthropic.com` | dynamic | Anthropic API for Claude Code |
 | `sentry.io` | static | Error reporting for Claude Code |
-| `statsig.com` | static | Feature flags for Claude Code |
+| `statsig.com` | static | Feature flags and experimentation for Claude Code |
 
 Each detected stack adds its own domains (package registries, module proxies, etc.).
 
@@ -184,7 +188,7 @@ Created in the project root. Records the stacks, extra domains, generation times
 
 ### Prerequisites
 
-- Go 1.24+
+- Go 1.25+
 - golangci-lint v2
 
 ### Build and Test
