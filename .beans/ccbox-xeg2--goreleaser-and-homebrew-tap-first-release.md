@@ -1,11 +1,11 @@
 ---
 # ccbox-xeg2
 title: GoReleaser and Homebrew tap first release
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:36:23Z
-updated_at: 2026-04-02T10:36:23Z
+updated_at: 2026-04-03T10:05:27Z
 parent: ccbox-vydo
 ---
 
