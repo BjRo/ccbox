@@ -1,10 +1,11 @@
 ---
 # ccbox-6g75
 title: Testing
-status: todo
+status: completed
 type: epic
+priority: normal
 created_at: 2026-04-02T10:33:42Z
-updated_at: 2026-04-02T10:33:42Z
+updated_at: 2026-04-03T09:05:44Z
 parent: ccbox-el52
 ---
 
