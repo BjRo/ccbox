@@ -391,3 +391,4 @@ func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
 		t.Errorf("enabledPlugins[0] = %q, want %q", settings.EnabledPlugins[0], want)
 	}
 }
+

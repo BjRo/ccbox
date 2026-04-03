@@ -495,6 +495,108 @@ func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
 	}
 }
 
+func TestDockerfile_AllStacks(t *testing.T) {
+	allIDs := []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}
+	cfg, err := Merge(allIDs, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	// Structural assertion: every runtime from the config must appear in mise config.
+	// Node is handled specially (always hardcoded as node = "lts"), so we check
+	// non-node runtimes via their tool = "version" format.
+	for _, rt := range cfg.Runtimes {
+		if rt.Tool == "node" {
+			continue
+		}
+		expected := rt.Tool + ` = "` + rt.Version + `"`
+		if !strings.Contains(out, expected) {
+			t.Errorf("output missing mise runtime entry %q", expected)
+		}
+	}
+
+	// Structural assertion: every LSP install command must appear.
+	for _, lsp := range cfg.LSPs {
+		if !strings.Contains(out, lsp.InstallCmd) {
+			t.Errorf("output missing LSP install command %q", lsp.InstallCmd)
+		}
+	}
+
+	// Structural assertion: every system dep must appear.
+	for _, dep := range cfg.SystemDeps {
+		if !strings.Contains(out, dep) {
+			t.Errorf("output missing system dep %q", dep)
+		}
+	}
+
+	// Node must appear exactly once in the mise config (not duplicated by
+	// explicit Node stack inclusion).
+	count := strings.Count(out, `node = "lts"`)
+	if count != 1 {
+		t.Errorf(`node = "lts" appears %d times, want exactly 1`, count)
+	}
+
+	// Spot-checks for well-known entries.
+	spotChecks := []string{
+		"go install golang.org/x/tools/gopls@latest",
+		"pip install pyright",
+		"gem install solargraph",
+		"rustup component add rust-analyzer",
+		"npm install -g typescript-language-server typescript",
+	}
+	for _, check := range spotChecks {
+		if !strings.Contains(out, check) {
+			t.Errorf("output missing well-known LSP install %q", check)
+		}
+	}
+}
+
+func TestDockerfile_NoTemplateArtifacts(t *testing.T) {
+	allIDs := []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}
+	cfg, err := Merge(allIDs, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	artifacts := []string{"<no value>", "<nil>", "{{", "}}"}
+	for _, a := range artifacts {
+		if strings.Contains(out, a) {
+			t.Errorf("Dockerfile contains template artifact %q", a)
+		}
+	}
+}
+
+func TestDockerfile_Deterministic(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out1, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile (first): %v", err)
+	}
+
+	out2, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile (second): %v", err)
+	}
+
+	if out1 != out2 {
+		t.Error("Dockerfile output is not deterministic; two renders differ")
+	}
+}
+
 func TestDockerfile_DirectConfig_SystemDepsOnly(t *testing.T) {
 	cfg := GenerationConfig{
 		Stacks:     []stack.StackID{},
