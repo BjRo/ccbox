@@ -30,7 +30,7 @@ Write the ccbox project README.md:
 - [x] Lint passes
 - [x] Tests pass
 - [x] Branch pushed
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed
 - [ ] Review feedback worked in
 - [ ] User notified
@@ -41,8 +41,8 @@ Write the ccbox project README.md:
 |-------|--------|-----------|-----------|
 | refine | complete | 1 | 2026-04-03 |
 | challenge | complete | 1 | 2026-04-03 |
-| implement | in-progress | 1 | 2026-04-03 |
-| pr | pending | | |
+| implement | complete | 1 | 2026-04-03 |
+| pr | complete | 1 | 2026-04-03 |
 | review | pending | | |
 | codify | pending | | |
 
