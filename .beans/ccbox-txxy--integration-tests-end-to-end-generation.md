@@ -156,10 +156,10 @@ None. The implementation plan is fully grounded in the current codebase.
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
