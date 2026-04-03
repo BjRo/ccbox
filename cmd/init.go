@@ -40,6 +40,12 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				return err
 			}
 
+			// Fail fast if .devcontainer/ already exists (file or directory).
+			outDir := filepath.Join(targetDir, ".devcontainer")
+			if _, statErr := os.Stat(outDir); statErr == nil {
+				return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
+			}
+
 			// Trim and filter flag values.
 			stacks = trimAndFilter(stacks)
 			domains = trimAndFilter(domains)
@@ -126,7 +132,6 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			}
 
 			// Write .devcontainer/ directory.
-			outDir := filepath.Join(targetDir, ".devcontainer")
 			if err := os.MkdirAll(outDir, 0o755); err != nil {
 				return fmt.Errorf("create .devcontainer: %w", err)
 			}
