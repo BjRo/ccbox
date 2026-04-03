@@ -72,11 +72,11 @@ func TestMerge_MultipleStacks(t *testing.T) {
 	for _, l := range cfg.LSPs {
 		plugins[l.Plugin] = true
 	}
-	if !plugins["gopls"] {
-		t.Error("missing LSP plugin 'gopls'")
+	if !plugins["gopls-lsp@claude-plugins-official"] {
+		t.Error("missing LSP plugin 'gopls-lsp@claude-plugins-official'")
 	}
-	if !plugins["typescript"] {
-		t.Error("missing LSP plugin 'typescript'")
+	if !plugins["typescript-lsp@claude-plugins-official"] {
+		t.Error("missing LSP plugin 'typescript-lsp@claude-plugins-official'")
 	}
 }
 

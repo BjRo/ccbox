@@ -3,5 +3,5 @@
   "permissions": {
     "allow": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "Task", "WebFetch", "WebSearch"]
   },
-  "enabledPlugins": [{{range $i, $lsp := .LSPs}}{{if $i}}, {{end}}"{{$lsp.Plugin | jsonString}}"{{end}}]
+  "enabledPlugins": { {{- range $i, $lsp := .LSPs}}{{if $lsp.Plugin}}{{if $i}}, {{end}}"{{$lsp.Plugin | jsonString}}": true{{end}}{{end}} }
 }

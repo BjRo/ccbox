@@ -47,9 +47,7 @@ func TestGet_ExistingStack(t *testing.T) {
 			if s.LSP.InstallCmd == "" {
 				t.Error("LSP.InstallCmd is empty")
 			}
-			if s.LSP.Plugin == "" {
-				t.Error("LSP.Plugin is empty")
-			}
+			// Plugin may be empty (e.g., Ruby has no official Claude plugin).
 			if len(s.DefaultDomains) == 0 {
 				t.Error("DefaultDomains is empty")
 			}
