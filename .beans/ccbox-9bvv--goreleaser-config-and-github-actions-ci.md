@@ -1,11 +1,11 @@
 ---
 # ccbox-9bvv
 title: GoReleaser config and GitHub Actions CI
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-02T10:33:59Z
-updated_at: 2026-04-03T09:25:19Z
+updated_at: 2026-04-03T09:56:23Z
 parent: ccbox-jxut
 ---
 
