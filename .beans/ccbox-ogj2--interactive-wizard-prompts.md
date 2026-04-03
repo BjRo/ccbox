@@ -312,10 +312,10 @@ Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
 
 ## Checklist
 
-- [ ] Tests written (TDD)
-- [ ] No TODO/FIXME/HACK/XXX comments
-- [ ] Lint passes
-- [ ] Tests pass
+- [x] Tests written (TDD)
+- [x] No TODO/FIXME/HACK/XXX comments
+- [x] Lint passes
+- [x] Tests pass
 - [ ] Branch pushed
 - [ ] PR created
 - [ ] Automated code review passed
@@ -328,7 +328,7 @@ Finding 4 is a SUGGESTION that can be deferred to ccbox-nvf1 if preferred.
 |-------|--------|-----------|-----------|
 | refine | done | 1 | 2026-04-03 |
 | challenge | done | 1 | 2026-04-03 |
-| implement | pending | | |
+| implement | done | 1 | 2026-04-03 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
