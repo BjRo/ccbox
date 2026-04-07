@@ -1,11 +1,11 @@
 ---
 # agentbox-ibfc
 title: 'Fix firewall script: resolv.conf rewrite, upstream DNS config, hash:net ipset'
-status: todo
+status: completed
 type: bug
 priority: critical
 created_at: 2026-04-07T16:54:41Z
-updated_at: 2026-04-07T16:54:41Z
+updated_at: 2026-04-07T19:24:16Z
 parent: agentbox-el52
 ---
 
