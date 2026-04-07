@@ -380,8 +380,8 @@ None -- all design decisions have been made.
 - [x] Create `EnsureNode` helper in `internal/render/ensure.go` with tests
 - [x] Add mise-config.toml.tmpl template
 - [x] Add render.MiseConfig function with tests
-- [ ] Update Dockerfile.tmpl to COPY config.toml instead of inline heredoc
-- [ ] Update Dockerfile render tests
+- [x] Update Dockerfile.tmpl to COPY config.toml instead of inline heredoc
+- [x] Update Dockerfile render tests
 - [ ] Add version prompting to interactive wizard
 - [ ] Update `buildSummary` signature and tests
 - [ ] Add `--runtime-version` CLI flag to `agentbox init`
