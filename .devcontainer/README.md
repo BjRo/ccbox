@@ -44,8 +44,6 @@ These domains have stable IPs and are resolved once at container startup:
 
 | Domain | Rationale |
 |--------|-----------|
-| api.github.com | GitHub REST API - required for git clone/push/pull over HTTPS |
-| github.com | GitHub web and git-over-HTTPS |
 | sentry.io | Error reporting for Claude Code |
 | statsig.com | Feature flags and experimentation for Claude Code |
 
@@ -56,6 +54,8 @@ These domains have rotating IPs (CDNs, load balancers) and are continuously re-r
 | Domain | Rationale |
 |--------|-----------|
 | anthropic.com | Anthropic API - required for Claude Code to function |
+| api.github.com | GitHub REST API - required for git clone/push/pull over HTTPS |
+| github.com | GitHub web and git-over-HTTPS |
 | proxy.golang.org | Default Go module proxy - serves go get / go mod download |
 | storage.googleapis.com | GCS backend for Go module proxy - actual module content delivery |
 | sum.golang.org | Go checksum database - verifies module integrity |
