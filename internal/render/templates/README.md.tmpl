@@ -35,7 +35,7 @@ This setup creates a Docker-based development container with:
 The container uses a three-layer network isolation approach:
 
 1. **iptables default DROP** -- All outbound traffic is blocked by default
-2. **ipset hash:ip allowlist** -- Only resolved IPs of explicitly allowed domains can be reached
+2. **ipset hash:net allowlist** -- Only resolved IPs of explicitly allowed domains can be reached
 3. **dnsmasq** -- Continuously re-resolves dynamic domains and updates the ipset
 
 The `init-firewall.sh` script sets up all three layers at container startup. Static domains are resolved once and their IPs are added to the allowlist. Dynamic domains are managed by dnsmasq, which updates the allowlist as DNS records change.

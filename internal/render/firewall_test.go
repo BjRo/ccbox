@@ -201,12 +201,197 @@ func TestRenderFirewall_InitFirewall_ScriptStructure(t *testing.T) {
 		"#!/usr/bin/env bash",
 		"set -euo pipefail",
 		"ipset create",
+		"hash:net",
 		"iptables",
 		"dnsmasq",
+		"UPSTREAM_DNS_CACHE",
+		"no-resolv",
+		"server=",
+		"nameserver 127.0.0.1",
+		"api.github.com/meta",
+		"iptables-save",
+		"iptables-restore",
+		"example.com",
 	}
 	for _, check := range checks {
 		if !strings.Contains(output, check) {
 			t.Errorf("InitFirewall missing structural marker %q", check)
+		}
+	}
+
+	// hash:ip should NOT appear -- it was replaced by hash:net.
+	if strings.Contains(output, "hash:ip") {
+		t.Error("InitFirewall still contains 'hash:ip'; should be 'hash:net'")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_HashNetNotHashIP(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	if !strings.Contains(output, "hash:net") {
+		t.Error("InitFirewall missing 'hash:net' ipset type")
+	}
+	if strings.Contains(output, "hash:ip") {
+		t.Error("InitFirewall still contains 'hash:ip'; should be 'hash:net'")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_ResolvConfRewrite(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	if !strings.Contains(output, "nameserver 127.0.0.1") {
+		t.Error("InitFirewall missing 'nameserver 127.0.0.1' resolv.conf rewrite")
+	}
+	if !strings.Contains(output, "resolv.conf") {
+		t.Error("InitFirewall missing 'resolv.conf' reference")
+	}
+	if !strings.Contains(output, "no-resolv") {
+		t.Error("InitFirewall missing 'no-resolv' dnsmasq directive")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_UpstreamDNS(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	if !strings.Contains(output, "UPSTREAM_DNS_CACHE") {
+		t.Error("InitFirewall missing upstream DNS cache file reference")
+	}
+	if !strings.Contains(output, "server=") {
+		t.Error("InitFirewall missing 'server=' dnsmasq upstream directive")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_NATPreservation(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	if !strings.Contains(output, "iptables-save") {
+		t.Error("InitFirewall missing 'iptables-save' for NAT rule preservation")
+	}
+	if !strings.Contains(output, "iptables-restore") {
+		t.Error("InitFirewall missing 'iptables-restore' for NAT rule restoration")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_Verification(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	// Positive test: an allowed domain should be tested.
+	if !strings.Contains(output, "github.com") {
+		t.Error("InitFirewall missing positive verification domain (github.com)")
+	}
+	// Negative test: a blocked domain should be tested.
+	if !strings.Contains(output, "example.com") {
+		t.Error("InitFirewall missing negative verification domain (example.com)")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_SSHOutbound(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	// SSH outbound should be allowed (port 22).
+	if !strings.Contains(output, "--dport 22") {
+		t.Error("InitFirewall missing SSH outbound rule (--dport 22)")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_HostNetwork(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	// Docker host network range should be allowed.
+	if !strings.Contains(output, "172.16.0.0/12") {
+		t.Error("InitFirewall missing Docker host network range (172.16.0.0/12)")
+	}
+}
+
+func TestRenderFirewall_InitFirewall_NoTemplateArtifacts(t *testing.T) {
+	// Use all 5 stacks to exercise every template branch.
+	allIDs := []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}
+	cfg, err := Merge(allIDs, []string{"extra.example.com"})
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	files, err := RenderFirewall(cfg)
+	if err != nil {
+		t.Fatalf("RenderFirewall: %v", err)
+	}
+
+	output := string(files.InitFirewall)
+
+	artifacts := []string{"<no value>", "<nil>", "{{", "}}"}
+	for _, a := range artifacts {
+		if strings.Contains(output, a) {
+			t.Errorf("InitFirewall contains template artifact %q", a)
 		}
 	}
 }
@@ -260,6 +445,11 @@ func TestRenderFirewall_AllStacks(t *testing.T) {
 		if !bytes.Contains(files.InitFirewall, []byte(d.Name)) {
 			t.Errorf("InitFirewall missing static domain %q", d.Name)
 		}
+	}
+
+	// Verify hash:net is present (structural completeness check).
+	if !bytes.Contains(files.InitFirewall, []byte("hash:net")) {
+		t.Error("InitFirewall missing 'hash:net' in all-stacks render")
 	}
 }
 
