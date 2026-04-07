@@ -48,8 +48,8 @@ func TestRenderFirewall_InitFirewall_ContainsStaticDomains(t *testing.T) {
 		}
 	}
 
-	// Spot-checks for well-known static domains.
-	spotChecks := []string{"github.com", "api.github.com", "registry.npmjs.org"}
+	// Spot-checks for well-known domains (present in init-firewall.sh regardless of category).
+	spotChecks := []string{"registry.npmjs.org"}
 	for _, name := range spotChecks {
 		if !bytes.Contains(files.InitFirewall, []byte(name)) {
 			t.Errorf("InitFirewall missing well-known static domain %q", name)
