@@ -184,6 +184,32 @@ Running `agentbox init` creates a `.devcontainer/` directory and a `.agentbox.ym
 
 Created in the project root. Records the stacks, extra domains, generation timestamp, and agentbox version used. This file enables future `agentbox` commands to understand the current configuration.
 
+## Troubleshooting
+
+### Intermittent network timeouts inside the container
+
+If network requests inside the devcontainer hang or timeout intermittently (e.g., `git push`, `go install`, `curl`), check the Docker bridge network MTU:
+
+```bash
+docker network inspect bridge | grep MTU
+```
+
+Docker Desktop may default to an MTU of 65535, which causes packet loss when the actual network path has a standard 1500-byte MTU. To fix this, open Docker Desktop **Settings → Docker Engine** and add:
+
+```json
+{
+  "mtu": 1500
+}
+```
+
+Click **Apply & Restart**, then recreate the container.
+
+### Package manager downloads blocked (e.g., apt-get)
+
+The devcontainer runs a default-deny iptables firewall. Only explicitly allowlisted domains are reachable. If `apt-get update` or similar commands fail with connection timeouts, the target domain is not in the allowlist. This is by design -- the firewall restricts network access to domains required for development.
+
+To allow additional domains, add them to `.devcontainer/dynamic-domains.conf` (for CDN/rotating-IP domains) or pass `--extra-domains` when running `agentbox init`.
+
 ## Contributing
 
 ### Prerequisites
