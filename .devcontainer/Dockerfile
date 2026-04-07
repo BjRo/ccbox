@@ -50,7 +50,8 @@ RUN mise install
 
 
 # --- LSP servers ---
-RUN go install golang.org/x/tools/gopls@latest
+RUN go install golang.org/x/tools/gopls@latest \
+    && go install github.com/hmans/beans@latest
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
