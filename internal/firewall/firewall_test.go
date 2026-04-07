@@ -32,8 +32,8 @@ func TestRegistry_AlwaysOnDomains(t *testing.T) {
 	}
 
 	expected := map[string]Category{
-		"api.github.com":  Static,
-		"github.com":      Static,
+		"api.github.com":  Dynamic,
+		"github.com":      Dynamic,
 		"*.anthropic.com": Dynamic,
 		"sentry.io":       Static,
 		"statsig.com":     Static,

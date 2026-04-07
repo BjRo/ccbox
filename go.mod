@@ -1,4 +1,4 @@
-module github.com/bjro/ccbox
+module github.com/bjro/agentbox
 
 go 1.25.0
 

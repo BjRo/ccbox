@@ -8,8 +8,8 @@ import (
 )
 
 func TestFilename(t *testing.T) {
-	if Filename != ".ccbox.yml" {
-		t.Errorf("Filename = %q, want %q", Filename, ".ccbox.yml")
+	if Filename != ".agentbox.yml" {
+		t.Errorf("Filename = %q, want %q", Filename, ".agentbox.yml")
 	}
 }
 
@@ -20,7 +20,7 @@ func TestWriteAndLoad_RoundTrip(t *testing.T) {
 		Stacks:       []string{"go", "node"},
 		ExtraDomains: []string{"api.example.com", "cdn.example.com"},
 		GeneratedAt:  now,
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer
@@ -55,8 +55,8 @@ func TestWriteAndLoad_RoundTrip(t *testing.T) {
 	if !loaded.GeneratedAt.Equal(original.GeneratedAt) {
 		t.Errorf("GeneratedAt = %v, want %v", loaded.GeneratedAt, original.GeneratedAt)
 	}
-	if loaded.CcboxVersion != original.CcboxVersion {
-		t.Errorf("CcboxVersion = %q, want %q", loaded.CcboxVersion, original.CcboxVersion)
+	if loaded.AgentboxVersion != original.AgentboxVersion {
+		t.Errorf("AgentboxVersion = %q, want %q", loaded.AgentboxVersion, original.AgentboxVersion)
 	}
 }
 
@@ -67,7 +67,7 @@ func TestWrite_YAMLFormat(t *testing.T) {
 		Stacks:       []string{"go", "node"},
 		ExtraDomains: []string{"api.example.com"},
 		GeneratedAt:  now,
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer
@@ -79,13 +79,13 @@ func TestWrite_YAMLFormat(t *testing.T) {
 
 	// yaml.v3 renders time.Time as unquoted YAML timestamps.
 	// Flow-style tags render slices inline: [go, node].
-	// String values like ccbox_version are unquoted when safe.
+	// String values like agentbox_version are unquoted when safe.
 	expectations := []string{
 		"version: 1",
 		"stacks: [go, node]",
 		"extra_domains: [api.example.com]",
 		"generated_at: 2026-04-02T10:00:00Z",
-		"ccbox_version: 0.1.0",
+		"agentbox_version: 0.1.0",
 	}
 
 	for _, exp := range expectations {
@@ -101,7 +101,7 @@ func TestWrite_EmptyStacks(t *testing.T) {
 		Stacks:       []string{},
 		ExtraDomains: []string{"api.example.com"},
 		GeneratedAt:  time.Date(2026, 4, 2, 10, 0, 0, 0, time.UTC),
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer
@@ -121,7 +121,7 @@ func TestWrite_EmptyExtraDomains(t *testing.T) {
 		Stacks:       []string{"go"},
 		ExtraDomains: []string{},
 		GeneratedAt:  time.Date(2026, 4, 2, 10, 0, 0, 0, time.UTC),
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer
@@ -141,7 +141,7 @@ func TestWrite_NilSlicesRenderedAsEmpty(t *testing.T) {
 		Stacks:       nil,
 		ExtraDomains: nil,
 		GeneratedAt:  time.Date(2026, 4, 2, 10, 0, 0, 0, time.UTC),
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer
@@ -163,7 +163,7 @@ func TestLoad_ValidatesVersion(t *testing.T) {
 stacks: []
 extra_domains: []
 generated_at: 2026-04-02T10:00:00Z
-ccbox_version: "0.1.0"
+agentbox_version: "0.1.0"
 `
 	_, err := Load(strings.NewReader(input))
 	if err == nil {
@@ -178,7 +178,7 @@ func TestLoad_NonNilSlices(t *testing.T) {
 	// YAML that omits stacks and extra_domains entirely.
 	input := `version: 1
 generated_at: 2026-04-02T10:00:00Z
-ccbox_version: "0.1.0"
+agentbox_version: "0.1.0"
 `
 	cfg, err := Load(strings.NewReader(input))
 	if err != nil {
@@ -209,7 +209,7 @@ func TestTimestamp_RoundTrip(t *testing.T) {
 		Stacks:       []string{},
 		ExtraDomains: []string{},
 		GeneratedAt:  now,
-		CcboxVersion: "0.1.0",
+		AgentboxVersion: "0.1.0",
 	}
 
 	var buf bytes.Buffer

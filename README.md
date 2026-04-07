@@ -1,4 +1,4 @@
-# ccbox
+# agentbox
 
 Generate devcontainer setups for running Claude Code in sandboxed environments with full permissions and network isolation.
 
@@ -6,7 +6,7 @@ Generate devcontainer setups for running Claude Code in sandboxed environments w
 
 Claude Code works best with full permissions -- file read/write, command execution, and network access. But granting those on your host machine is risky.
 
-ccbox generates a [devcontainer](https://containers.dev/) that gives Claude Code full permissions inside a network-isolated Docker container. An iptables firewall with domain-level allowlisting ensures Claude Code can only reach explicitly approved domains, making "bypass permissions" mode safe to use.
+agentbox generates a [devcontainer](https://containers.dev/) that gives Claude Code full permissions inside a network-isolated Docker container. An iptables firewall with domain-level allowlisting ensures Claude Code can only reach explicitly approved domains, making "bypass permissions" mode safe to use.
 
 ## Features
 
@@ -24,17 +24,17 @@ ccbox generates a [devcontainer](https://containers.dev/) that gives Claude Code
 ### Homebrew
 
 ```bash
-brew install bjro/tap/ccbox
+brew install bjro/tap/agentbox
 ```
 
 ### GitHub Releases
 
-Download a pre-built binary from the [releases page](https://github.com/bjro/ccbox/releases).
+Download a pre-built binary from the [releases page](https://github.com/bjro/agentbox/releases).
 
 ### From source
 
 ```bash
-go install github.com/bjro/ccbox@latest
+go install github.com/bjro/agentbox@latest
 ```
 
 > **Note:** Homebrew and GitHub Releases will be available with the first release. Building from source works today.
@@ -43,16 +43,16 @@ go install github.com/bjro/ccbox@latest
 
 ```bash
 cd my-project
-ccbox init          # interactive wizard
+agentbox init          # interactive wizard
 # or
-ccbox init -y       # auto-detect stacks, no prompts
+agentbox init -y       # auto-detect stacks, no prompts
 ```
 
 Example output:
 
 ```
 Stacks: [go]
-Generated .devcontainer/ with 8 files and .ccbox.yml
+Generated .devcontainer/ with 8 files and .agentbox.yml
 ```
 
 Then open the project in VS Code and select **Dev Containers: Reopen in Container**, or use [DevPod](https://devpod.sh/) to launch the container.
@@ -61,7 +61,7 @@ See [Generated Files](#generated-files) for details on what gets created.
 
 ## CLI Reference
 
-### `ccbox init`
+### `agentbox init`
 
 Generate a `.devcontainer/` directory with all configuration files.
 
@@ -72,7 +72,7 @@ Generate a `.devcontainer/` directory with all configuration files.
 | `--dir` | | string | current directory | Target project directory |
 | `--non-interactive` | `-y` | bool | `false` | Skip all prompts, use detected stacks and defaults |
 
-### `ccbox --version`
+### `agentbox --version`
 
 Print the version string and exit.
 
@@ -94,7 +94,7 @@ Detection scans the project root and one level deep, skipping `vendor/`, `node_m
 
 ## How It Works
 
-ccbox generates a self-contained devcontainer with three main components: a Dockerfile, a firewall, and a settings sync mechanism.
+agentbox generates a self-contained devcontainer with three main components: a Dockerfile, a firewall, and a settings sync mechanism.
 
 ### Dockerfile
 
@@ -165,7 +165,7 @@ The generated `devcontainer.json` configures:
 
 ## Generated Files
 
-Running `ccbox init` creates a `.devcontainer/` directory and a `.ccbox.yml` config file.
+Running `agentbox init` creates a `.devcontainer/` directory and a `.agentbox.yml` config file.
 
 ### `.devcontainer/`
 
@@ -180,9 +180,9 @@ Running `ccbox init` creates a `.devcontainer/` directory and a `.ccbox.yml` con
 | `sync-claude-settings.sh` | Copies/merges Claude Code settings into the container |
 | `README.md` | Per-project documentation for the generated devcontainer |
 
-### `.ccbox.yml`
+### `.agentbox.yml`
 
-Created in the project root. Records the stacks, extra domains, generation timestamp, and ccbox version used. This file enables future `ccbox` commands to understand the current configuration.
+Created in the project root. Records the stacks, extra domains, generation timestamp, and agentbox version used. This file enables future `agentbox` commands to understand the current configuration.
 
 ## Contributing
 
@@ -209,7 +209,7 @@ internal/
   detect/             Stack auto-detection
   render/             Template rendering engine
   firewall/           Domain allowlist logic
-  config/             .ccbox.yml handling
+  config/             .agentbox.yml handling
   wizard/             Interactive TUI wizard
 ```
 

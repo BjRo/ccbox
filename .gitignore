@@ -1,5 +1,5 @@
 # Build
-ccbox
+agentbox
 dist/
 
 # Claude Code ephemeral state

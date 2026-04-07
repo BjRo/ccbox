@@ -1,0 +1,5 @@
+version: 1
+stacks: [go]
+extra_domains: []
+generated_at: 2026-04-03T09:11:53.295495Z
+agentbox_version: dev

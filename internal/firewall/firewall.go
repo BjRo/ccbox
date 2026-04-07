@@ -64,8 +64,8 @@ var registry = map[Stack]Allowlist{
 	AlwaysOn: {
 		Stack: AlwaysOn,
 		Domains: []Domain{
-			{Name: "api.github.com", Category: Static, Rationale: "GitHub REST API - required for git clone/push/pull over HTTPS"},
-			{Name: "github.com", Category: Static, Rationale: "GitHub web and git-over-HTTPS"},
+			{Name: "api.github.com", Category: Dynamic, Rationale: "GitHub REST API - required for git clone/push/pull over HTTPS"},
+			{Name: "github.com", Category: Dynamic, Rationale: "GitHub web and git-over-HTTPS"},
 			{Name: "*.anthropic.com", Category: Dynamic, Rationale: "Anthropic API - required for Claude Code to function"},
 			{Name: "sentry.io", Category: Static, Rationale: "Error reporting for Claude Code"},
 			{Name: "statsig.com", Category: Static, Rationale: "Feature flags and experimentation for Claude Code"},

@@ -1,4 +1,4 @@
-// Package wizard implements the interactive prompt flow for ccbox init.
+// Package wizard implements the interactive prompt flow for agentbox init.
 //
 // It collects user choices (stack selection, extra domains) using
 // charmbracelet/huh forms without performing any file I/O or template

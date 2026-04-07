@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bjro/ccbox/internal/config"
+	"github.com/bjro/agentbox/internal/config"
 )
 
 // assertFileExists stats the file at path and returns its os.FileInfo.
@@ -35,7 +35,7 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-// expectedFiles lists the 8 files that ccbox init generates inside .devcontainer/.
+// expectedFiles lists the 8 files that agentbox init generates inside .devcontainer/.
 // Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedFiles = []string{
 	"Dockerfile",
@@ -107,15 +107,22 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 		t.Error("devcontainer.json should reference Dockerfile")
 	}
 
-	// init-firewall.sh: contains AlwaysOn static domains in dig section.
+	// init-firewall.sh: github.com and api.github.com are Dynamic (IP rotation),
+	// so they should appear in the dnsmasq config, not the static dig section.
+	// Use the static resolution pattern "$(dig +short '<domain>')" (without @127.0.0.1)
+	// to distinguish from the dnsmasq warmup health-check line.
 	initFirewall := readFile(t, filepath.Join(devcontainerDir, "init-firewall.sh"))
 	for _, domain := range []string{"api.github.com", "github.com"} {
-		digLine := "dig +short '" + domain + "'"
-		if !strings.Contains(initFirewall, digLine) {
-			t.Errorf("init-firewall.sh should contain dig resolution for %s", domain)
+		staticDigLine := "$(dig +short '" + domain + "')"
+		if strings.Contains(initFirewall, staticDigLine) {
+			t.Errorf("init-firewall.sh should not contain static dig resolution for %s (it is Dynamic)", domain)
+		}
+		dnsmasqLine := "ipset=/" + domain + "/allowed_ips"
+		if !strings.Contains(initFirewall, dnsmasqLine) {
+			t.Errorf("init-firewall.sh should contain dnsmasq ipset directive for %s", domain)
 		}
 	}
-	// proxy.golang.org is Dynamic, so it should NOT appear in the static dig section.
+	// proxy.golang.org is also Dynamic.
 	if strings.Contains(initFirewall, "dig +short 'proxy.golang.org'") {
 		t.Error("init-firewall.sh should not contain dig resolution for proxy.golang.org (it is Dynamic)")
 	}
@@ -326,8 +333,8 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	// .ccbox.yml exists.
-	cfgPath := filepath.Join(dir, ".ccbox.yml")
+	// .agentbox.yml exists.
+	cfgPath := filepath.Join(dir, ".agentbox.yml")
 	assertFileExists(t, cfgPath)
 
 	// Round-trip via config.Load.
@@ -354,8 +361,8 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Errorf("extra_domains: got %v, want [api.example.com]", cfg.ExtraDomains)
 	}
 
-	if cfg.CcboxVersion != "dev" {
-		t.Errorf("ccbox_version: got %q, want %q", cfg.CcboxVersion, "dev")
+	if cfg.AgentboxVersion != "dev" {
+		t.Errorf("agentbox_version: got %q, want %q", cfg.AgentboxVersion, "dev")
 	}
 
 	// generated_at should be between startTime and now.

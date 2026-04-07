@@ -40,7 +40,7 @@ type FirewallFiles struct {
 // RenderFirewall executes the firewall templates against the given
 // GenerationConfig and returns the rendered file contents. It is a pure
 // transformation from config to bytes with no file I/O -- actual file
-// writing is the responsibility of the orchestrator (ccbox init command).
+// writing is the responsibility of the orchestrator (agentbox init command).
 func RenderFirewall(cfg GenerationConfig) (FirewallFiles, error) {
 	var initBuf, warmupBuf, dynamicBuf bytes.Buffer
 
