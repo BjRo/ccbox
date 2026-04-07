@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bjro/ccbox/internal/firewall"
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/firewall"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 // GenerationConfig holds the fully merged, deduplicated configuration

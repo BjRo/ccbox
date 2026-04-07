@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 func TestChoices_ZeroValue(t *testing.T) {

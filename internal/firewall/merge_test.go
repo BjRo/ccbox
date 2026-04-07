@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 // collectExpected gathers all unique domains from ForStack for the given

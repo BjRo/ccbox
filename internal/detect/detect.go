@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 // skipDirs contains directory names that should be excluded from the
