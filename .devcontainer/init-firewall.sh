@@ -14,37 +14,60 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "[firewall] Setting up network isolation..."
 
 # ──────────────────────────────────────────────
-# 1. Preserve Docker DNS
+# 1. Capture and cache upstream DNS
 # ──────────────────────────────────────────────
-DOCKER_DNS="$(grep nameserver /etc/resolv.conf | head -1 | awk '{print $2}')"
-if [[ -n "${DOCKER_DNS}" ]]; then
-    echo "[firewall] Preserving Docker DNS: ${DOCKER_DNS}"
-    iptables -A OUTPUT -d "${DOCKER_DNS}" -p udp --dport 53 -j ACCEPT
-    iptables -A OUTPUT -d "${DOCKER_DNS}" -p tcp --dport 53 -j ACCEPT
+# On first run, Docker's DNS is in /etc/resolv.conf. We cache it so that
+# subsequent runs (after resolv.conf is rewritten to 127.0.0.1) can still
+# find the upstream resolver.
+UPSTREAM_DNS_CACHE="/var/cache/agentbox-upstream-dns"
+
+if [[ -f "${UPSTREAM_DNS_CACHE}" ]]; then
+    UPSTREAM_DNS="$(cat "${UPSTREAM_DNS_CACHE}")"
+    echo "[firewall] Using cached upstream DNS: ${UPSTREAM_DNS}"
+else
+    UPSTREAM_DNS="$(grep nameserver /etc/resolv.conf | head -1 | awk '{print $2}')"
+    if [[ -z "${UPSTREAM_DNS}" ]]; then
+        echo "[firewall] ERROR: Could not determine upstream DNS from /etc/resolv.conf"
+        exit 1
+    fi
+    echo "${UPSTREAM_DNS}" > "${UPSTREAM_DNS_CACHE}"
+    echo "[firewall] Cached upstream DNS: ${UPSTREAM_DNS}"
 fi
 
 # ──────────────────────────────────────────────
-# 2. Preserve loopback
+# 2. Save Docker DNS NAT rules
 # ──────────────────────────────────────────────
-iptables -A OUTPUT -o lo -j ACCEPT
+# Docker configures NAT rules for internal DNS routing. We must preserve
+# these across our iptables flush to avoid breaking container DNS.
+NAT_SAVE="$(mktemp)"
+trap 'rm -f "${NAT_SAVE}"' EXIT
+iptables-save -t nat > "${NAT_SAVE}"
 
 # ──────────────────────────────────────────────
-# 3. Preserve established connections
+# 3. Flush iptables rules cleanly
 # ──────────────────────────────────────────────
-iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+
+# Restore Docker NAT rules (--noflush avoids clearing the rules we just set).
+iptables-restore --noflush < "${NAT_SAVE}"
+rm -f "${NAT_SAVE}"
+trap - EXIT
 
 # ──────────────────────────────────────────────
-# 4. Create ipset for allowed IPs
+# 4. Create ipset for allowed IPs (hash:net for CIDR support)
 # ──────────────────────────────────────────────
-ipset create allowed_ips hash:ip -exist
+ipset create allowed_ips hash:net -exist
+ipset flush allowed_ips
 
 # ──────────────────────────────────────────────
 # 5. Resolve static domains
 # ──────────────────────────────────────────────
+# Note: Static resolution must precede the OUTPUT DROP policy so that DNS
+# and HTTPS requests to resolve domains and fetch CIDRs can succeed.
 echo "[firewall] Resolving static domains..."
-# Note: Uses the system resolver (Docker DNS) here, not dnsmasq, because
-# dnsmasq is not yet installed at this point in the script. This is correct --
-# the OUTPUT DROP policy has not been applied yet, so Docker DNS is reachable.
 
 # Error reporting for Claude Code
 for ip in $(dig +short 'sentry.io'); do
@@ -60,17 +83,35 @@ for ip in $(dig +short 'statsig.com'); do
     fi
 done
 
+# Fetch GitHub CIDR ranges from the meta API. This is non-fatal: if the
+# fetch fails (e.g., network not yet available), we fall back to the IPs
+# resolved via dig above.
+echo "[firewall] Fetching GitHub CIDR ranges..."
+if GITHUB_META="$(curl -sf --max-time 10 'https://api.github.com/meta' 2>/dev/null)"; then
+    for cidr in $(echo "${GITHUB_META}" | jq -r '(.git // []), (.web // []), (.api // []), (.actions // []) | .[]?' 2>/dev/null); do
+        ipset add allowed_ips "${cidr}" -exist 2>/dev/null || true
+    done
+    echo "[firewall] GitHub CIDR ranges loaded."
+else
+    echo "[firewall] WARNING: Could not fetch api.github.com/meta; using dig-resolved IPs only."
+fi
+
 # ──────────────────────────────────────────────
 # 6. Install and configure dnsmasq
 # ──────────────────────────────────────────────
 echo "[firewall] Configuring dnsmasq for dynamic domains..."
 
-# Note: The Go template directives below (range, stripWildcard) are evaluated
-# at agentbox render time, not at bash runtime. The single-quoted heredoc
-# delimiter prevents bash expansion of the already-rendered output.
-cat > /etc/dnsmasq.d/agentbox-dynamic.conf << 'DNSMASQ_EOF'
-# agentbox dynamic domain configuration.
-# dnsmasq ipset integration: resolved IPs are automatically added
+# The dnsmasq config includes upstream DNS forwarding (no-resolv + explicit
+# server= directive) to break the circular dependency that would occur when
+# /etc/resolv.conf points at 127.0.0.1.
+# Write upstream DNS config (needs shell expansion).
+echo "no-resolv" > /etc/dnsmasq.d/agentbox.conf
+echo "server=${UPSTREAM_DNS}" >> /etc/dnsmasq.d/agentbox.conf
+echo "" >> /etc/dnsmasq.d/agentbox.conf
+
+# Write ipset directives (no shell expansion needed).
+cat >> /etc/dnsmasq.d/agentbox.conf << 'DNSMASQ_EOF'
+# Dynamic domain ipset integration: resolved IPs are automatically added
 # to the allowed_ips ipset for firewall allowlisting.
 ipset=/anthropic.com/allowed_ips
 ipset=/api.github.com/allowed_ips
@@ -88,12 +129,32 @@ else
 fi
 
 # ──────────────────────────────────────────────
-# 7. Configure iptables rules
+# 7. Rewrite /etc/resolv.conf to use dnsmasq
+# ──────────────────────────────────────────────
+# This is the critical step: all DNS queries now go through dnsmasq, which
+# populates the ipset via its ipset hooks for dynamic domains.
+echo "nameserver 127.0.0.1" > /etc/resolv.conf
+echo "[firewall] DNS now routed through dnsmasq (127.0.0.1)."
+
+# ──────────────────────────────────────────────
+# 8. Configure iptables rules
 # ──────────────────────────────────────────────
 
-# Allow DNS to localhost (dnsmasq) on port 53.
-iptables -A OUTPUT -d 127.0.0.1 -p udp --dport 53 -j ACCEPT
-iptables -A OUTPUT -d 127.0.0.1 -p tcp --dport 53 -j ACCEPT
+# Allow loopback (dnsmasq listens on 127.0.0.1).
+iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow established connections.
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow DNS to upstream resolver (used by dnsmasq for forwarding).
+iptables -A OUTPUT -d "${UPSTREAM_DNS}" -p udp --dport 53 -j ACCEPT
+iptables -A OUTPUT -d "${UPSTREAM_DNS}" -p tcp --dport 53 -j ACCEPT
+
+# Allow SSH outbound (port 22) for git over SSH.
+iptables -A OUTPUT -p tcp --dport 22 -j ACCEPT
+
+# Allow Docker host network (devcontainer <-> host communication).
+iptables -A OUTPUT -d 172.16.0.0/12 -j ACCEPT
 
 # Allow all traffic to IPs in the allowed_ips ipset.
 iptables -A OUTPUT -m set --match-set allowed_ips dst -j ACCEPT
@@ -102,19 +163,28 @@ iptables -A OUTPUT -m set --match-set allowed_ips dst -j ACCEPT
 iptables -P OUTPUT DROP
 
 # ──────────────────────────────────────────────
-# 8. Run DNS warmup
+# 9. Run DNS warmup
 # ──────────────────────────────────────────────
 echo "[firewall] Running DNS warmup..."
 bash "${SCRIPT_DIR}/warmup-dns.sh"
 
 # ──────────────────────────────────────────────
-# 9. Verification
+# 10. Verification
 # ──────────────────────────────────────────────
 echo "[firewall] Verifying connectivity..."
-if dig +short 'github.com' @127.0.0.1 > /dev/null 2>&1; then
-    echo "[firewall] Verification passed: github.com resolves."
+
+# Positive test: verify an allowed domain is reachable.
+if curl -sf --max-time 5 'https://api.github.com/zen' > /dev/null 2>&1; then
+    echo "[firewall] Verification passed: api.github.com is reachable."
 else
-    echo "[firewall] WARNING: github.com did not resolve. Check firewall configuration."
+    echo "[firewall] WARNING: api.github.com not reachable. Check firewall configuration."
+fi
+
+# Negative test: verify a non-allowed domain is blocked.
+if curl -sf --max-time 5 'https://example.com' > /dev/null 2>&1; then
+    echo "[firewall] WARNING: example.com is reachable but should be blocked."
+else
+    echo "[firewall] Verification passed: example.com is correctly blocked."
 fi
 
 echo "[firewall] Network isolation setup complete."
