@@ -5,7 +5,7 @@ status: todo
 type: bug
 priority: critical
 created_at: 2026-04-07T16:54:45Z
-updated_at: 2026-04-07T16:55:05Z
+updated_at: 2026-04-07T17:22:11Z
 parent: agentbox-el52
 ---
 
@@ -46,12 +46,12 @@ The dynamic-domains.conf.tmpl and warmup-dns.sh.tmpl are fine as-is.
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Implementation Plan
 
