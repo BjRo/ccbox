@@ -1,7 +1,7 @@
 ---
 # agentbox-rn01
 title: Rename project from agentbox to agentbox
-status: in-progress
+status: done
 type: task
 priority: high
 created_at: 2026-04-07T10:00:00Z
