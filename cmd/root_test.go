@@ -19,7 +19,7 @@ func TestRootCommand_Version(t *testing.T) {
 	}
 
 	output := buf.String()
-	expected := "ccbox version dev"
+	expected := "agentbox version dev"
 	if !contains(output, expected) {
 		t.Errorf("expected output to contain %q, got %q", expected, output)
 	}
@@ -37,8 +37,8 @@ func TestRootCommand_Help(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !contains(output, "ccbox") {
-		t.Errorf("expected help output to contain %q, got %q", "ccbox", output)
+	if !contains(output, "agentbox") {
+		t.Errorf("expected help output to contain %q, got %q", "agentbox", output)
 	}
 	if !contains(output, "init") {
 		t.Errorf("expected help output to contain %q, got %q", "init", output)

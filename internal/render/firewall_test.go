@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/ccbox/internal/firewall"
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/firewall"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 func TestRenderFirewall_NoError(t *testing.T) {

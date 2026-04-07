@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bjro/ccbox/internal/config"
+	"github.com/bjro/agentbox/internal/config"
 )
 
 // assertFileExists stats the file at path and returns its os.FileInfo.
@@ -35,7 +35,7 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-// expectedFiles lists the 8 files that ccbox init generates inside .devcontainer/.
+// expectedFiles lists the 8 files that agentbox init generates inside .devcontainer/.
 // Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedFiles = []string{
 	"Dockerfile",
@@ -326,8 +326,8 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	// .ccbox.yml exists.
-	cfgPath := filepath.Join(dir, ".ccbox.yml")
+	// .agentbox.yml exists.
+	cfgPath := filepath.Join(dir, ".agentbox.yml")
 	assertFileExists(t, cfgPath)
 
 	// Round-trip via config.Load.
@@ -354,8 +354,8 @@ func TestIntegration_ConfigFile(t *testing.T) {
 		t.Errorf("extra_domains: got %v, want [api.example.com]", cfg.ExtraDomains)
 	}
 
-	if cfg.CcboxVersion != "dev" {
-		t.Errorf("ccbox_version: got %q, want %q", cfg.CcboxVersion, "dev")
+	if cfg.AgentboxVersion != "dev" {
+		t.Errorf("agentbox_version: got %q, want %q", cfg.AgentboxVersion, "dev")
 	}
 
 	// generated_at should be between startTime and now.

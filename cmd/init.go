@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bjro/ccbox/internal/config"
-	"github.com/bjro/ccbox/internal/detect"
-	"github.com/bjro/ccbox/internal/render"
-	"github.com/bjro/ccbox/internal/stack"
-	"github.com/bjro/ccbox/internal/wizard"
+	"github.com/bjro/agentbox/internal/config"
+	"github.com/bjro/agentbox/internal/detect"
+	"github.com/bjro/agentbox/internal/render"
+	"github.com/bjro/agentbox/internal/stack"
+	"github.com/bjro/agentbox/internal/wizard"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -162,16 +162,16 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				}
 			}
 
-			// Write .ccbox.yml config file.
-			ccboxCfg := config.Config{
-				Version:      1,
-				Stacks:       stackIDsToStrings(stackIDs),
-				ExtraDomains: extraDomains,
-				GeneratedAt:  time.Now().UTC(),
-				CcboxVersion: version,
+			// Write .agentbox.yml config file.
+			agentboxCfg := config.Config{
+				Version:         1,
+				Stacks:          stackIDsToStrings(stackIDs),
+				ExtraDomains:    extraDomains,
+				GeneratedAt:     time.Now().UTC(),
+				AgentboxVersion: version,
 			}
 			var cfgBuf bytes.Buffer
-			if err := config.Write(&cfgBuf, ccboxCfg); err != nil {
+			if err := config.Write(&cfgBuf, agentboxCfg); err != nil {
 				return fmt.Errorf("render %s: %w", config.Filename, err)
 			}
 			if err := os.WriteFile(filepath.Join(targetDir, config.Filename), cfgBuf.Bytes(), 0o644); err != nil {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bjro/ccbox/cmd"
+	"github.com/bjro/agentbox/cmd"
 )
 
 func main() {
