@@ -1,7 +1,7 @@
 ---
 # agentbox-uzwc
 title: Add VS Code extension bypass permissions to devcontainer.json
-status: in-progress
+status: done
 type: task
 priority: high
 created_at: 2026-04-07T12:00:00Z
