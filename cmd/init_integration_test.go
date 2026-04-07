@@ -35,7 +35,7 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-// expectedFiles lists the 8 files that agentbox init generates inside .devcontainer/.
+// expectedFiles lists the 9 files that agentbox init generates inside .devcontainer/.
 // Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedFiles = []string{
 	"Dockerfile",
@@ -46,6 +46,7 @@ var expectedFiles = []string{
 	"claude-user-settings.json",
 	"sync-claude-settings.sh",
 	"README.md",
+	"config.toml",
 }
 
 // executableScripts lists the shell scripts that must have the executable bit set.
@@ -73,7 +74,7 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 8 files exist and are non-empty.
+	// All 9 files exist and are non-empty.
 	for _, name := range expectedFiles {
 		info := assertFileExists(t, filepath.Join(devcontainerDir, name))
 		if info.Size() == 0 {
@@ -83,21 +84,36 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 
 	// Dockerfile content assertions.
 	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
-	if !strings.Contains(dockerfile, `go = "latest"`) {
-		t.Error("Dockerfile should contain go runtime in mise config")
+	if !strings.Contains(dockerfile, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("Dockerfile should contain COPY config.toml directive")
 	}
 	if !strings.Contains(dockerfile, "go install golang.org/x/tools/gopls@latest") {
 		t.Error("Dockerfile should contain gopls install command")
 	}
-	// Negative: no other runtimes.
-	for _, absent := range []string{"python", "ruby", "rust"} {
-		if strings.Contains(dockerfile, absent+` = "`) {
-			t.Errorf("Dockerfile should not contain %s runtime entry", absent)
+
+	// config.toml content assertions.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	if !strings.Contains(configToml, `go = "latest"`) {
+		t.Error(`config.toml should contain go = "latest"`)
+	}
+	if !strings.Contains(configToml, `node = "lts"`) {
+		t.Error(`config.toml should contain node = "lts"`)
+	}
+	// Negative: no other runtimes in config.toml.
+	for _, absent := range []string{`python = "`, `ruby = "`, `rust = "`} {
+		if strings.Contains(configToml, absent) {
+			t.Errorf("config.toml should not contain %s for Go-only config", absent)
 		}
+	}
+	// config.toml trailing newline.
+	if !strings.HasSuffix(configToml, "\n") {
+		t.Error("config.toml does not end with trailing newline")
+	}
+	if strings.HasSuffix(configToml, "\n\n") {
+		t.Error("config.toml ends with double trailing newline")
 	}
 
 	// devcontainer.json: valid JSON with expected fields.
-	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	devcontainer := readFile(t, filepath.Join(devcontainerDir, "devcontainer.json"))
 	var devcontainerMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(devcontainer), &devcontainerMap); err != nil {
@@ -109,8 +125,6 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 
 	// init-firewall.sh: github.com and api.github.com are Dynamic (IP rotation),
 	// so they should appear in the dnsmasq config, not the static dig section.
-	// Use the static resolution pattern "$(dig +short '<domain>')" (without @127.0.0.1)
-	// to distinguish from the dnsmasq warmup health-check line.
 	initFirewall := readFile(t, filepath.Join(devcontainerDir, "init-firewall.sh"))
 	for _, domain := range []string{"api.github.com", "github.com"} {
 		staticDigLine := "$(dig +short '" + domain + "')"
@@ -142,16 +156,15 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	}
 
 	// claude-user-settings.json: valid JSON with gopls plugin.
-	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	claudeSettings := readFile(t, filepath.Join(devcontainerDir, "claude-user-settings.json"))
 	var claudeMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(claudeSettings), &claudeMap); err != nil {
 		t.Fatalf("claude-user-settings.json is not valid JSON: %v", err)
 	}
-	if !strings.Contains(claudeSettings, `"gopls"`) {
+	if !strings.Contains(claudeSettings, "gopls-lsp@claude-plugins-official") {
 		t.Error("claude-user-settings.json should contain gopls plugin")
 	}
-	if strings.Contains(claudeSettings, `"typescript"`) {
+	if strings.Contains(claudeSettings, "typescript-lsp@claude-plugins-official") {
 		t.Error("claude-user-settings.json should not contain typescript plugin (single Go stack)")
 	}
 
@@ -182,7 +195,7 @@ func TestIntegration_MultiStack(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 8 files exist.
+	// All 9 files exist.
 	for _, name := range expectedFiles {
 		info := assertFileExists(t, filepath.Join(devcontainerDir, name))
 		if info.Size() == 0 {
@@ -190,17 +203,25 @@ func TestIntegration_MultiStack(t *testing.T) {
 		}
 	}
 
-	// Dockerfile: contains Go runtime, both LSP installs.
+	// Dockerfile: contains COPY config.toml, both LSP installs.
 	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
-	if !strings.Contains(dockerfile, `go = "latest"`) {
-		t.Error("Dockerfile should contain go runtime")
+	if !strings.Contains(dockerfile, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("Dockerfile should contain COPY config.toml directive")
 	}
-	// Node is hardcoded (not in the range block), so we do NOT assert node = "lts" in range.
 	if !strings.Contains(dockerfile, "go install golang.org/x/tools/gopls@latest") {
 		t.Error("Dockerfile should contain gopls install")
 	}
 	if !strings.Contains(dockerfile, "npm install -g typescript-language-server typescript") {
 		t.Error("Dockerfile should contain typescript-language-server install")
+	}
+
+	// config.toml: contains Go and Node runtimes.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	if !strings.Contains(configToml, `go = "latest"`) {
+		t.Error(`config.toml should contain go = "latest"`)
+	}
+	if !strings.Contains(configToml, `node = "lts"`) {
+		t.Error(`config.toml should contain node = "lts"`)
 	}
 
 	// init-firewall.sh: contains domains from both stacks.
@@ -228,16 +249,15 @@ func TestIntegration_MultiStack(t *testing.T) {
 	}
 
 	// claude-user-settings.json: both plugins.
-	// Unmarshal validates JSON syntax; values are checked via string assertions below.
 	claudeSettings := readFile(t, filepath.Join(devcontainerDir, "claude-user-settings.json"))
 	var claudeMap map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(claudeSettings), &claudeMap); err != nil {
 		t.Fatalf("claude-user-settings.json is not valid JSON: %v", err)
 	}
-	if !strings.Contains(claudeSettings, `"gopls"`) {
+	if !strings.Contains(claudeSettings, "gopls-lsp@claude-plugins-official") {
 		t.Error("claude-user-settings.json should contain gopls plugin")
 	}
-	if !strings.Contains(claudeSettings, `"typescript"`) {
+	if !strings.Contains(claudeSettings, "typescript-lsp@claude-plugins-official") {
 		t.Error("claude-user-settings.json should contain typescript plugin")
 	}
 }
@@ -294,7 +314,7 @@ func TestIntegration_ExtraDomains(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 8 files exist.
+	// All 9 files exist.
 	for _, name := range expectedFiles {
 		assertFileExists(t, filepath.Join(devcontainerDir, name))
 	}
@@ -368,5 +388,35 @@ func TestIntegration_ConfigFile(t *testing.T) {
 	// generated_at should be between startTime and now.
 	if cfg.GeneratedAt.Before(startTime) || cfg.GeneratedAt.After(time.Now().UTC()) {
 		t.Errorf("generated_at %v is not within expected range [%v, now]", cfg.GeneratedAt, startTime)
+	}
+}
+
+func TestIntegration_RuntimeVersionFlag(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	cmd := newRootCmd(nil)
+	cmd.SetArgs([]string{"init", "--dir", dir, "--stack", "go", "--runtime-version", "go=1.22,node=20"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	devcontainerDir := filepath.Join(dir, ".devcontainer")
+
+	// config.toml should have overridden versions.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	if !strings.Contains(configToml, `go = "1.22"`) {
+		t.Error(`config.toml should contain go = "1.22"`)
+	}
+	if !strings.Contains(configToml, `node = "20"`) {
+		t.Error(`config.toml should contain node = "20"`)
+	}
+
+	// Dockerfile should NOT contain version strings (they live in config.toml).
+	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
+	if strings.Contains(dockerfile, `= "1.22"`) {
+		t.Error("Dockerfile should not contain version strings; they live in config.toml")
 	}
 }

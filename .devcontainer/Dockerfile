@@ -35,12 +35,8 @@ RUN curl https://mise.jdx.dev/install.sh | sh \
     && cp /root/.local/bin/mise /usr/local/bin/mise
 
 # --- Runtime configuration ---
-# Node is always included because Claude Code requires npm.
-COPY <<'MISE' /home/node/.config/mise/config.toml
-[tools]
-node = "lts"
-go = "latest"
-MISE
+# Managed by mise; edit .devcontainer/config.toml to change versions.
+COPY config.toml /home/node/.config/mise/config.toml
 
 # --- Install runtimes via mise (as node user so $HOME matches config path) ---
 RUN chown -R node:node /home/node/.config
@@ -50,8 +46,7 @@ RUN mise install
 
 
 # --- LSP servers ---
-RUN go install golang.org/x/tools/gopls@latest \
-    && go install github.com/hmans/beans@latest
+RUN go install golang.org/x/tools/gopls@latest
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
@@ -66,8 +61,9 @@ RUN ARCH=$(dpkg --print-architecture) \
 
 # --- Firewall scripts ---
 # Note: dynamic-domains.conf is a reference file, not a dnsmasq config.
-# The init-firewall.sh script writes the actual dnsmasq ipset directives
-# to /etc/dnsmasq.d/agentbox-dynamic.conf at container start.
+# The init-firewall.sh script writes the actual dnsmasq configuration
+# (upstream DNS forwarding + ipset directives) to /etc/dnsmasq.d/agentbox.conf
+# at container start.
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 COPY warmup-dns.sh /usr/local/bin/warmup-dns.sh
 RUN chmod +x /usr/local/bin/init-firewall.sh /usr/local/bin/warmup-dns.sh

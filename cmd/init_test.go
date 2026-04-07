@@ -10,6 +10,20 @@ import (
 	"github.com/bjro/agentbox/internal/wizard"
 )
 
+// expectedFiles lists the 9 files that agentbox init generates inside .devcontainer/.
+// Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
+var expectedInitFiles = []string{
+	"Dockerfile",
+	"devcontainer.json",
+	"init-firewall.sh",
+	"warmup-dns.sh",
+	"dynamic-domains.conf",
+	"claude-user-settings.json",
+	"sync-claude-settings.sh",
+	"README.md",
+	"config.toml",
+}
+
 func TestInitCommand_GeneratesDevcontainer(t *testing.T) {
 	// Create a temp dir with a go.mod to trigger Go stack detection.
 	dir := t.TempDir()
@@ -33,19 +47,8 @@ func TestInitCommand_GeneratesDevcontainer(t *testing.T) {
 	}
 
 	// Verify key files were generated.
-	expected := []string{
-		"Dockerfile",
-		"devcontainer.json",
-		"init-firewall.sh",
-		"warmup-dns.sh",
-		"dynamic-domains.conf",
-		"claude-user-settings.json",
-		"sync-claude-settings.sh",
-		"README.md",
-	}
-
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
-	for _, name := range expected {
+	for _, name := range expectedInitFiles {
 		path := filepath.Join(devcontainerDir, name)
 		info, err := os.Stat(path)
 		if err != nil {
@@ -79,6 +82,12 @@ func TestInitCommand_WithStacksFlag(t *testing.T) {
 	if _, err := os.Stat(path); err != nil {
 		t.Error("missing Dockerfile")
 	}
+
+	// Verify config.toml was generated.
+	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	if _, err := os.Stat(configPath); err != nil {
+		t.Error("missing config.toml")
+	}
 }
 
 func TestInitCommand_StacksFlagSkipsWizard(t *testing.T) {
@@ -95,7 +104,8 @@ func TestInitCommand_StacksFlagSkipsWizard(t *testing.T) {
 		t:   t,
 		err: nil,
 		choices: wizard.Choices{
-			Stacks: []stack.StackID{stack.Go},
+			Stacks:          []stack.StackID{stack.Go},
+			RuntimeVersions: nil,
 		},
 		failIfCalled: true,
 	}
@@ -157,8 +167,9 @@ func TestInitCommand_WizardFlow(t *testing.T) {
 	// Fake prompter returns canned choices.
 	fake := &fakePrompter{
 		choices: wizard.Choices{
-			Stacks:       []stack.StackID{stack.Go},
-			ExtraDomains: []string{"api.example.com"},
+			Stacks:          []stack.StackID{stack.Go},
+			ExtraDomains:    []string{"api.example.com"},
+			RuntimeVersions: nil,
 		},
 	}
 
@@ -170,19 +181,8 @@ func TestInitCommand_WizardFlow(t *testing.T) {
 	}
 
 	// Verify the .devcontainer/ was generated.
-	expected := []string{
-		"Dockerfile",
-		"devcontainer.json",
-		"init-firewall.sh",
-		"warmup-dns.sh",
-		"dynamic-domains.conf",
-		"claude-user-settings.json",
-		"sync-claude-settings.sh",
-		"README.md",
-	}
-
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
-	for _, name := range expected {
+	for _, name := range expectedInitFiles {
 		path := filepath.Join(devcontainerDir, name)
 		info, err := os.Stat(path)
 		if err != nil {
@@ -257,6 +257,242 @@ func TestInitCommand_WizardEmptyStacks(t *testing.T) {
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 	if _, err := os.Stat(devcontainerDir); err == nil {
 		t.Error(".devcontainer/ should not exist when wizard returns empty stacks")
+	}
+}
+
+func TestInitCommand_ConfigTomlExists(t *testing.T) {
+	dir := t.TempDir()
+
+	orig, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := newRootCmd(nil)
+	cmd.SetArgs([]string{"init", "--stack", "go"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	info, err := os.Stat(configPath)
+	if err != nil {
+		t.Fatal("config.toml not generated")
+	}
+	if info.Size() == 0 {
+		t.Error("config.toml is empty")
+	}
+
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config.toml: %v", err)
+	}
+	if !strings.Contains(string(content), `go = "latest"`) {
+		t.Error(`config.toml missing go = "latest"`)
+	}
+	if !strings.Contains(string(content), `node = "lts"`) {
+		t.Error(`config.toml missing node = "lts"`)
+	}
+}
+
+func TestInitCommand_RuntimeVersionFlag(t *testing.T) {
+	dir := t.TempDir()
+
+	orig, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := newRootCmd(nil)
+	cmd.SetArgs([]string{"init", "--stack", "go", "--runtime-version", "go=1.22,node=20"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config.toml: %v", err)
+	}
+	if !strings.Contains(string(content), `go = "1.22"`) {
+		t.Error(`config.toml missing go = "1.22"`)
+	}
+	if !strings.Contains(string(content), `node = "20"`) {
+		t.Error(`config.toml missing node = "20"`)
+	}
+}
+
+func TestInitCommand_RuntimeVersionFlagInvalid(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		value string
+	}{
+		{"missing equals", "golatest"},
+		{"empty tool", "=1.22"},
+		{"empty version", "go="},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+
+			orig, _ := os.Getwd()
+			t.Cleanup(func() { _ = os.Chdir(orig) })
+			if err := os.Chdir(dir); err != nil {
+				t.Fatal(err)
+			}
+
+			cmd := newRootCmd(nil)
+			cmd.SetArgs([]string{"init", "--stack", "go", "--runtime-version", tc.value})
+
+			err := cmd.Execute()
+			if err == nil {
+				t.Fatal("expected error for invalid --runtime-version")
+			}
+			if !strings.Contains(err.Error(), "invalid --runtime-version") {
+				t.Errorf("error should mention 'invalid --runtime-version'; got: %s", err.Error())
+			}
+		})
+	}
+}
+
+func TestInitCommand_WizardVersionOverrides(t *testing.T) {
+	dir := t.TempDir()
+
+	orig, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Fake prompter returns custom runtime versions.
+	fake := &fakePrompter{
+		choices: wizard.Choices{
+			Stacks:          []stack.StackID{stack.Go},
+			RuntimeVersions: map[string]string{"go": "1.21"},
+		},
+	}
+
+	cmd := newRootCmd(fake)
+	cmd.SetArgs([]string{"init"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config.toml: %v", err)
+	}
+	if !strings.Contains(string(content), `go = "1.21"`) {
+		t.Error(`config.toml missing go = "1.21"`)
+	}
+}
+
+func TestInitCommand_WizardAndFlagMerge(t *testing.T) {
+	dir := t.TempDir()
+
+	orig, _ := os.Getwd()
+	t.Cleanup(func() { _ = os.Chdir(orig) })
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Fake prompter returns custom runtime versions.
+	fake := &fakePrompter{
+		choices: wizard.Choices{
+			Stacks:          []stack.StackID{stack.Go},
+			RuntimeVersions: map[string]string{"go": "1.21", "node": "18"},
+		},
+	}
+
+	cmd := newRootCmd(fake)
+	// CLI flag overrides node but not go.
+	cmd.SetArgs([]string{"init", "--runtime-version", "node=20"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("read config.toml: %v", err)
+	}
+	// go should be from wizard.
+	if !strings.Contains(string(content), `go = "1.21"`) {
+		t.Error(`config.toml missing go = "1.21" (from wizard)`)
+	}
+	// node should be from CLI flag (overrides wizard).
+	if !strings.Contains(string(content), `node = "20"`) {
+		t.Error(`config.toml missing node = "20" (CLI flag should override wizard)`)
+	}
+}
+
+func TestParseRuntimeVersions(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name    string
+		input   []string
+		want    map[string]string
+		wantErr bool
+	}{
+		{
+			name:  "valid single pair",
+			input: []string{"go=1.22"},
+			want:  map[string]string{"go": "1.22"},
+		},
+		{
+			name:  "valid multiple pairs",
+			input: []string{"go=1.22", "node=20"},
+			want:  map[string]string{"go": "1.22", "node": "20"},
+		},
+		{
+			name:  "whitespace trimmed",
+			input: []string{" go = 1.22 "},
+			want:  map[string]string{"go": "1.22"},
+		},
+		{
+			name:    "missing equals",
+			input:   []string{"golatest"},
+			wantErr: true,
+		},
+		{
+			name:    "empty tool",
+			input:   []string{"=1.22"},
+			wantErr: true,
+		},
+		{
+			name:    "empty version",
+			input:   []string{"go="},
+			wantErr: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := parseRuntimeVersions(tc.input)
+			if tc.wantErr {
+				if err == nil {
+					t.Error("expected error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(got) != len(tc.want) {
+				t.Fatalf("got %d entries, want %d", len(got), len(tc.want))
+			}
+			for k, v := range tc.want {
+				if got[k] != v {
+					t.Errorf("got[%q] = %q, want %q", k, got[k], v)
+				}
+			}
+		})
 	}
 }
 
