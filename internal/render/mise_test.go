@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/agentbox/internal/firewall"
 	"github.com/bjro/agentbox/internal/stack"
 )
 
@@ -250,7 +249,4 @@ func TestMiseConfig_NoTrailingWhitespace(t *testing.T) {
 			t.Errorf("line %d has trailing whitespace: %q", i+1, line)
 		}
 	}
-
-	// Ensure Domains field is present (prevent nil-pointer in Merge output).
-	_ = firewall.MergedDomains{}
 }
