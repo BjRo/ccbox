@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**ccbox** is a Go CLI tool that generates `.devcontainer/` setups for running Claude Code in sandboxed environments with full permissions and network isolation. It auto-detects tech stacks (Go, Node/TypeScript, Python, Rust, Ruby), generates Dockerfiles, devcontainer.json, firewall scripts, and Claude Code settings. Distributed via Homebrew and GitHub Releases.
+**agentbox** is a Go CLI tool that generates `.devcontainer/` setups for running Claude Code in sandboxed environments with full permissions and network isolation. It auto-detects tech stacks (Go, Node/TypeScript, Python, Rust, Ruby), generates Dockerfiles, devcontainer.json, firewall scripts, and Claude Code settings. Distributed via Homebrew and GitHub Releases.
 
-The project is in early development. All planned work is tracked as beans (see `.beans/`). The root milestone is `ccbox-el52` (v0.1.0 MVP Release).
+The project is in early development. All planned work is tracked as beans (see `.beans/`). The root milestone is `agentbox-el52` (v0.1.0 MVP Release).
 
 ## Build & Development Commands
 
@@ -21,7 +21,7 @@ golangci-lint run ./...                     # Lint
 ```
 
 - **Go version**: 1.24+
-- **Module path**: `github.com/bjro/ccbox`
+- **Module path**: `github.com/bjro/agentbox`
 - **Linting**: `.golangci.yml` using golangci-lint **v2** format. Enabled: govet, errcheck, staticcheck, unused, ineffassign.
 - **Release tooling**: GoReleaser (cross-platform: linux/darwin, amd64/arm64), Homebrew tap at `bjro/homebrew-tap`
 
@@ -30,13 +30,13 @@ golangci-lint run ./...                     # Lint
 ```
 cmd/
   root.go              # Root Cobra command
-  init.go              # `ccbox init` subcommand (interactive wizard + CLI flags)
+  init.go              # `agentbox init` subcommand (interactive wizard + CLI flags)
 internal/
   stack/               # Stack metadata registry (pure data, zero internal dependencies)
   detect/              # Stack detection (scans for marker files like go.mod, package.json, etc.)
   render/              # Template rendering engine (Go templates → Dockerfile, devcontainer.json, scripts)
   firewall/            # Domain allowlist logic (per-stack defaults, merging, deduplication, validation)
-  config/              # .ccbox.yml handling (persists user choices)
+  config/              # .agentbox.yml handling (persists user choices)
 main.go
 ```
 
@@ -61,7 +61,7 @@ Use `/dev-workflow` when starting work on a bean for proper git hygiene.
 
 ## Git Conventions
 
-- **Branch naming**: `<type>/<bean-id>-<slug>` (e.g., `feat/ccbox-5333-initialize-go-module`)
+- **Branch naming**: `<type>/<bean-id>-<slug>` (e.g., `feat/agentbox-5333-initialize-go-module`)
   - `feat/` for features, `fix/` for bugs, `chore/` for tasks
 - Use `.claude/scripts/start-work.sh <bean-id>` to create branches with correct naming
 - Hooks enforce: branch naming validation, bean checklist completion before marking done, .env file access blocking
