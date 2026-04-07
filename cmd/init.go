@@ -28,6 +28,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 	var domains []string
 	var dir string
 	var nonInteractive bool
+	var runtimeVersions []string
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -52,6 +53,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 
 			var stackIDs []stack.StackID
 			var extraDomains []string
+			var choices wizard.Choices
 
 			stackFlagSet := len(stacks) > 0
 
@@ -76,7 +78,8 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 					prompter = &wizard.HuhPrompter{}
 				}
 				if prompter != nil {
-					choices, wizErr := prompter.Run(detected)
+					var wizErr error
+					choices, wizErr = prompter.Run(detected)
 					if wizErr != nil {
 						if errors.Is(wizErr, wizard.ErrAborted) {
 							_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "Cancelled.")
@@ -105,6 +108,33 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				return fmt.Errorf("merge config: %w", err)
 			}
 
+			// Ensure node is present (Claude Code requires npm).
+			render.EnsureNode(&cfg)
+
+			// Apply version overrides: initialize from wizard, then layer CLI flags on top.
+			versionOverrides := make(map[string]string)
+			// Wizard overrides (from interactive prompting).
+			for k, v := range choices.RuntimeVersions {
+				versionOverrides[k] = v
+			}
+			// CLI flag overrides take precedence (for scripted use).
+			if len(runtimeVersions) > 0 {
+				runtimeVersions = trimAndFilter(runtimeVersions)
+				parsed, parseErr := parseRuntimeVersions(runtimeVersions)
+				if parseErr != nil {
+					return parseErr
+				}
+				for k, v := range parsed {
+					versionOverrides[k] = v
+				}
+			}
+			// Apply to cfg.Runtimes.
+			for i, rt := range cfg.Runtimes {
+				if v, ok := versionOverrides[rt.Tool]; ok && v != "" {
+					cfg.Runtimes[i].Version = v
+				}
+			}
+
 			// Render all templates.
 			dockerfile, err := render.Dockerfile(cfg)
 			if err != nil {
@@ -131,6 +161,11 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				return err
 			}
 
+			var miseConfigBuf bytes.Buffer
+			if err := render.MiseConfig(&miseConfigBuf, cfg); err != nil {
+				return err
+			}
+
 			// Write .devcontainer/ directory.
 			if err := os.MkdirAll(outDir, 0o755); err != nil {
 				return fmt.Errorf("create .devcontainer: %w", err)
@@ -145,6 +180,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				"claude-user-settings.json": cl.UserSettings,
 				"sync-claude-settings.sh":   cl.SyncSettings,
 				"README.md":                 []byte(readme),
+				"config.toml":               miseConfigBuf.Bytes(),
 			}
 
 			for name, content := range files {
@@ -187,6 +223,8 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 	cmd.Flags().StringSliceVar(&domains, "extra-domains", nil, "Additional domains to allowlist beyond per-stack defaults (e.g., api.example.com)")
 	cmd.Flags().StringVar(&dir, "dir", "", "Target directory (default: current directory)")
 	cmd.Flags().BoolVarP(&nonInteractive, "non-interactive", "y", false, "Skip all prompts, use detected stacks and defaults")
+	cmd.Flags().StringSliceVar(&runtimeVersions, "runtime-version", nil,
+		"Runtime version overrides as tool=version pairs (e.g., go=1.22,node=20)")
 
 	return cmd
 }
@@ -255,4 +293,22 @@ func stackIDsToStrings(ids []stack.StackID) []string {
 		result[i] = string(id)
 	}
 	return result
+}
+
+// parseRuntimeVersions parses "tool=version" pairs into a map.
+func parseRuntimeVersions(pairs []string) (map[string]string, error) {
+	result := make(map[string]string, len(pairs))
+	for _, pair := range pairs {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid --runtime-version %q; expected tool=version format (e.g., go=1.22)", pair)
+		}
+		tool := strings.TrimSpace(parts[0])
+		version := strings.TrimSpace(parts[1])
+		if tool == "" || version == "" {
+			return nil, fmt.Errorf("invalid --runtime-version %q; expected tool=version format (e.g., go=1.22)", pair)
+		}
+		result[tool] = version
+	}
+	return result, nil
 }

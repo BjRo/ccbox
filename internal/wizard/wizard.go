@@ -3,6 +3,7 @@ package wizard
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -19,8 +20,9 @@ var ErrAborted = errors.New("wizard: user cancelled")
 // It is a pure data struct with no behavior -- the cmd layer
 // consumes it to drive render.Merge.
 type Choices struct {
-	Stacks       []stack.StackID
-	ExtraDomains []string
+	Stacks          []stack.StackID
+	ExtraDomains    []string
+	RuntimeVersions map[string]string // tool name -> version (empty/nil map means use defaults)
 }
 
 // Prompter abstracts the interactive prompt flow for testability.
@@ -82,8 +84,48 @@ func (h *HuhPrompter) Run(detected []stack.StackID) (Choices, error) {
 	// Parse domains from the text input.
 	extraDomains := parseDomains(domainsText)
 
+	// Form 1.5: Per-runtime version prompting.
+	// Collect all runtime tools for the selected stacks.
+	runtimeDefaults := collectRuntimeDefaults(selected)
+	runtimeVersions := make(map[string]string, len(runtimeDefaults))
+
+	// Initialize with defaults so users see the current value.
+	for tool, version := range runtimeDefaults {
+		runtimeVersions[tool] = version
+	}
+
+	if len(runtimeDefaults) > 0 {
+		// Sort tools alphabetically for deterministic form ordering.
+		tools := slices.Sorted(maps.Keys(runtimeDefaults))
+		// Use a parallel slice for huh.NewInput values since maps do not
+		// support taking the address of a value.
+		values := make([]string, len(tools))
+		for i, tool := range tools {
+			values[i] = runtimeDefaults[tool]
+		}
+		fields := make([]huh.Field, 0, len(tools))
+		for i, tool := range tools {
+			fields = append(fields, huh.NewInput().
+				Title(tool).
+				Description("Press Enter to accept default").
+				Placeholder(runtimeDefaults[tool]).
+				Value(&values[i]))
+		}
+		form15 := huh.NewForm(huh.NewGroup(fields...).Title("Runtime versions"))
+		if err := form15.Run(); err != nil {
+			if errors.Is(err, huh.ErrUserAborted) {
+				return Choices{}, ErrAborted
+			}
+			return Choices{}, err
+		}
+		// Transfer values back to the map.
+		for i, tool := range tools {
+			runtimeVersions[tool] = values[i]
+		}
+	}
+
 	// Build the dynamic summary for confirmation.
-	summary := buildSummary(selected, extraDomains)
+	summary := buildSummary(selected, extraDomains, runtimeVersions)
 
 	// Form 2: Confirmation with dynamic summary (challenge finding 3).
 	var confirmed bool
@@ -108,9 +150,30 @@ func (h *HuhPrompter) Run(detected []stack.StackID) (Choices, error) {
 	}
 
 	return Choices{
-		Stacks:       selected,
-		ExtraDomains: extraDomains,
+		Stacks:          selected,
+		ExtraDomains:    extraDomains,
+		RuntimeVersions: runtimeVersions,
 	}, nil
+}
+
+// collectRuntimeDefaults returns a map of tool name -> default version
+// for the given stacks. Node is always included (Claude Code dependency).
+func collectRuntimeDefaults(stacks []stack.StackID) map[string]string {
+	defaults := make(map[string]string)
+	for _, id := range stacks {
+		s, ok := stack.Get(id)
+		if !ok {
+			continue
+		}
+		if _, exists := defaults[s.Runtime.Tool]; !exists {
+			defaults[s.Runtime.Tool] = s.Runtime.Version
+		}
+	}
+	// Always include node for Claude Code.
+	if _, exists := defaults["node"]; !exists {
+		defaults["node"] = "lts"
+	}
+	return defaults
 }
 
 // parseDomains splits a newline-separated string into individual domain
@@ -169,9 +232,9 @@ func validateDomainsText(text string) error {
 	return nil
 }
 
-// buildSummary creates a human-readable summary of the selected stacks
-// and extra domains for the confirmation prompt.
-func buildSummary(stacks []stack.StackID, extraDomains []string) string {
+// buildSummary creates a human-readable summary of the selected stacks,
+// extra domains, and runtime versions for the confirmation prompt.
+func buildSummary(stacks []stack.StackID, extraDomains []string, runtimeVersions map[string]string) string {
 	var b strings.Builder
 
 	b.WriteString("Stacks: ")
@@ -189,6 +252,17 @@ func buildSummary(stacks []stack.StackID, extraDomains []string) string {
 	if len(extraDomains) > 0 {
 		b.WriteString("\nExtra domains: ")
 		b.WriteString(strings.Join(extraDomains, ", "))
+	}
+
+	if len(runtimeVersions) > 0 {
+		b.WriteString("\nRuntimes: ")
+		// Sort keys for deterministic output.
+		keys := slices.Sorted(maps.Keys(runtimeVersions))
+		pairs := make([]string, 0, len(keys))
+		for _, k := range keys {
+			pairs = append(pairs, k+"="+runtimeVersions[k])
+		}
+		b.WriteString(strings.Join(pairs, ", "))
 	}
 
 	return b.String()

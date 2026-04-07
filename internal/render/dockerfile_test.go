@@ -46,7 +46,7 @@ func TestDockerfile_AlwaysIncludedPackages(t *testing.T) {
 	}
 }
 
-func TestDockerfile_MiseToolsSingleStack(t *testing.T) {
+func TestDockerfile_MiseConfigCopied_SingleStack(t *testing.T) {
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
@@ -57,22 +57,12 @@ func TestDockerfile_MiseToolsSingleStack(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, `go = "latest"`) {
-		t.Error(`output missing go = "latest" in mise config`)
-	}
-	// Node is always present (Claude Code dependency).
-	if !strings.Contains(out, `node = "lts"`) {
-		t.Error(`output missing node = "lts" in mise config (always included for Claude Code)`)
-	}
-	// Should not contain other stacks' tools.
-	for _, absent := range []string{`python = "`, `ruby = "`, `rust = "`} {
-		if strings.Contains(out, absent) {
-			t.Errorf("output should not contain %q for Go-only config", absent)
-		}
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY config.toml directive")
 	}
 }
 
-func TestDockerfile_MiseToolsMultiStack(t *testing.T) {
+func TestDockerfile_MiseConfigCopied_MultiStack(t *testing.T) {
 	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
@@ -83,11 +73,8 @@ func TestDockerfile_MiseToolsMultiStack(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	expected := []string{`go = "latest"`, `node = "lts"`, `python = "latest"`}
-	for _, want := range expected {
-		if !strings.Contains(out, want) {
-			t.Errorf("output missing mise tool entry %q", want)
-		}
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY config.toml directive")
 	}
 }
 
@@ -193,13 +180,8 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("empty config missing Claude Code install")
 	}
-	// Node is always present (Claude Code dependency), even with no stacks.
-	if !strings.Contains(out, `node = "lts"`) {
-		t.Error(`empty config missing node = "lts" (always included for Claude Code)`)
-	}
-	// No other mise tools should be listed.
-	if strings.Contains(out, `go = "`) || strings.Contains(out, `python = "`) {
-		t.Error("empty config should not have non-Node mise tool entries")
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("empty config missing COPY config.toml directive")
 	}
 	// No LSP installs should be present.
 	if strings.Contains(out, "gopls") || strings.Contains(out, "typescript-language-server") {
@@ -287,6 +269,14 @@ func TestDockerfile_NoTrailingWhitespace(t *testing.T) {
 		if line != strings.TrimRight(line, " \t") {
 			t.Errorf("line %d has trailing whitespace: %q", i+1, line)
 		}
+	}
+
+	// File ends with exactly one trailing newline.
+	if !strings.HasSuffix(out, "\n") {
+		t.Error("output does not end with a trailing newline")
+	}
+	if strings.HasSuffix(out, "\n\n") {
+		t.Error("output ends with double trailing newline")
 	}
 }
 
@@ -401,8 +391,9 @@ func TestDockerfile_MiseInstallAsNodeUser(t *testing.T) {
 	}
 }
 
-func TestDockerfile_NodeAlwaysInMiseConfig(t *testing.T) {
-	// Even with no Node stack, node = "lts" must appear in mise config.
+func TestDockerfile_MiseConfigCopied(t *testing.T) {
+	// COPY config.toml must appear for all stack combinations.
+	// The node-always-present invariant is tested in ensure_test.go and mise_test.go.
 	for _, tc := range []struct {
 		name   string
 		stacks []stack.StackID
@@ -424,14 +415,8 @@ func TestDockerfile_NodeAlwaysInMiseConfig(t *testing.T) {
 				t.Fatalf("Dockerfile: %v", err)
 			}
 
-			if !strings.Contains(out, `node = "lts"`) {
-				t.Errorf("output missing node = \"lts\" in mise config")
-			}
-
-			// node = "lts" should appear exactly once (not duplicated).
-			count := strings.Count(out, `node = "lts"`)
-			if count != 1 {
-				t.Errorf(`node = "lts" appears %d times, want exactly 1`, count)
+			if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+				t.Error("output missing COPY config.toml directive")
 			}
 		})
 	}
@@ -460,6 +445,9 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("minimal config missing Claude Code install")
 	}
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("minimal config missing COPY config.toml directive")
+	}
 }
 
 func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
@@ -481,11 +469,9 @@ func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, `deno = "1.40"`) {
-		t.Error("output missing deno runtime in mise config")
-	}
-	if !strings.Contains(out, `zig = "0.12"`) {
-		t.Error("output missing zig runtime in mise config")
+	// Runtime versions are no longer in Dockerfile; they live in config.toml.
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY config.toml directive")
 	}
 	if !strings.Contains(out, "zig-install zls") {
 		t.Error("output missing zls install command")
@@ -507,17 +493,9 @@ func TestDockerfile_AllStacks(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	// Structural assertion: every runtime from the config must appear in mise config.
-	// Node is handled specially (always hardcoded as node = "lts"), so we check
-	// non-node runtimes via their tool = "version" format.
-	for _, rt := range cfg.Runtimes {
-		if rt.Tool == "node" {
-			continue
-		}
-		expected := rt.Tool + ` = "` + rt.Version + `"`
-		if !strings.Contains(out, expected) {
-			t.Errorf("output missing mise runtime entry %q", expected)
-		}
+	// COPY config.toml must be present (replaces inline mise config).
+	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY config.toml directive")
 	}
 
 	// Structural assertion: every LSP install command must appear.
@@ -532,13 +510,6 @@ func TestDockerfile_AllStacks(t *testing.T) {
 		if !strings.Contains(out, dep) {
 			t.Errorf("output missing system dep %q", dep)
 		}
-	}
-
-	// Node must appear exactly once in the mise config (not duplicated by
-	// explicit Node stack inclusion).
-	count := strings.Count(out, `node = "lts"`)
-	if count != 1 {
-		t.Errorf(`node = "lts" appears %d times, want exactly 1`, count)
 	}
 
 	// Spot-checks for well-known entries.

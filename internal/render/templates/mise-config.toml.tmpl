@@ -1,0 +1,4 @@
+[tools]
+{{ range .Runtimes -}}
+{{ .Tool }} = "{{ .Version }}"
+{{ end -}}

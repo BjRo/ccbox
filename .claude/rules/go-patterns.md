@@ -33,7 +33,35 @@ Version injection:
 
 **`resolveDir` pattern for `--dir` flags**: Empty means `os.Getwd()`, non-empty means `filepath.Abs()` + `os.Stat()` validation.
 
+**Key=value pair flags via `StringSliceVar`**: For flags that accept `key=value` pairs (e.g., `--runtime-version go=1.22,node=20`), parse with `strings.SplitN(pair, "=", 2)` and validate both key and value are non-empty. Unknown keys that do not match any config entry are silently ignored (no coupling to the registry).
+
 **Early validation against registries**: Validate flag values referencing registry entries immediately after parsing with a clear error listing valid options.
+
+## Version Override Layering
+
+When multiple sources can set the same configuration value (e.g., registry defaults, wizard choices, CLI flags), apply them in precedence order using a merge map:
+
+1. Initialize from the lowest-precedence source (registry defaults via `Merge`).
+2. Layer wizard/interactive choices on top.
+3. Layer CLI flags on top (highest precedence for scripted use).
+4. Apply the merged map to the config struct.
+
+This pattern keeps each source independent and makes precedence explicit. See `cmd/init.go` for the `--runtime-version` flag layered over wizard `RuntimeVersions`.
+
+## Parallel Slice for huh Form Values
+
+Go maps do not support taking the address of a value (`&m[key]` is invalid). When `huh.NewInput().Value()` needs a `*string` pointer for each entry in a map, use a parallel slice:
+
+```go
+tools := slices.Sorted(maps.Keys(defaults))
+values := make([]string, len(tools))
+for i, tool := range tools {
+    values[i] = defaults[tool]
+}
+// Build huh fields with &values[i], then transfer back to map.
+```
+
+Sort the keys first for deterministic form ordering.
 
 ## Sentinel Error Mapping
 
@@ -115,6 +143,17 @@ if _, statErr := os.Stat(outDir); statErr == nil {
 - Call `enc.Close()` to flush the encoder's internal buffer -- this is easy to forget.
 - `time.Time` fields marshal as unquoted YAML timestamps (e.g., `generated_at: 2026-04-02T10:00:00Z`). This is valid YAML and round-trips correctly. Do not force quoting.
 - Use the `,flow` struct tag on slice fields to render `[]` for empties and `[a, b]` for short lists, instead of block-style sequences.
+
+## Post-Merge Invariant Helpers
+
+Container-build invariants (e.g., "node must always be present") are enforced by explicit helpers called after `render.Merge`, not inside `Merge` itself. This keeps `Merge` as a pure reflection of registry data for the selected stacks. The helper pattern:
+
+- Takes `*GenerationConfig` (pointer, since it mutates).
+- Is idempotent (no-op when the invariant already holds).
+- Re-sorts after appending to maintain sorted-slice invariants.
+- Is called after `Merge` and after version overrides, so user customizations are preserved.
+
+See `render.EnsureNode` and ADR-0008.
 
 ## Package Documentation
 

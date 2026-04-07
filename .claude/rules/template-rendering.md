@@ -84,4 +84,8 @@ For scripts that run on every container start (via `postStartCommand`), use idem
 
 ## Node Always Included
 
-Node/npm is always present in generated containers (Claude Code requires it). The Dockerfile template hardcodes `node = "lts"` in mise config and skips Node in `{{ range .Runtimes }}` via `{{ if ne .Tool "node" }}`.
+Node/npm is always present in generated containers (Claude Code requires it). The `render.EnsureNode` helper guarantees node is in `GenerationConfig.Runtimes` before any template renders. Templates iterate all runtimes uniformly with no node special-casing. See ADR-0008.
+
+## Standalone Config Files Over Inline Heredocs
+
+When a generated file (e.g., mise `config.toml`) should be user-editable after generation, extract it to a standalone template and `COPY` it in the Dockerfile rather than generating it inline with a COPY heredoc. This makes the file the single source of truth for its content (e.g., runtime versions) and allows users to edit it without touching the Dockerfile.
