@@ -384,11 +384,11 @@ None -- all design decisions have been made.
 - [x] Update Dockerfile render tests
 - [x] Add version prompting to interactive wizard
 - [x] Update `buildSummary` signature and tests
-- [ ] Add `--runtime-version` CLI flag to `agentbox init`
-- [ ] Add `parseRuntimeVersions` helper with tests
-- [ ] Wire `EnsureNode`, version overrides, and config.toml rendering in `cmd/init.go`
-- [ ] Add config.toml to cmd/init.go file manifest
-- [ ] Update cmd/init_test.go (expectedFiles, fakePrompter, flag tests, merge tests)
+- [x] Add `--runtime-version` CLI flag to `agentbox init`
+- [x] Add `parseRuntimeVersions` helper with tests
+- [x] Wire `EnsureNode`, version overrides, and config.toml rendering in `cmd/init.go`
+- [x] Add config.toml to cmd/init.go file manifest
+- [x] Update cmd/init_test.go (expectedFiles, fakePrompter, flag tests, merge tests)
 - [ ] Update integration tests
 - [ ] Verify existing tests pass
 
