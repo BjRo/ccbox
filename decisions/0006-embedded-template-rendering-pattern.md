@@ -2,11 +2,11 @@
 
 - **Date**: 2026-04-02
 - **Status**: Accepted
-- **Bean**: ccbox-dttd
+- **Bean**: agentbox-dttd
 
 ## Context
 
-The `render` package needs to produce multiple output files (shell scripts, config files, Dockerfiles, devcontainer.json) from Go templates parameterized by `GenerationConfig`. The firewall script templates (ccbox-dttd) were the first templates added to the codebase, establishing a pattern that subsequent template beans (ccbox-v1zh Dockerfile, ccbox-v9jt devcontainer.json, ccbox-780o mise.toml, ccbox-7qvl Claude settings) must follow.
+The `render` package needs to produce multiple output files (shell scripts, config files, Dockerfiles, devcontainer.json) from Go templates parameterized by `GenerationConfig`. The firewall script templates (agentbox-dttd) were the first templates added to the codebase, establishing a pattern that subsequent template beans (agentbox-v1zh Dockerfile, agentbox-v9jt devcontainer.json, agentbox-780o mise.toml, agentbox-7qvl Claude settings) must follow.
 
 Key decisions were: where templates live on disk, how they are parsed, how custom template functions are registered, how rendering functions are structured, and how to defend against injection when templates produce shell scripts.
 
@@ -26,7 +26,7 @@ Custom template functions are registered via a package-level `template.FuncMap`.
 
 ### Pure rendering functions
 
-Each rendering function (e.g., `RenderFirewall(cfg GenerationConfig) (FirewallFiles, error)`) is a pure transformation: `GenerationConfig` in, rendered bytes out, no file I/O. Actual file writing is deferred to the orchestrator (`ccbox init` command). This keeps rendering testable without touching the filesystem.
+Each rendering function (e.g., `RenderFirewall(cfg GenerationConfig) (FirewallFiles, error)`) is a pure transformation: `GenerationConfig` in, rendered bytes out, no file I/O. Actual file writing is deferred to the orchestrator (`agentbox init` command). This keeps rendering testable without touching the filesystem.
 
 Return types use `[]byte` (not `string`) because downstream `os.WriteFile` wants bytes.
 

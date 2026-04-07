@@ -2,7 +2,7 @@
 
 - **Date**: 2026-04-02
 - **Status**: Accepted
-- **Bean**: ccbox-d39x
+- **Bean**: agentbox-d39x
 
 ## Context
 
