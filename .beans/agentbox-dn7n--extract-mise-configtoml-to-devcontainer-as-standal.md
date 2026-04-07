@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-04-07T17:33:46Z
-updated_at: 2026-04-07T18:01:36Z
+updated_at: 2026-04-07T18:33:21Z
 ---
 
 Currently the mise TOML config is generated inline in the Dockerfile via a COPY heredoc. This has two problems: (1) versions are hardcoded (node=lts, everything else=latest) with no way to customize, and (2) the user can't easily edit runtime versions after generation.
@@ -398,10 +398,10 @@ None -- all design decisions have been made.
 - [x] No new TODO/FIXME/HACK/XXX comments introduced
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
-- [ ] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] Branch pushed to remote
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
 - [ ] All other checklist items above are completed
 - [ ] User notified for human review
