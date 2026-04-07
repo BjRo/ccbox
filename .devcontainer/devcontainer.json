@@ -7,7 +7,11 @@
     "vscode": {
       "extensions": [
         "anthropic.claude-code"
-      ]
+      ],
+      "settings": {
+        "claude-code.initialPermissionMode": "bypassPermissions",
+        "claude-code.allowDangerouslySkipPermissions": true
+      }
     }
   },
   "mounts": [
