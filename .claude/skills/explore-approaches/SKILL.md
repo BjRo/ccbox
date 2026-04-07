@@ -1,6 +1,6 @@
 ---
 name: explore-approaches
-description: Research a problem space and propose 2-3 concrete approaches with tradeoffs before implementation. Pass a bean ID as argument, e.g. /explore-approaches ccbox-abc1
+description: Research a problem space and propose 2-3 concrete approaches with tradeoffs before implementation. Pass a bean ID as argument, e.g. /explore-approaches agentbox-abc1
 argument-hint: <bean-id>
 context: fork
 agent: explore-approaches

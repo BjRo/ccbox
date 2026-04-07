@@ -16,11 +16,11 @@ usage() {
     echo "Usage: $0 <bean-id>"
     echo ""
     echo "Arguments:"
-    echo "  bean-id  The bean ID (e.g., ccbox-abc1)"
+    echo "  bean-id  The bean ID (e.g., agentbox-abc1)"
     echo ""
     echo "Example:"
-    echo "  $0 ccbox-abc1"
-    echo "  # Creates: feat/ccbox-abc1-add-stack-detection"
+    echo "  $0 agentbox-abc1"
+    echo "  # Creates: feat/agentbox-abc1-add-stack-detection"
     exit 1
 }
 

@@ -26,7 +26,7 @@ check_branch_name() {
 
     branch_name=$(echo "$branch_name" | sed "s/^[\"']//;s/[\"']$//")
 
-    local valid_pattern='^(feat|fix|refactor|chore|docs)/(ccbox-[a-zA-Z0-9]+|beans-[a-zA-Z0-9]+)-.+$'
+    local valid_pattern='^(feat|fix|refactor|chore|docs)/(agentbox-[a-zA-Z0-9]+|beans-[a-zA-Z0-9]+)-.+$'
 
     if echo "$branch_name" | grep -qP "$valid_pattern"; then
         return 0
@@ -41,7 +41,7 @@ check_branch_name() {
     echo "" >&2
     echo "Expected: <type>/<bean-id>-<description>" >&2
     echo "  Types: feat, fix, refactor, chore, docs" >&2
-    echo "  Example: feat/ccbox-abc1-add-stack-detection" >&2
+    echo "  Example: feat/agentbox-abc1-add-stack-detection" >&2
     echo "" >&2
     echo "Use the start-work script instead:" >&2
     echo "  .claude/scripts/start-work.sh <bean-id>" >&2

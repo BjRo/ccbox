@@ -14,9 +14,9 @@
 #   --base <branch>   Base branch for worktree and PR target (default: main).
 #
 # Examples:
-#   .claude/scripts/launch-deliver.sh ccbox-abc1
-#   .claude/scripts/launch-deliver.sh ccbox-abc1 --slot 1
-#   .claude/scripts/launch-deliver.sh ccbox-abc1 --slot 1 --resume
+#   .claude/scripts/launch-deliver.sh agentbox-abc1
+#   .claude/scripts/launch-deliver.sh agentbox-abc1 --slot 1
+#   .claude/scripts/launch-deliver.sh agentbox-abc1 --slot 1 --resume
 
 set -e
 
@@ -34,7 +34,7 @@ usage() {
     echo "Usage: $0 <bean-id> [--slot N] [--resume] [--base <branch>]"
     echo ""
     echo "Arguments:"
-    echo "  bean-id       The bean to deliver (e.g., ccbox-abc1)"
+    echo "  bean-id       The bean to deliver (e.g., agentbox-abc1)"
     echo ""
     echo "Options:"
     echo "  --slot N      Agent slot 1-3 (optional for single, required for parallel)"
@@ -42,9 +42,9 @@ usage() {
     echo "  --base <branch>  Base branch (default: main)"
     echo ""
     echo "Examples:"
-    echo "  $0 ccbox-abc1"
-    echo "  $0 ccbox-abc1 --slot 1"
-    echo "  $0 ccbox-abc1 --slot 1 --resume"
+    echo "  $0 agentbox-abc1"
+    echo "  $0 agentbox-abc1 --slot 1"
+    echo "  $0 agentbox-abc1 --slot 1 --resume"
     exit 1
 }
 

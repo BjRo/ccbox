@@ -7,14 +7,14 @@ TASK_DESCRIPTION=$(echo "$INPUT" | jq -r '.task_description // ""')
 
 BEAN_ID=""
 if [ -n "$TASK_SUBJECT" ]; then
-    BEAN_ID=$(echo "$TASK_SUBJECT" | grep -oP 'ccbox-[a-zA-Z0-9]+' | head -1 || true)
+    BEAN_ID=$(echo "$TASK_SUBJECT" | grep -oP 'agentbox-[a-zA-Z0-9]+' | head -1 || true)
 fi
 if [ -z "$BEAN_ID" ] && [ -n "$TASK_DESCRIPTION" ]; then
-    BEAN_ID=$(echo "$TASK_DESCRIPTION" | grep -oP 'ccbox-[a-zA-Z0-9]+' | head -1 || true)
+    BEAN_ID=$(echo "$TASK_DESCRIPTION" | grep -oP 'agentbox-[a-zA-Z0-9]+' | head -1 || true)
 fi
 if [ -z "$BEAN_ID" ]; then
     BRANCH=$(git branch --show-current 2>/dev/null || true)
-    if [ -n "$BRANCH" ] && [[ "$BRANCH" =~ ^[a-z]+/(ccbox-[a-zA-Z0-9]+)-.* ]]; then
+    if [ -n "$BRANCH" ] && [[ "$BRANCH" =~ ^[a-z]+/(agentbox-[a-zA-Z0-9]+)-.* ]]; then
         BEAN_ID="${BASH_REMATCH[1]}"
     fi
 fi

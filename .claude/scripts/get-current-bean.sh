@@ -11,7 +11,7 @@ if [[ "$BRANCH" == "main" ]] || [[ "$BRANCH" == "master" ]]; then
     exit 1
 fi
 
-if [[ "$BRANCH" =~ ^[a-z]+/(ccbox-[a-zA-Z0-9]+)-.* ]]; then
+if [[ "$BRANCH" =~ ^[a-z]+/(agentbox-[a-zA-Z0-9]+)-.* ]]; then
     echo "${BASH_REMATCH[1]}"
 elif [[ "$BRANCH" =~ ^[a-z]+/(beans-[a-zA-Z0-9]+)-.* ]]; then
     echo "${BASH_REMATCH[1]}"

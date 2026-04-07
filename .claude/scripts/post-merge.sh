@@ -15,7 +15,7 @@ usage() {
     echo "Usage: $0 <bean-id>"
     echo ""
     echo "Arguments:"
-    echo "  bean-id  The bean ID (e.g., ccbox-abc1)"
+    echo "  bean-id  The bean ID (e.g., agentbox-abc1)"
     exit 1
 }
 

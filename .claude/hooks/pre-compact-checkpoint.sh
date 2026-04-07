@@ -16,7 +16,7 @@ main() {
     fi
 
     local BEAN_ID=""
-    if [[ "$BRANCH" =~ ^[a-z]+/(ccbox-[a-zA-Z0-9]+)-.* ]]; then
+    if [[ "$BRANCH" =~ ^[a-z]+/(agentbox-[a-zA-Z0-9]+)-.* ]]; then
         BEAN_ID="${BASH_REMATCH[1]}"
     elif [[ "$BRANCH" =~ ^[a-z]+/(beans-[a-zA-Z0-9]+)-.* ]]; then
         BEAN_ID="${BASH_REMATCH[1]}"

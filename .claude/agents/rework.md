@@ -14,7 +14,7 @@ Address PR review feedback. Read comments, fix issues, push fixes.
 
 ```bash
 BRANCH=$(git branch --show-current)
-BEAN_ID=$(echo "$BRANCH" | sed 's|^[^/]*/||' | grep -oP '^ccbox-\w+')
+BEAN_ID=$(echo "$BRANCH" | sed 's|^[^/]*/||' | grep -oP '^agentbox-\w+')
 PR_NUMBER=$(gh pr view --json number -q '.number')
 ```
 
