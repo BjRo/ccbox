@@ -225,26 +225,8 @@ func TestRenderFirewall_InitFirewall_ScriptStructure(t *testing.T) {
 	}
 }
 
-func TestRenderFirewall_InitFirewall_HashNetNotHashIP(t *testing.T) {
-	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
-	if err != nil {
-		t.Fatalf("Merge: %v", err)
-	}
-
-	files, err := RenderFirewall(cfg)
-	if err != nil {
-		t.Fatalf("RenderFirewall: %v", err)
-	}
-
-	output := string(files.InitFirewall)
-
-	if !strings.Contains(output, "hash:net") {
-		t.Error("InitFirewall missing 'hash:net' ipset type")
-	}
-	if strings.Contains(output, "hash:ip") {
-		t.Error("InitFirewall still contains 'hash:ip'; should be 'hash:net'")
-	}
-}
+// NOTE: hash:net vs hash:ip assertions are covered by
+// TestRenderFirewall_InitFirewall_ScriptStructure (lines 204+222-225).
 
 func TestRenderFirewall_InitFirewall_ResolvConfRewrite(t *testing.T) {
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
@@ -325,9 +307,9 @@ func TestRenderFirewall_InitFirewall_Verification(t *testing.T) {
 
 	output := string(files.InitFirewall)
 
-	// Positive test: an allowed domain should be tested.
-	if !strings.Contains(output, "github.com") {
-		t.Error("InitFirewall missing positive verification domain (github.com)")
+	// Positive test: the verification URL should be present.
+	if !strings.Contains(output, "api.github.com/zen") {
+		t.Error("InitFirewall missing positive verification URL (api.github.com/zen)")
 	}
 	// Negative test: a blocked domain should be tested.
 	if !strings.Contains(output, "example.com") {
