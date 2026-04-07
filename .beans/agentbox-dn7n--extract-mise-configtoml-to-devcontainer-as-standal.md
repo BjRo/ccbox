@@ -378,8 +378,8 @@ None -- all design decisions have been made.
 
 ## Checklist
 - [x] Create `EnsureNode` helper in `internal/render/ensure.go` with tests
-- [ ] Add mise-config.toml.tmpl template
-- [ ] Add render.MiseConfig function with tests
+- [x] Add mise-config.toml.tmpl template
+- [x] Add render.MiseConfig function with tests
 - [ ] Update Dockerfile.tmpl to COPY config.toml instead of inline heredoc
 - [ ] Update Dockerfile render tests
 - [ ] Add version prompting to interactive wizard
