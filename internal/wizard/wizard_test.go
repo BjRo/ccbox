@@ -18,6 +18,9 @@ func TestChoices_ZeroValue(t *testing.T) {
 	if c.ExtraDomains != nil {
 		t.Error("zero-value Choices.ExtraDomains should be nil")
 	}
+	if c.RuntimeVersions != nil {
+		t.Error("zero-value Choices.RuntimeVersions should be nil")
+	}
 }
 
 func TestParseDomains_EmptyInput(t *testing.T) {
@@ -150,7 +153,7 @@ func TestErrAborted_WrappedIsMatchable(t *testing.T) {
 func TestBuildSummary_StacksOnly(t *testing.T) {
 	t.Parallel()
 	stacks := []stack.StackID{stack.Go, stack.Node}
-	summary := buildSummary(stacks, nil)
+	summary := buildSummary(stacks, nil, nil)
 	if summary == "" {
 		t.Fatal("buildSummary should not return empty string")
 	}
@@ -161,13 +164,17 @@ func TestBuildSummary_StacksOnly(t *testing.T) {
 	if !strings.Contains(summary, "Node/TypeScript") {
 		t.Error("summary should contain 'Node/TypeScript'")
 	}
+	// Should not contain Runtimes line when versions are nil.
+	if strings.Contains(summary, "Runtimes") {
+		t.Error("summary should not contain 'Runtimes' when versions are nil")
+	}
 }
 
 func TestBuildSummary_WithDomains(t *testing.T) {
 	t.Parallel()
 	stacks := []stack.StackID{stack.Go}
 	domains := []string{"api.example.com", "cdn.example.com"}
-	summary := buildSummary(stacks, domains)
+	summary := buildSummary(stacks, domains, nil)
 	if !strings.Contains(summary, "api.example.com") {
 		t.Error("summary should contain 'api.example.com'")
 	}
@@ -179,9 +186,34 @@ func TestBuildSummary_WithDomains(t *testing.T) {
 func TestBuildSummary_NoDomains(t *testing.T) {
 	t.Parallel()
 	stacks := []stack.StackID{stack.Go}
-	summary := buildSummary(stacks, nil)
+	summary := buildSummary(stacks, nil, nil)
 	if strings.Contains(summary, "Extra domains") {
 		t.Error("summary should not mention extra domains when none provided")
+	}
+}
+
+func TestBuildSummary_WithRuntimeVersions(t *testing.T) {
+	t.Parallel()
+	stacks := []stack.StackID{stack.Go}
+	versions := map[string]string{"go": "1.22", "node": "20"}
+	summary := buildSummary(stacks, nil, versions)
+	if !strings.Contains(summary, "Runtimes:") {
+		t.Error("summary should contain 'Runtimes:' when versions are provided")
+	}
+	if !strings.Contains(summary, "go=1.22") {
+		t.Error("summary should contain 'go=1.22'")
+	}
+	if !strings.Contains(summary, "node=20") {
+		t.Error("summary should contain 'node=20'")
+	}
+}
+
+func TestBuildSummary_EmptyRuntimeVersions(t *testing.T) {
+	t.Parallel()
+	stacks := []stack.StackID{stack.Go}
+	summary := buildSummary(stacks, nil, map[string]string{})
+	if strings.Contains(summary, "Runtimes") {
+		t.Error("summary should not contain 'Runtimes' when versions map is empty")
 	}
 }
 
@@ -190,8 +222,9 @@ func TestPrompterInterface_FakeImplementation(t *testing.T) {
 	// Verify that a fake can satisfy the Prompter interface.
 	fake := &fakePrompter{
 		choices: Choices{
-			Stacks:       []stack.StackID{stack.Go},
-			ExtraDomains: []string{"api.example.com"},
+			Stacks:          []stack.StackID{stack.Go},
+			ExtraDomains:    []string{"api.example.com"},
+			RuntimeVersions: map[string]string{"go": "1.22"},
 		},
 	}
 	var p Prompter = fake
@@ -204,6 +237,9 @@ func TestPrompterInterface_FakeImplementation(t *testing.T) {
 	}
 	if len(choices.ExtraDomains) != 1 || choices.ExtraDomains[0] != "api.example.com" {
 		t.Errorf("domains = %v, want [api.example.com]", choices.ExtraDomains)
+	}
+	if choices.RuntimeVersions["go"] != "1.22" {
+		t.Errorf("runtime versions go = %q, want %q", choices.RuntimeVersions["go"], "1.22")
 	}
 }
 

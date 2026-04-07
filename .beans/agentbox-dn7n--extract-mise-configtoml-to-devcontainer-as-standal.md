@@ -382,8 +382,8 @@ None -- all design decisions have been made.
 - [x] Add render.MiseConfig function with tests
 - [x] Update Dockerfile.tmpl to COPY config.toml instead of inline heredoc
 - [x] Update Dockerfile render tests
-- [ ] Add version prompting to interactive wizard
-- [ ] Update `buildSummary` signature and tests
+- [x] Add version prompting to interactive wizard
+- [x] Update `buildSummary` signature and tests
 - [ ] Add `--runtime-version` CLI flag to `agentbox init`
 - [ ] Add `parseRuntimeVersions` helper with tests
 - [ ] Wire `EnsureNode`, version overrides, and config.toml rendering in `cmd/init.go`
