@@ -74,8 +74,8 @@ func TestMerge_AlwaysOnIncluded(t *testing.T) {
 	for _, d := range result.Dynamic {
 		dynamicNames[d.Name] = true
 	}
-	if !staticNames["github.com"] {
-		t.Error("github.com should be in Static")
+	if !dynamicNames["github.com"] {
+		t.Error("github.com should be in Dynamic")
 	}
 	if !dynamicNames["*.anthropic.com"] {
 		t.Error("*.anthropic.com should be in Dynamic")
@@ -251,7 +251,8 @@ func TestMerge_UserExtraDuplicatesAlwaysOn(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// github.com is Static in AlwaysOn; it should stay in Static, not move to Dynamic.
+	// github.com is Dynamic in AlwaysOn; it should stay in Dynamic (first-occurrence-wins),
+	// not be duplicated by the user extra.
 	staticCount := 0
 	dynamicCount := 0
 	for _, d := range result.Static {
@@ -265,11 +266,11 @@ func TestMerge_UserExtraDuplicatesAlwaysOn(t *testing.T) {
 		}
 	}
 
-	if staticCount != 1 {
-		t.Errorf("github.com in Static %d times, want 1", staticCount)
+	if dynamicCount != 1 {
+		t.Errorf("github.com in Dynamic %d times, want 1", dynamicCount)
 	}
-	if dynamicCount != 0 {
-		t.Errorf("github.com in Dynamic %d times, want 0", dynamicCount)
+	if staticCount != 0 {
+		t.Errorf("github.com in Static %d times, want 0", staticCount)
 	}
 }
 
@@ -447,14 +448,14 @@ func TestMerge_UserExtraWhitespaceTrimmed(t *testing.T) {
 
 func TestMerge_UserExtraCaseInsensitive(t *testing.T) {
 	// DNS names are case-insensitive. "GitHub.com" should deduplicate against
-	// the always-on "github.com" entry (Static), and mixed-case user extras
+	// the always-on "github.com" entry (Dynamic), and mixed-case user extras
 	// should deduplicate against each other.
 	result, err := Merge(nil, []string{"GitHub.com", "CUSTOM.Example.COM", "custom.example.com"})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// github.com is Static in AlwaysOn; the mixed-case user extra should not
+	// github.com is Dynamic in AlwaysOn; the mixed-case user extra should not
 	// create a second entry.
 	githubCount := 0
 	for _, d := range result.Static {

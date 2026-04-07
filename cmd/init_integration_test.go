@@ -107,15 +107,22 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 		t.Error("devcontainer.json should reference Dockerfile")
 	}
 
-	// init-firewall.sh: contains AlwaysOn static domains in dig section.
+	// init-firewall.sh: github.com and api.github.com are Dynamic (IP rotation),
+	// so they should appear in the dnsmasq config, not the static dig section.
+	// Use the static resolution pattern "$(dig +short '<domain>')" (without @127.0.0.1)
+	// to distinguish from the dnsmasq warmup health-check line.
 	initFirewall := readFile(t, filepath.Join(devcontainerDir, "init-firewall.sh"))
 	for _, domain := range []string{"api.github.com", "github.com"} {
-		digLine := "dig +short '" + domain + "'"
-		if !strings.Contains(initFirewall, digLine) {
-			t.Errorf("init-firewall.sh should contain dig resolution for %s", domain)
+		staticDigLine := "$(dig +short '" + domain + "')"
+		if strings.Contains(initFirewall, staticDigLine) {
+			t.Errorf("init-firewall.sh should not contain static dig resolution for %s (it is Dynamic)", domain)
+		}
+		dnsmasqLine := "ipset=/" + domain + "/allowed_ips"
+		if !strings.Contains(initFirewall, dnsmasqLine) {
+			t.Errorf("init-firewall.sh should contain dnsmasq ipset directive for %s", domain)
 		}
 	}
-	// proxy.golang.org is Dynamic, so it should NOT appear in the static dig section.
+	// proxy.golang.org is also Dynamic.
 	if strings.Contains(initFirewall, "dig +short 'proxy.golang.org'") {
 		t.Error("init-firewall.sh should not contain dig resolution for proxy.golang.org (it is Dynamic)")
 	}
