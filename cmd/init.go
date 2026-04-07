@@ -180,7 +180,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				"claude-user-settings.json": cl.UserSettings,
 				"sync-claude-settings.sh":   cl.SyncSettings,
 				"README.md":                 []byte(readme),
-				"config.toml":              miseConfigBuf.Bytes(),
+				"config.toml":               miseConfigBuf.Bytes(),
 			}
 
 			for name, content := range files {
@@ -300,11 +300,14 @@ func parseRuntimeVersions(pairs []string) (map[string]string, error) {
 	result := make(map[string]string, len(pairs))
 	for _, pair := range pairs {
 		parts := strings.SplitN(pair, "=", 2)
-		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid --runtime-version %q; expected tool=version format (e.g., go=1.22)", pair)
 		}
 		tool := strings.TrimSpace(parts[0])
 		version := strings.TrimSpace(parts[1])
+		if tool == "" || version == "" {
+			return nil, fmt.Errorf("invalid --runtime-version %q; expected tool=version format (e.g., go=1.22)", pair)
+		}
 		result[tool] = version
 	}
 	return result, nil
