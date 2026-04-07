@@ -1,11 +1,11 @@
 ---
 # agentbox-dn7n
 title: Extract mise config.toml to .devcontainer as standalone file
-status: in-progress
+status: completed
 type: feature
 priority: normal
 created_at: 2026-04-07T17:33:46Z
-updated_at: 2026-04-07T18:33:21Z
+updated_at: 2026-04-07T19:24:22Z
 ---
 
 Currently the mise TOML config is generated inline in the Dockerfile via a COPY heredoc. This has two problems: (1) versions are hardcoded (node=lts, everything else=latest) with no way to customize, and (2) the user can't easily edit runtime versions after generation.
