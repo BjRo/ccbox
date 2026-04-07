@@ -389,8 +389,8 @@ None -- all design decisions have been made.
 - [x] Wire `EnsureNode`, version overrides, and config.toml rendering in `cmd/init.go`
 - [x] Add config.toml to cmd/init.go file manifest
 - [x] Update cmd/init_test.go (expectedFiles, fakePrompter, flag tests, merge tests)
-- [ ] Update integration tests
-- [ ] Verify existing tests pass
+- [x] Update integration tests
+- [x] Verify existing tests pass
 
 ## Definition of Done
 
