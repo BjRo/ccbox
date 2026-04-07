@@ -2,7 +2,7 @@
 
 - **Date**: 2026-04-02
 - **Status**: Accepted
-- **Bean**: ccbox-5333
+- **Bean**: agentbox-5333
 
 ## Context
 

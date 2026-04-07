@@ -2,7 +2,7 @@
 
 - **Date**: 2026-04-02
 - **Status**: Accepted
-- **Bean**: ccbox-ztaa
+- **Bean**: agentbox-ztaa
 
 ## Context
 
@@ -22,7 +22,7 @@ This pattern applies to any future registry in the codebase (e.g., stack metadat
 
 ## Consequences
 
-- Callers can freely mutate returned data (append, filter, sort domains) without corrupting shared state. This is important for the downstream merging logic (`ccbox-ff1i`).
+- Callers can freely mutate returned data (append, filter, sort domains) without corrupting shared state. This is important for the downstream merging logic (`agentbox-ff1i`).
 - Each call allocates a new map and cloned slices. This is negligible for small registries (6 stacks, ~17 total domains).
 - If a future struct contains pointer fields or nested slices, `slices.Clone` alone will not suffice -- the copy helper must be extended to clone those fields explicitly.
 - The defensive copy test pattern (mutate-then-verify) should be applied to all new registries.

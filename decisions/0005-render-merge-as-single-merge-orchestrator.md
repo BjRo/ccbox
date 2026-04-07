@@ -2,7 +2,7 @@
 
 - **Date**: 2026-04-02
 - **Status**: Accepted
-- **Bean**: ccbox-tv1t
+- **Bean**: agentbox-tv1t
 
 ## Context
 
