@@ -1,5 +1,5 @@
 ---
-description: Go coding patterns for ccbox — Cobra CLI, stdlib preferences, registry pattern, package conventions
+description: Go coding patterns for agentbox — Cobra CLI, stdlib preferences, registry pattern, package conventions
 globs: "**/*.go"
 ---
 
@@ -22,7 +22,7 @@ Root command wiring:
 - `main.go` prints the error to stderr and exits with code 1.
 
 Version injection:
-- `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/ccbox/cmd.version=..."`.
+- `var version = "dev"` in `cmd/root.go`, overridden at build time via `-ldflags "-X github.com/bjro/agentbox/cmd.version=..."`.
 - GoReleaser sets this automatically. `go install` from source falls back to `"dev"`.
 
 ## Cobra Flag Conventions

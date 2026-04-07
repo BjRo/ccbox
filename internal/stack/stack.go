@@ -7,7 +7,7 @@ import (
 
 // StackID identifies a supported technology stack.
 // It uses string values rather than integer enums because stack IDs appear
-// in configuration files (.ccbox.yml), CLI flags (--stack=go,node), and
+// in configuration files (.agentbox.yml), CLI flags (--stack=go,node), and
 // template output, where self-describing values avoid a marshaling layer.
 type StackID string
 
@@ -34,7 +34,7 @@ type LSP struct {
 
 // Stack holds all metadata for a supported technology stack.
 // It serves as the single source of truth for stack-specific behavior
-// across ccbox, consumed by the detect, firewall, and render packages.
+// across agentbox, consumed by the detect, firewall, and render packages.
 type Stack struct {
 	ID   StackID
 	Name string // Display name, e.g. "Go", "Node/TypeScript"
@@ -45,13 +45,13 @@ type Stack struct {
 	// DefaultDomains lists static registry/package domains to allowlist
 	// in the container firewall.
 	// NOTE: Domain lists are provisional placeholders. The firewall bean
-	// (ccbox-ztaa) will finalize the exact domain allowlists.
+	// (agentbox-ztaa) will finalize the exact domain allowlists.
 	DefaultDomains []string
 
 	// DynamicDomains lists domains that need dnsmasq resolution because
 	// their IPs change frequently (CDNs, etc.).
 	// NOTE: Domain lists are provisional placeholders. The firewall bean
-	// (ccbox-ztaa) will finalize the exact domain allowlists.
+	// (agentbox-ztaa) will finalize the exact domain allowlists.
 	DynamicDomains []string
 
 	// SystemDeps lists apt packages required to build the stack's runtime
@@ -62,7 +62,7 @@ type Stack struct {
 	// MarkerFiles lists filenames whose presence in a project root
 	// indicates this stack is in use. These are exact filenames only,
 	// not glob patterns. Pattern-based detection (e.g., *.go files)
-	// is the responsibility of the scanner (ccbox-6j8r), not the registry.
+	// is the responsibility of the scanner (agentbox-6j8r), not the registry.
 	MarkerFiles []string
 }
 

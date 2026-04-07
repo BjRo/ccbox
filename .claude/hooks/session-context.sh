@@ -15,7 +15,7 @@ fi
 
 BEAN_ID=""
 if [ -n "$BRANCH" ] && [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
-    if [[ "$BRANCH" =~ ^[a-z]+/(ccbox-[a-zA-Z0-9]+)-.* ]]; then
+    if [[ "$BRANCH" =~ ^[a-z]+/(agentbox-[a-zA-Z0-9]+)-.* ]]; then
         BEAN_ID="${BASH_REMATCH[1]}"
     elif [[ "$BRANCH" =~ ^[a-z]+/(beans-[a-zA-Z0-9]+)-.* ]]; then
         BEAN_ID="${BASH_REMATCH[1]}"

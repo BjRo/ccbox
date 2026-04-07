@@ -6,7 +6,7 @@ check_unchecked_completion() {
     local command="$1"
 
     local bean_id
-    bean_id=$(echo "$command" | grep -oP 'beans\s+update\s+\K(ccbox-[a-zA-Z0-9]+)')
+    bean_id=$(echo "$command" | grep -oP 'beans\s+update\s+\K(agentbox-[a-zA-Z0-9]+)')
 
     if [ -z "$bean_id" ]; then
         return 0

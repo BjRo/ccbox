@@ -14,7 +14,7 @@ if [[ ! "$COMMAND" =~ ^beans[[:space:]]+create[[:space:]] ]]; then
 fi
 
 TOOL_RESPONSE=$(echo "$INPUT" | jq -r '.tool_response // ""')
-BEAN_ID=$(echo "$TOOL_RESPONSE" | grep -oP 'ccbox-[a-zA-Z0-9]+' | head -1)
+BEAN_ID=$(echo "$TOOL_RESPONSE" | grep -oP 'agentbox-[a-zA-Z0-9]+' | head -1)
 
 if [ -z "$BEAN_ID" ]; then
     exit 0

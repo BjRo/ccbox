@@ -2,11 +2,11 @@
 
 - **Date**: 2026-04-03
 - **Status**: Accepted
-- **Bean**: ccbox-ogj2
+- **Bean**: agentbox-ogj2
 
 ## Context
 
-The `ccbox init` command needs an interactive wizard that collects user choices (stack selection, extra domains, confirmation) when run in a terminal without `--stacks` flags. This requires a TUI forms library for Go.
+The `agentbox init` command needs an interactive wizard that collects user choices (stack selection, extra domains, confirmation) when run in a terminal without `--stacks` flags. This requires a TUI forms library for Go.
 
 Key requirements:
 - Multi-select with pre-checked detected stacks
@@ -52,4 +52,4 @@ The `isTerminal` helper uses `golang.org/x/term.IsTerminal` on the command's std
 - **New dependency**: `charmbracelet/huh` v1.0.0 and its transitive dependencies (bubbletea, lipgloss, etc.) are added to `go.mod`. This increases binary size but is acceptable for a CLI tool.
 - **`golang.org/x/term`** is added as a direct dependency for TTY detection. It was already a transitive dependency of `huh`/bubbletea.
 - **Testing**: The `HuhPrompter` itself cannot be unit-tested without a terminal. Testing relies on the `Prompter` interface with fakes in `cmd/init_test.go` and manual smoke testing for the real terminal experience.
-- **Future work**: The `--non-interactive` flag (ccbox-nvf1) will provide an explicit opt-out from the wizard, complementing the implicit TTY detection.
+- **Future work**: The `--non-interactive` flag (agentbox-nvf1) will provide an explicit opt-out from the wizard, complementing the implicit TTY detection.

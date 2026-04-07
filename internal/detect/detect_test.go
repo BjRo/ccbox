@@ -6,7 +6,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 func TestDetect_SingleStack_Go(t *testing.T) {

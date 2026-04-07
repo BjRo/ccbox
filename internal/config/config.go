@@ -1,4 +1,4 @@
-// Package config handles reading and writing .ccbox.yml configuration files.
+// Package config handles reading and writing .agentbox.yml configuration files.
 package config
 
 import (
@@ -9,16 +9,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Filename is the name of the ccbox configuration file.
-const Filename = ".ccbox.yml"
+// Filename is the name of the agentbox configuration file.
+const Filename = ".agentbox.yml"
 
-// Config represents the contents of a .ccbox.yml file.
+// Config represents the contents of a .agentbox.yml file.
 type Config struct {
-	Version      int       `yaml:"version"`
-	Stacks       []string  `yaml:"stacks,flow"`
-	ExtraDomains []string  `yaml:"extra_domains,flow"`
-	GeneratedAt  time.Time `yaml:"generated_at"`
-	CcboxVersion string    `yaml:"ccbox_version"`
+	Version         int       `yaml:"version"`
+	Stacks          []string  `yaml:"stacks,flow"`
+	ExtraDomains    []string  `yaml:"extra_domains,flow"`
+	GeneratedAt     time.Time `yaml:"generated_at"`
+	AgentboxVersion string    `yaml:"agentbox_version"`
 }
 
 // Write serializes cfg as YAML to w.

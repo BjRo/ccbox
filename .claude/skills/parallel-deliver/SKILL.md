@@ -1,6 +1,6 @@
 ---
 name: parallel-deliver
-description: Launch parallel delivery pipelines for multiple beans. Each bean gets its own Claude CLI instance in an isolated worktree. Use with 1-3 bean IDs, e.g. /parallel-deliver ccbox-abc1 ccbox-xyz9
+description: Launch parallel delivery pipelines for multiple beans. Each bean gets its own Claude CLI instance in an isolated worktree. Use with 1-3 bean IDs, e.g. /parallel-deliver agentbox-abc1 agentbox-xyz9
 argument-hint: <bean-id> [bean-id...] (max 3)
 ---
 
@@ -54,8 +54,8 @@ Report to the user:
 > Launched parallel delivery for N beans:
 > | Bean | Slot | Worktree |
 > |------|------|----------|
-> | ccbox-abc1 | 1 | .claude/worktrees/deliver-ccbox-abc1 |
-> | ccbox-xyz9 | 2 | .claude/worktrees/deliver-ccbox-xyz9 |
+> | agentbox-abc1 | 1 | .claude/worktrees/deliver-agentbox-abc1 |
+> | agentbox-xyz9 | 2 | .claude/worktrees/deliver-agentbox-xyz9 |
 >
 > Monitoring progress via bean Pipeline State...
 
@@ -118,8 +118,8 @@ When all beans are done (completed or escalated-and-resolved), report:
 >
 > | Bean | Status | PR | Notes |
 > |------|--------|----|-------|
-> | ccbox-abc1 | Delivered | <PR_URL> | Clean reviews |
-> | ccbox-xyz9 | Delivered | <PR_URL> | 1 rework cycle |
+> | agentbox-abc1 | Delivered | <PR_URL> | Clean reviews |
+> | agentbox-xyz9 | Delivered | <PR_URL> | 1 rework cycle |
 >
 > All PRs are ready for human review.
 
@@ -140,7 +140,7 @@ done
 If the entire orchestrator session was interrupted, the user can restart by running `/parallel-deliver` with `--resume`:
 
 ```
-/parallel-deliver ccbox-abc1 ccbox-xyz9 --resume
+/parallel-deliver agentbox-abc1 agentbox-xyz9 --resume
 ```
 
 In resume mode:

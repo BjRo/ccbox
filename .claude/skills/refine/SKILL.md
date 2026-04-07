@@ -1,6 +1,6 @@
 ---
 name: refine
-description: Create a detailed implementation plan for a bean. Use with a bean ID argument, e.g. /refine ccbox-abc1
+description: Create a detailed implementation plan for a bean. Use with a bean ID argument, e.g. /refine agentbox-abc1
 argument-hint: <bean-id>
 context: fork
 agent: refine

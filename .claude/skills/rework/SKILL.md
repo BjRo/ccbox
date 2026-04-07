@@ -20,7 +20,7 @@ Launch the `@rework` subagent to address review feedback on the current PR.
 
 ```bash
 BRANCH=$(git branch --show-current)
-BEAN_ID=$(echo "$BRANCH" | sed 's|^[^/]*/||' | grep -oP '^ccbox-\w+')
+BEAN_ID=$(echo "$BRANCH" | sed 's|^[^/]*/||' | grep -oP '^agentbox-\w+')
 ```
 
 ### Step 2: Launch the Rework Agent

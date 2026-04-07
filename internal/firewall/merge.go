@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 // MergedDomains holds the final deduplicated domain lists, split by category,

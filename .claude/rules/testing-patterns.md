@@ -86,6 +86,6 @@ Integration tests for CLI commands that generate files follow a consistent patte
 3. **Assert file manifest**: Verify all expected files exist and are non-empty. Use a package-level `expectedFiles` slice that mirrors the file map in the command's `RunE`.
 4. **Assert file content**: Per-file structural checks -- JSON unmarshal validity, domain spot-checks via `strings.Contains`, negative assertions for absent stacks/plugins.
 5. **Assert permissions**: Verify executable bit on shell scripts via `info.Mode().Perm()&0o111`.
-6. **Assert config round-trip**: Load `.ccbox.yml` via `config.Load` and verify field values.
+6. **Assert config round-trip**: Load `.agentbox.yml` via `config.Load` and verify field values.
 
 **Intentional coupling comments**: When test-side lists (e.g., `expectedFiles`, `executableScripts`) duplicate knowledge from production code, add a comment noting the coupling: `// Intentionally coupled with <location> -- update both together.` This makes silent staleness visible to future maintainers.

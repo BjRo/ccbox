@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/ccbox/internal/stack"
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 func TestDevContainer_ValidJSON(t *testing.T) {
@@ -195,8 +195,8 @@ func TestDevContainer_MountsContent(t *testing.T) {
 	allMounts := strings.Join(mountStrs, "\n")
 
 	checks := []string{
-		"ccbox-bash-history",
-		"ccbox-claude-config",
+		"agentbox-bash-history",
+		"agentbox-claude-config",
 		".config/gh",
 		".gitconfig",
 		"${localEnv:HOME}",

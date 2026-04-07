@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bjro/ccbox/internal/stack"
-	"github.com/bjro/ccbox/internal/wizard"
+	"github.com/bjro/agentbox/internal/stack"
+	"github.com/bjro/agentbox/internal/wizard"
 )
 
 func TestInitCommand_GeneratesDevcontainer(t *testing.T) {

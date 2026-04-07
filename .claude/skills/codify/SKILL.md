@@ -1,6 +1,6 @@
 ---
 name: codify
-description: Extract reusable learnings from completed work into project documentation. Use with a bean ID argument, e.g. /codify ccbox-abc1
+description: Extract reusable learnings from completed work into project documentation. Use with a bean ID argument, e.g. /codify agentbox-abc1
 argument-hint: <bean-id>
 context: fork
 agent: codify
