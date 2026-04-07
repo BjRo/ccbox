@@ -334,16 +334,16 @@ None. The scope is well-defined and purely mechanical.
 
 ## Checklist
 
-- [ ] Update go.mod module path
-- [ ] Update all Go import paths
-- [ ] Update CLI binary name and Cobra command
-- [ ] Update config file name and struct fields
-- [ ] Update GoReleaser config
-- [ ] Update CI workflows
-- [ ] Update all templates
-- [ ] Update CLAUDE.md and rule files
-- [ ] Rename all bean files and update cross-references
-- [ ] Update git remote
-- [ ] Verify build: `go build ./...`
-- [ ] Verify tests: `go test ./...`
-- [ ] Verify lint: `golangci-lint run ./...`
+- [x] Update go.mod module path
+- [x] Update all Go import paths
+- [x] Update CLI binary name and Cobra command
+- [x] Update config file name and struct fields
+- [x] Update GoReleaser config
+- [x] Update CI workflows
+- [x] Update all templates
+- [x] Update CLAUDE.md and rule files
+- [x] Rename all bean files and update cross-references
+- [x] Update git remote
+- [x] Verify build: `go build ./...`
+- [x] Verify tests: `go test ./...`
+- [x] Verify lint: `golangci-lint run ./...`
