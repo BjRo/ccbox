@@ -46,20 +46,6 @@ echo "[firewall] Resolving static domains..."
 # dnsmasq is not yet installed at this point in the script. This is correct --
 # the OUTPUT DROP policy has not been applied yet, so Docker DNS is reachable.
 
-# GitHub REST API - required for git clone/push/pull over HTTPS
-for ip in $(dig +short 'api.github.com'); do
-    if [[ "${ip}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        ipset add allowed_ips "${ip}" -exist
-    fi
-done
-
-# GitHub web and git-over-HTTPS
-for ip in $(dig +short 'github.com'); do
-    if [[ "${ip}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        ipset add allowed_ips "${ip}" -exist
-    fi
-done
-
 # Error reporting for Claude Code
 for ip in $(dig +short 'sentry.io'); do
     if [[ "${ip}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -87,6 +73,8 @@ cat > /etc/dnsmasq.d/agentbox-dynamic.conf << 'DNSMASQ_EOF'
 # dnsmasq ipset integration: resolved IPs are automatically added
 # to the allowed_ips ipset for firewall allowlisting.
 ipset=/anthropic.com/allowed_ips
+ipset=/api.github.com/allowed_ips
+ipset=/github.com/allowed_ips
 ipset=/proxy.golang.org/allowed_ips
 ipset=/storage.googleapis.com/allowed_ips
 ipset=/sum.golang.org/allowed_ips
