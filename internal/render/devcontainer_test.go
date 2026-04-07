@@ -79,6 +79,18 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 		t.Error("customizations.vscode.extensions missing 'anthropic.claude-code'")
 	}
 
+	// customizations.vscode.settings
+	settings, ok := vscode["settings"].(map[string]any)
+	if !ok {
+		t.Fatal("missing or invalid 'customizations.vscode.settings' field")
+	}
+	if mode, _ := settings["claude-code.initialPermissionMode"].(string); mode != "bypassPermissions" {
+		t.Errorf("claude-code.initialPermissionMode = %q, want %q", mode, "bypassPermissions")
+	}
+	if skip, ok := settings["claude-code.allowDangerouslySkipPermissions"].(bool); !ok || !skip {
+		t.Errorf("claude-code.allowDangerouslySkipPermissions = %v, want true", settings["claude-code.allowDangerouslySkipPermissions"])
+	}
+
 	// capAdd
 	capAdd, ok := parsed["capAdd"].([]any)
 	if !ok {
