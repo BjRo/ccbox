@@ -67,6 +67,21 @@ Templates producing shell scripts use two independent defense layers:
 
 Both layers are independently sufficient.
 
+## Heredoc Quoting Split for Shell Config Templates
+
+When a shell script template writes a config file that needs both shell variable expansion and Go template-rendered content, split the write into two parts:
+
+1. **`echo` statements** for lines needing shell variable expansion (e.g., `server=${UPSTREAM_DNS}`)
+2. **Quoted heredoc** (`<< 'EOF'`) for Go template-rendered content (e.g., ipset directives)
+
+This preserves the output quoting defense layer -- bash does not interpret `$`, backticks, or other metacharacters inside quoted heredocs, keeping template-rendered domain names safe even if they somehow bypassed input validation.
+
+## Script Operation Ordering
+
+Network-dependent operations in generated shell scripts (DNS resolution, CIDR fetches via curl) must precede `iptables -P OUTPUT DROP`. Once the default DROP policy is applied, outbound connections to unallowed IPs will fail. Add comments in templates noting this ordering dependency to prevent future refactors from accidentally reordering.
+
+For scripts that run on every container start (via `postStartCommand`), use idempotent state caching (e.g., caching upstream DNS to a file) so restarts work correctly even when `/etc/resolv.conf` has been rewritten to point at a local resolver.
+
 ## Node Always Included
 
 Node/npm is always present in generated containers (Claude Code requires it). The Dockerfile template hardcodes `node = "lts"` in mise config and skips Node in `{{ range .Runtimes }}` via `{{ if ne .Tool "node" }}`.

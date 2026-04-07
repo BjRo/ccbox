@@ -1,11 +1,11 @@
 ---
 # agentbox-rn01
 title: Rename project from agentbox to agentbox
-status: done
+status: completed
 type: task
 priority: high
 created_at: 2026-04-07T10:00:00Z
-updated_at: 2026-04-07T10:00:00Z
+updated_at: 2026-04-07T16:25:59Z
 parent: agentbox-el52
 ---
 
