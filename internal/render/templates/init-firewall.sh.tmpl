@@ -83,7 +83,7 @@ done
 # resolved via dig above.
 echo "[firewall] Fetching GitHub CIDR ranges..."
 if GITHUB_META="$(curl -sf --max-time 10 'https://api.github.com/meta' 2>/dev/null)"; then
-    for cidr in $(echo "${GITHUB_META}" | jq -r '(.git, .web, .api, .actions) // [] | .[]?' 2>/dev/null); do
+    for cidr in $(echo "${GITHUB_META}" | jq -r '(.git // []), (.web // []), (.api // []), (.actions // []) | .[]?' 2>/dev/null); do
         ipset add allowed_ips "${cidr}" -exist 2>/dev/null || true
     done
     echo "[firewall] GitHub CIDR ranges loaded."
@@ -99,12 +99,13 @@ echo "[firewall] Configuring dnsmasq for dynamic domains..."
 # The dnsmasq config includes upstream DNS forwarding (no-resolv + explicit
 # server= directive) to break the circular dependency that would occur when
 # /etc/resolv.conf points at 127.0.0.1.
-cat > /etc/dnsmasq.d/agentbox.conf << DNSMASQ_EOF
-# agentbox dnsmasq configuration.
-# Upstream DNS forwarding -- prevents circular dependency with resolv.conf.
-no-resolv
-server=${UPSTREAM_DNS}
+# Write upstream DNS config (needs shell expansion).
+echo "no-resolv" > /etc/dnsmasq.d/agentbox.conf
+echo "server=${UPSTREAM_DNS}" >> /etc/dnsmasq.d/agentbox.conf
+echo "" >> /etc/dnsmasq.d/agentbox.conf
 
+# Write ipset directives (no shell expansion needed).
+cat >> /etc/dnsmasq.d/agentbox.conf << 'DNSMASQ_EOF'
 # Dynamic domain ipset integration: resolved IPs are automatically added
 # to the allowed_ips ipset for firewall allowlisting.
 {{- range .Domains.Dynamic}}
