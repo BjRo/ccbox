@@ -1,11 +1,11 @@
 ---
 # agentbox-6o49
 title: Add Codex firewall domains to AlwaysOn allowlist
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:16:26Z
-updated_at: 2026-04-08T11:01:24Z
+updated_at: 2026-04-08T11:04:58Z
 parent: agentbox-cqi5
 ---
 
@@ -86,12 +86,12 @@ None remaining -- all resolved above.
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in (N/A - LGTM, no findings) via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) -- N/A, data-only change
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Pipeline State
 
@@ -100,6 +100,6 @@ None remaining -- all resolved above.
 | refine | complete | 1 | 2026-04-08 |
 | challenge | completed | 1 | 2026-04-08 |
 | implement | complete | 1 | 2026-04-08 |
-| pr | pending | | |
-| review | pending | | |
-| codify | pending | | |
+| pr | completed | 1 | 2026-04-08 |
+| review | completed | 1 | 2026-04-08 |
+| codify | complete | 1 | 2026-04-08 |
