@@ -68,6 +68,25 @@ func TestIntegration_UpdatePreservesCustomizations(t *testing.T) {
 	if !strings.Contains(updated, "WORKDIR /workspace\n\nFROM agentbox AS custom") {
 		t.Error("Dockerfile should have exactly one blank line between agentbox stage and custom stage")
 	}
+
+	// Verify codex files are regenerated after update.
+	codexConfig := readFile(t, filepath.Join(devDir, "codex-config.toml"))
+	if !strings.Contains(codexConfig, "approval_policy") {
+		t.Error("codex-config.toml should contain approval_policy after update")
+	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode after update")
+	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false after update")
+	}
+	syncCodex := readFile(t, filepath.Join(devDir, "sync-codex-settings.sh"))
+	if !strings.Contains(syncCodex, "codex-config.toml") {
+		t.Error("sync-codex-settings.sh should reference codex-config.toml after update")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex after update")
+	}
 }
 
 func TestIntegration_UpdateWithStackChange(t *testing.T) {
@@ -108,6 +127,33 @@ func TestIntegration_UpdateWithStackChange(t *testing.T) {
 	}
 	if len(cfg.Stacks) != 2 {
 		t.Errorf("expected 2 stacks, got %d: %v", len(cfg.Stacks), cfg.Stacks)
+	}
+
+	// Verify codex files exist with expected content after stack change.
+	codexConfig := readFile(t, filepath.Join(devDir, "codex-config.toml"))
+	if !strings.Contains(codexConfig, "approval_policy") {
+		t.Error("codex-config.toml should contain approval_policy after stack change")
+	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode after stack change")
+	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false after stack change")
+	}
+	syncCodex := readFile(t, filepath.Join(devDir, "sync-codex-settings.sh"))
+	if !strings.Contains(syncCodex, "codex-config.toml") {
+		t.Error("sync-codex-settings.sh should reference codex-config.toml after stack change")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex after stack change")
+	}
+
+	// Verify executable permissions on all scripts after update.
+	for _, name := range executableScripts {
+		info := assertFileExists(t, filepath.Join(devDir, name))
+		if info.Mode().Perm()&0o111 == 0 {
+			t.Errorf("%s should be executable after update", name)
+		}
 	}
 }
 
@@ -159,6 +205,33 @@ func TestIntegration_UpdateForceMode(t *testing.T) {
 	}
 	if !strings.Contains(updated, "USER CUSTOMIZATIONS") {
 		t.Error("Dockerfile should contain custom stage comments after --force")
+	}
+
+	// Verify executable permissions on all scripts after --force update.
+	for _, name := range executableScripts {
+		info := assertFileExists(t, filepath.Join(devDir, name))
+		if info.Mode().Perm()&0o111 == 0 {
+			t.Errorf("%s should be executable after --force update", name)
+		}
+	}
+
+	// Verify codex files are regenerated during force mode.
+	codexConfig := readFile(t, filepath.Join(devDir, "codex-config.toml"))
+	if !strings.Contains(codexConfig, "approval_policy") {
+		t.Error("codex-config.toml should contain approval_policy after --force update")
+	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode after --force update")
+	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false after --force update")
+	}
+	syncCodex := readFile(t, filepath.Join(devDir, "sync-codex-settings.sh"))
+	if !strings.Contains(syncCodex, "codex-config.toml") {
+		t.Error("sync-codex-settings.sh should reference codex-config.toml after --force update")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex after --force update")
 	}
 }
 
