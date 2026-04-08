@@ -104,3 +104,6 @@ FROM agentbox AS custom
 
 # --- Project tools ---
 RUN go install github.com/hmans/beans@latest
+
+# Disable adaptive thinking for now
+ENV CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1
