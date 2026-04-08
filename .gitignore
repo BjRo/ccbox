@@ -8,6 +8,9 @@ dist/
 .claude/state/
 .claude/projects/
 
+# Codex CLI workspace marker
+.codex
+
 # Environment
 .env
 .env.*
