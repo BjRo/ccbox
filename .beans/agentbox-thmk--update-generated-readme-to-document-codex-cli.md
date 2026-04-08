@@ -1,11 +1,11 @@
 ---
 # agentbox-thmk
 title: Update generated README to document Codex CLI
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:16:43Z
-updated_at: 2026-04-08T14:11:41Z
+updated_at: 2026-04-08T15:52:39Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-0w8k

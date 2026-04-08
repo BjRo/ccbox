@@ -1,11 +1,11 @@
 ---
 # agentbox-comb
 title: Update integration tests for Codex support
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:16:54Z
-updated_at: 2026-04-08T14:25:56Z
+updated_at: 2026-04-08T15:52:39Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-qr1p
