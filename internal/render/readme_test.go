@@ -259,8 +259,8 @@ func TestREADME_UpdatingSection(t *testing.T) {
 	if !strings.Contains(out, "agentbox update") {
 		t.Error("README should document 'agentbox update' command")
 	}
-	if !strings.Contains(out, "config.toml") {
-		t.Error("README should mention config.toml for version changes")
+	if !strings.Contains(out, "mise-config.toml") {
+		t.Error("README should mention mise-config.toml for version changes")
 	}
 	if !strings.Contains(out, "custom") {
 		t.Error("README should document custom stage")

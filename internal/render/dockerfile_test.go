@@ -60,8 +60,8 @@ func TestDockerfile_MiseConfigCopied_SingleStack(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("output missing COPY config.toml directive")
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY mise-config.toml directive")
 	}
 }
 
@@ -76,8 +76,8 @@ func TestDockerfile_MiseConfigCopied_MultiStack(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("output missing COPY config.toml directive")
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY mise-config.toml directive")
 	}
 }
 
@@ -186,7 +186,7 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 	if !strings.Contains(out, "@openai/codex") {
 		t.Error("empty config missing Codex CLI install")
 	}
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
 		t.Error("empty config missing COPY config.toml directive")
 	}
 	// No LSP installs should be present.
@@ -452,7 +452,7 @@ func TestDockerfile_MiseInstallAsNodeUser(t *testing.T) {
 }
 
 func TestDockerfile_MiseConfigCopied(t *testing.T) {
-	// COPY config.toml must appear for all stack combinations.
+	// COPY mise-config.toml must appear for all stack combinations.
 	// The node-always-present invariant is tested in ensure_test.go and mise_test.go.
 	for _, tc := range []struct {
 		name   string
@@ -475,8 +475,8 @@ func TestDockerfile_MiseConfigCopied(t *testing.T) {
 				t.Fatalf("Dockerfile: %v", err)
 			}
 
-			if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
-				t.Error("output missing COPY config.toml directive")
+			if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+				t.Error("output missing COPY mise-config.toml directive")
 			}
 		})
 	}
@@ -509,7 +509,7 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 	if !strings.Contains(out, "@openai/codex") {
 		t.Error("minimal config missing Codex CLI install")
 	}
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
 		t.Error("minimal config missing COPY config.toml directive")
 	}
 }
@@ -534,9 +534,9 @@ func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	// Runtime versions are no longer in Dockerfile; they live in config.toml.
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("output missing COPY config.toml directive")
+	// Runtime versions are no longer in Dockerfile; they live in mise-config.toml.
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY mise-config.toml directive")
 	}
 	if !strings.Contains(out, "zig-install zls") {
 		t.Error("output missing zls install command")
@@ -558,9 +558,9 @@ func TestDockerfile_AllStacks(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	// COPY config.toml must be present (replaces inline mise config).
-	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("output missing COPY config.toml directive")
+	// COPY mise-config.toml must be present (replaces inline mise config).
+	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("output missing COPY mise-config.toml directive")
 	}
 
 	// Structural assertion: every LSP install command must appear.
