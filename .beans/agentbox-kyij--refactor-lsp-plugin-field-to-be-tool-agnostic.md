@@ -1,11 +1,11 @@
 ---
 # agentbox-kyij
 title: Refactor LSP Plugin field to be tool-agnostic
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:15:46Z
-updated_at: 2026-04-08T09:39:25Z
+updated_at: 2026-04-08T10:45:39Z
 parent: agentbox-cqi5
 ---
 
