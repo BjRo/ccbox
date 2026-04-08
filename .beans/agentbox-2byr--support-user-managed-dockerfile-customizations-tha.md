@@ -1,11 +1,11 @@
 ---
 # agentbox-2byr
 title: Support user-managed Dockerfile customizations that survive regeneration
-status: in-progress
+status: completed
 type: feature
 priority: normal
 created_at: 2026-04-07T19:30:23Z
-updated_at: 2026-04-08T08:34:13Z
+updated_at: 2026-04-08T08:48:14Z
 ---
 
 Users need a way to add project-specific tools (e.g., beans CLI) to the devcontainer that won't be overwritten when agentbox regenerates files. Currently agentbox refuses to run if .devcontainer/ exists, and there's no update path at all.
