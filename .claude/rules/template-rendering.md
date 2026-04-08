@@ -102,6 +102,15 @@ The Dockerfile template renders as a named stage (`FROM debian:bookworm-slim AS 
 
 See ADR-0009.
 
+## Settings Sync Strategy: Copy vs Deep-Merge
+
+Generated sync scripts that push tool settings into the container have two strategies, chosen based on config format complexity:
+
+- **Deep-merge (JSON)**: When the config format supports CLI merging (e.g., `jq`), merge the template into the existing user config to preserve user additions. Used for `sync-claude-settings.sh` where `jq` deep-merges `claude-user-settings.json` into `~/.claude/settings.json`.
+- **Copy-on-first-run (TOML/flat formats)**: When no reliable CLI merge tool exists for the format, copy the template on first run and skip if the config already exists. This preserves user customizations made after first boot. Used for `sync-codex-settings.sh` where `codex-config.toml` is copied to `~/.codex/config.toml` only if absent.
+
+Both strategies use the same script structure: check for template existence, fix volume mount ownership, ensure target directory, then apply the chosen sync logic.
+
 ## Standalone Config Files Over Inline Heredocs
 
 When a generated file (e.g., mise `config.toml`) should be user-editable after generation, extract it to a standalone template and `COPY` it in the Dockerfile rather than generating it inline with a COPY heredoc. This makes the file the single source of truth for its content (e.g., runtime versions) and allows users to edit it without touching the Dockerfile.
