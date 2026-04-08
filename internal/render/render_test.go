@@ -437,6 +437,88 @@ func TestMerge_SystemDeps_Empty(t *testing.T) {
 	}
 }
 
+func TestMerge_DevTools_GoOnly(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(cfg.DevTools) != 1 {
+		t.Fatalf("DevTools count = %d, want 1", len(cfg.DevTools))
+	}
+	if !strings.Contains(cfg.DevTools[0], "golangci-lint") {
+		t.Errorf("DevTools[0] = %q, want it to contain golangci-lint", cfg.DevTools[0])
+	}
+}
+
+func TestMerge_DevTools_NonGoStack(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Node}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.DevTools == nil {
+		t.Error("DevTools is nil, want non-nil empty slice")
+	}
+	if len(cfg.DevTools) != 0 {
+		t.Errorf("DevTools count = %d, want 0", len(cfg.DevTools))
+	}
+}
+
+func TestMerge_DevTools_MultiStackWithGo(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(cfg.DevTools) != 1 {
+		t.Fatalf("DevTools count = %d, want 1", len(cfg.DevTools))
+	}
+	if !strings.Contains(cfg.DevTools[0], "golangci-lint") {
+		t.Errorf("DevTools[0] = %q, want it to contain golangci-lint", cfg.DevTools[0])
+	}
+}
+
+func TestMerge_DevTools_Empty(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if cfg.DevTools == nil {
+		t.Error("DevTools is nil, want non-nil empty slice")
+	}
+	if len(cfg.DevTools) != 0 {
+		t.Errorf("DevTools count = %d, want 0", len(cfg.DevTools))
+	}
+}
+
+func TestMerge_DevTools_Sorted(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !slices.IsSorted(cfg.DevTools) {
+		t.Errorf("DevTools not sorted: %v", cfg.DevTools)
+	}
+}
+
+func TestMerge_DevTools_Deduplication(t *testing.T) {
+	single, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	double, err := Merge([]stack.StackID{stack.Go, stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(single.DevTools) != len(double.DevTools) {
+		t.Errorf("DevTools: single=%d, double=%d", len(single.DevTools), len(double.DevTools))
+	}
+}
+
 func TestMerge_LSPsMatchRegistry(t *testing.T) {
 	input := []stack.StackID{stack.Go, stack.Python, stack.Rust}
 	cfg, err := Merge(input, nil)
