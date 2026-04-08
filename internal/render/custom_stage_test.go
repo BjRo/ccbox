@@ -35,6 +35,9 @@ func TestCustomStage_ContainsHelpfulComments(t *testing.T) {
 	if !strings.Contains(out, "agentbox update") {
 		t.Error("output missing agentbox update reference")
 	}
+	if !strings.Contains(out, "Codex CLI") {
+		t.Error("output missing Codex CLI mention in comments")
+	}
 }
 
 func TestCustomStage_Deterministic(t *testing.T) {
