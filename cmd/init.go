@@ -323,7 +323,7 @@ func renderFiles(stackIDs []stack.StackID, extraDomains []string, versionOverrid
 		"codex-config.toml":         cx.Config,
 		"sync-codex-settings.sh":    cx.SyncSettings,
 		"README.md":                 []byte(readme),
-		"config.toml":               miseConfigBuf.Bytes(),
+		"mise-config.toml":           miseConfigBuf.Bytes(),
 	}, nil
 }
 

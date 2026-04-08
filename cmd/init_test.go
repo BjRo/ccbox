@@ -23,7 +23,7 @@ var expectedInitFiles = []string{
 	"codex-config.toml",
 	"sync-codex-settings.sh",
 	"README.md",
-	"config.toml",
+	"mise-config.toml",
 }
 
 func TestInitCommand_GeneratesDevcontainer(t *testing.T) {
@@ -85,10 +85,10 @@ func TestInitCommand_WithStacksFlag(t *testing.T) {
 		t.Error("missing Dockerfile")
 	}
 
-	// Verify config.toml was generated.
-	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	// Verify mise-config.toml was generated.
+	configPath := filepath.Join(dir, ".devcontainer", "mise-config.toml")
 	if _, err := os.Stat(configPath); err != nil {
-		t.Error("missing config.toml")
+		t.Error("missing mise-config.toml")
 	}
 }
 
@@ -262,7 +262,7 @@ func TestInitCommand_WizardEmptyStacks(t *testing.T) {
 	}
 }
 
-func TestInitCommand_ConfigTomlExists(t *testing.T) {
+func TestInitCommand_MiseConfigTomlExists(t *testing.T) {
 	dir := t.TempDir()
 
 	orig, _ := os.Getwd()
@@ -278,24 +278,24 @@ func TestInitCommand_ConfigTomlExists(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	configPath := filepath.Join(dir, ".devcontainer", "mise-config.toml")
 	info, err := os.Stat(configPath)
 	if err != nil {
-		t.Fatal("config.toml not generated")
+		t.Fatal("mise-config.toml not generated")
 	}
 	if info.Size() == 0 {
-		t.Error("config.toml is empty")
+		t.Error("mise-config.toml is empty")
 	}
 
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		t.Fatalf("read config.toml: %v", err)
+		t.Fatalf("read mise-config.toml: %v", err)
 	}
 	if !strings.Contains(string(content), `go = "latest"`) {
-		t.Error(`config.toml missing go = "latest"`)
+		t.Error(`mise-config.toml missing go = "latest"`)
 	}
 	if !strings.Contains(string(content), `node = "lts"`) {
-		t.Error(`config.toml missing node = "lts"`)
+		t.Error(`mise-config.toml missing node = "lts"`)
 	}
 }
 
@@ -315,16 +315,16 @@ func TestInitCommand_RuntimeVersionFlag(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	configPath := filepath.Join(dir, ".devcontainer", "mise-config.toml")
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		t.Fatalf("read config.toml: %v", err)
+		t.Fatalf("read mise-config.toml: %v", err)
 	}
 	if !strings.Contains(string(content), `go = "1.22"`) {
-		t.Error(`config.toml missing go = "1.22"`)
+		t.Error(`mise-config.toml missing go = "1.22"`)
 	}
 	if !strings.Contains(string(content), `node = "20"`) {
-		t.Error(`config.toml missing node = "20"`)
+		t.Error(`mise-config.toml missing node = "20"`)
 	}
 }
 
@@ -384,13 +384,13 @@ func TestInitCommand_WizardVersionOverrides(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	configPath := filepath.Join(dir, ".devcontainer", "mise-config.toml")
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		t.Fatalf("read config.toml: %v", err)
+		t.Fatalf("read mise-config.toml: %v", err)
 	}
 	if !strings.Contains(string(content), `go = "1.21"`) {
-		t.Error(`config.toml missing go = "1.21"`)
+		t.Error(`mise-config.toml missing go = "1.21"`)
 	}
 }
 
@@ -419,18 +419,18 @@ func TestInitCommand_WizardAndFlagMerge(t *testing.T) {
 		t.Fatalf("init: %v", err)
 	}
 
-	configPath := filepath.Join(dir, ".devcontainer", "config.toml")
+	configPath := filepath.Join(dir, ".devcontainer", "mise-config.toml")
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		t.Fatalf("read config.toml: %v", err)
+		t.Fatalf("read mise-config.toml: %v", err)
 	}
 	// go should be from wizard.
 	if !strings.Contains(string(content), `go = "1.21"`) {
-		t.Error(`config.toml missing go = "1.21" (from wizard)`)
+		t.Error(`mise-config.toml missing go = "1.21" (from wizard)`)
 	}
 	// node should be from CLI flag (overrides wizard).
 	if !strings.Contains(string(content), `node = "20"`) {
-		t.Error(`config.toml missing node = "20" (CLI flag should override wizard)`)
+		t.Error(`mise-config.toml missing node = "20" (CLI flag should override wizard)`)
 	}
 }
 
@@ -555,9 +555,9 @@ func TestRenderFiles_VersionOverridesApplied(t *testing.T) {
 		t.Fatalf("renderFiles: %v", err)
 	}
 
-	configToml := string(files["config.toml"])
+	configToml := string(files["mise-config.toml"])
 	if !strings.Contains(configToml, `go = "1.22"`) {
-		t.Error(`config.toml should contain go = "1.22"`)
+		t.Error(`mise-config.toml should contain go = "1.22"`)
 	}
 }
 
@@ -569,9 +569,9 @@ func TestRenderFiles_NilVersionOverrides(t *testing.T) {
 		t.Fatalf("renderFiles: %v", err)
 	}
 
-	configToml := string(files["config.toml"])
+	configToml := string(files["mise-config.toml"])
 	if !strings.Contains(configToml, `go = "latest"`) {
-		t.Error(`config.toml should use default go = "latest" with nil overrides`)
+		t.Error(`mise-config.toml should use default go = "latest" with nil overrides`)
 	}
 }
 
