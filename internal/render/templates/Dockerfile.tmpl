@@ -61,6 +61,10 @@ RUN {{ .InstallCmd }}
 RUN {{ . }}
 {{ end -}}
 {{ end }}
+# Regenerate shims so binaries installed by go install / pip install / etc.
+# are discoverable via mise's shim directory on PATH.
+RUN mise reshim
+
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
