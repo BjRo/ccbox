@@ -47,6 +47,10 @@ RUN mise install
 
 # --- LSP servers ---
 RUN go install golang.org/x/tools/gopls@latest
+
+# --- Dev tools ---
+RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
