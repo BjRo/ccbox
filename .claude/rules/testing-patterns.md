@@ -35,6 +35,8 @@ Prefer **structural invariants computed from the registry** over hardcoded expec
 
 Example: `len(result.Static) == len(collectExpected(...))` (structural) + `result contains "github.com" in Static` (spot-check).
 
+This principle extends to JSON array fields in rendered output (e.g., mounts, extensions). Instead of `len(mounts) != 4`, assert that each expected named entry is present: join the array elements and check `strings.Contains(joined, "agentbox-claude-config")` for each expected entry. This survives additions without updating a fragile count.
+
 ## Template Testing
 
 Use **structural assertions**, not golden-file snapshots:
