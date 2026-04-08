@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y locales \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl git sudo zsh ca-certificates gnupg \
     iptables ipset iproute2 dnsutils dnsmasq \
-    build-essential jq fzf \
+    build-essential bubblewrap jq fzf \
     && rm -rf /var/lib/apt/lists/*
 
 # --- GitHub CLI (gh) ---
