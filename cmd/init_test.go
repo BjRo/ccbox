@@ -496,6 +496,92 @@ func TestParseRuntimeVersions(t *testing.T) {
 	}
 }
 
+func TestRenderFiles_ReturnsAllExpectedKeys(t *testing.T) {
+	t.Parallel()
+
+	files, err := renderFiles([]stack.StackID{stack.Go}, nil, nil)
+	if err != nil {
+		t.Fatalf("renderFiles: %v", err)
+	}
+
+	// Intentionally coupled with expectedInitFiles -- update both together.
+	for _, name := range expectedInitFiles {
+		if _, ok := files[name]; !ok {
+			t.Errorf("missing key %q in renderFiles output", name)
+		}
+	}
+}
+
+func TestRenderFiles_DockerfileContainsASAgentbox(t *testing.T) {
+	t.Parallel()
+
+	files, err := renderFiles([]stack.StackID{stack.Go}, nil, nil)
+	if err != nil {
+		t.Fatalf("renderFiles: %v", err)
+	}
+
+	df := string(files["Dockerfile"])
+	if !strings.Contains(df, "AS agentbox") {
+		t.Error("Dockerfile should contain AS agentbox")
+	}
+	if strings.Contains(df, "FROM agentbox AS custom") {
+		t.Error("Dockerfile should NOT contain custom stage (caller's responsibility)")
+	}
+}
+
+func TestRenderFiles_AllValuesNonEmpty(t *testing.T) {
+	t.Parallel()
+
+	files, err := renderFiles([]stack.StackID{stack.Go}, nil, nil)
+	if err != nil {
+		t.Fatalf("renderFiles: %v", err)
+	}
+
+	for name, content := range files {
+		if len(content) == 0 {
+			t.Errorf("file %q has empty content", name)
+		}
+	}
+}
+
+func TestRenderFiles_VersionOverridesApplied(t *testing.T) {
+	t.Parallel()
+
+	overrides := map[string]string{"go": "1.22"}
+	files, err := renderFiles([]stack.StackID{stack.Go}, nil, overrides)
+	if err != nil {
+		t.Fatalf("renderFiles: %v", err)
+	}
+
+	configToml := string(files["config.toml"])
+	if !strings.Contains(configToml, `go = "1.22"`) {
+		t.Error(`config.toml should contain go = "1.22"`)
+	}
+}
+
+func TestRenderFiles_NilVersionOverrides(t *testing.T) {
+	t.Parallel()
+
+	files, err := renderFiles([]stack.StackID{stack.Go}, nil, nil)
+	if err != nil {
+		t.Fatalf("renderFiles: %v", err)
+	}
+
+	configToml := string(files["config.toml"])
+	if !strings.Contains(configToml, `go = "latest"`) {
+		t.Error(`config.toml should use default go = "latest" with nil overrides`)
+	}
+}
+
+func TestRenderFiles_InvalidStack(t *testing.T) {
+	t.Parallel()
+
+	_, err := renderFiles([]stack.StackID{"nonexistent"}, nil, nil)
+	if err == nil {
+		t.Error("expected error for invalid stack ID")
+	}
+}
+
 // fakePrompter is a test double for wizard.Prompter.
 type fakePrompter struct {
 	t            *testing.T
