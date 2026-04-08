@@ -5,7 +5,7 @@ status: in-progress
 type: bug
 priority: normal
 created_at: 2026-04-08T12:14:48Z
-updated_at: 2026-04-08T12:21:29Z
+updated_at: 2026-04-08T12:29:06Z
 parent: agentbox-cqi5
 ---
 
@@ -23,13 +23,13 @@ Also update the project's own .devcontainer to match.
 - [x] No new TODO/FIXME/HACK/XXX comments introduced
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
-- [ ] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] Branch pushed to remote
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Implementation Plan
 
@@ -127,6 +127,6 @@ None. Both fixes are well-understood, minimal changes with clear rationale.
 | refine | complete | 1 | 2026-04-08 |
 | challenge | in-progress | 1 | 2026-04-08 |
 | implement | in-progress | 1 | 2026-04-08 |
-| pr | pending | | |
-| review | pending | | |
-| codify | pending | | |
+| pr | in-progress | 1 | 2026-04-08 |
+| review | completed | 2 | 2026-04-08 |
+| codify | completed | 1 | 2026-04-08 |
