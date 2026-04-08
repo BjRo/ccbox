@@ -202,7 +202,7 @@ func TestUpdateCommand_StackFlagOverrides(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	cfg, err := config.Load(f)
 	if err != nil {
 		t.Fatal(err)
@@ -239,7 +239,7 @@ func TestUpdateCommand_ExtraDomainsFlag(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	cfg, err := config.Load(f)
 	if err != nil {
 		t.Fatal(err)
