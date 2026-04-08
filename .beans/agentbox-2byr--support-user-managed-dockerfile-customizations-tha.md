@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-04-07T19:30:23Z
-updated_at: 2026-04-08T07:55:20Z
+updated_at: 2026-04-08T08:34:13Z
 ---
 
 Users need a way to add project-specific tools (e.g., beans CLI) to the devcontainer that won't be overwritten when agentbox regenerates files. Currently agentbox refuses to run if .devcontainer/ exists, and there's no update path at all.
@@ -21,12 +21,12 @@ This is a design exploration — needs /explore-approaches before implementation
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
 - [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Approach Exploration
 
