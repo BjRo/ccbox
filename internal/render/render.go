@@ -81,7 +81,7 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	}
 	slices.Sort(systemDeps)
 
-	// Step 3b: Collect dev tools, deduplicating by string value.
+	// Step 4: Collect dev tools, deduplicating by string value.
 	seenDevTools := make(map[string]bool)
 	var devTools []string
 	for _, id := range uniqueStacks {
@@ -95,7 +95,7 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	}
 	slices.Sort(devTools)
 
-	// Step 4: Sort runtimes by Tool, LSPs by Package.
+	// Step 5: Sort runtimes by Tool, LSPs by Package.
 	slices.SortFunc(runtimes, func(a, b stack.Runtime) int {
 		return strings.Compare(a.Tool, b.Tool)
 	})
@@ -103,7 +103,7 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 		return strings.Compare(a.Package, b.Package)
 	})
 
-	// Step 4: Delegate domain merging to firewall.Merge.
+	// Step 6: Delegate domain merging to firewall.Merge.
 	domains, err := firewall.Merge(uniqueStacks, userExtraDomains)
 	if err != nil {
 		return GenerationConfig{}, fmt.Errorf("render: %w", err)
