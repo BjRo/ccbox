@@ -24,6 +24,10 @@ type CodexFiles struct {
 // RenderCodex executes the Codex templates against the given
 // GenerationConfig and returns the rendered file contents. It is a pure
 // transformation from config to bytes with no file I/O.
+//
+// NOTE: The generated sync-codex-settings.sh requires devcontainer.json
+// wiring (postStartCommand invocation and a ~/.codex volume mount) to take
+// effect at container start. That integration is tracked in bean agentbox-0w8k.
 func RenderCodex(cfg GenerationConfig) (CodexFiles, error) {
 	var configBuf, syncBuf bytes.Buffer
 
