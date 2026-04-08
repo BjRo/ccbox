@@ -1,6 +1,7 @@
 {
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "target": "custom"
   },
   "remoteUser": "node",
   "customizations": {

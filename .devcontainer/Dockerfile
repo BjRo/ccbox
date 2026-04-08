@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # --- Base image ---
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS agentbox
 
 # --- Locale ---
 ENV LANG=en_US.UTF-8
@@ -44,7 +44,6 @@ USER node
 ENV PATH="/home/node/.local/share/mise/shims:/home/node/.local/bin:${PATH}"
 RUN mise install
 
-
 # --- LSP servers ---
 RUN go install golang.org/x/tools/gopls@latest
 
@@ -79,3 +78,25 @@ RUN sh -c "$(curl -fsSL https://github.com/deluan/zsh-in-docker/releases/downloa
     -t robbyrussell
 
 WORKDIR /workspace
+
+FROM agentbox AS custom
+
+# =============================================================================
+# USER CUSTOMIZATIONS
+# =============================================================================
+# Add your project-specific tools and configuration below.
+# This stage is preserved when running `agentbox update`.
+#
+# Examples:
+#   RUN go install github.com/user/tool@latest
+#   RUN npm install -g some-cli
+#   RUN pip install my-tool
+#   COPY my-config.toml /home/node/.config/my-tool/config.toml
+#
+# The agentbox stage above provides: mise runtimes, LSP servers, Claude Code,
+# firewall scripts, and all system dependencies. Your customizations layer
+# on top via Docker's multi-stage build caching.
+# =============================================================================
+
+# --- Project tools ---
+RUN go install github.com/hmans/beans@latest
