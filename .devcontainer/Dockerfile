@@ -58,8 +58,8 @@ RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 # are discoverable via mise's shim directory on PATH.
 RUN mise reshim
 
-# --- Claude Code ---
-RUN npm install -g @anthropic-ai/claude-code
+# --- Coding tools ---
+RUN npm install -g @anthropic-ai/claude-code @openai/codex
 
 USER root
 
