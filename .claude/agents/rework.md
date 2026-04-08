@@ -2,6 +2,7 @@
 name: rework
 description: Reworks PR review feedback. Reads comments, fixes all findings, pushes fixes.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+permissionMode: bypassPermissions
 ---
 
 # Rework Agent

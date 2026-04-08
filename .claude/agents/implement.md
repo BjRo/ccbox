@@ -2,6 +2,7 @@
 name: implement
 description: Implements planned work from refined beans, following TDD and project conventions.
 tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+permissionMode: bypassPermissions
 ---
 
 # Implementation Agent
