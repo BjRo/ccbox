@@ -63,6 +63,8 @@ func TestRenderCodex_Config_SpecificValues(t *testing.T) {
 	for _, expected := range []string{
 		`approval_policy = "never"`,
 		`sandbox_mode = "danger-full-access"`,
+		`[features]`,
+		`apps = false`,
 	} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("Config missing expected value %q", expected)

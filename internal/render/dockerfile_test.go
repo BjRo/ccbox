@@ -41,7 +41,7 @@ func TestDockerfile_AlwaysIncludedPackages(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	required := []string{"curl", "git", "sudo", "zsh", "iptables", "dnsmasq", "build-essential"}
+	required := []string{"curl", "git", "sudo", "zsh", "iptables", "dnsmasq", "build-essential", "bubblewrap"}
 	for _, pkg := range required {
 		if !strings.Contains(out, pkg) {
 			t.Errorf("output missing always-included package %q", pkg)
