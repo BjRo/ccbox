@@ -148,7 +148,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 
 			// Make shell scripts executable.
 			// Intentionally coupled with cmd/update.go executable scripts list -- update both together.
-			for _, name := range []string{"init-firewall.sh", "warmup-dns.sh", "sync-claude-settings.sh"} {
+			for _, name := range []string{"init-firewall.sh", "warmup-dns.sh", "sync-claude-settings.sh", "sync-codex-settings.sh"} {
 				path := filepath.Join(outDir, name)
 				if err := os.Chmod(path, 0o755); err != nil {
 					return fmt.Errorf("chmod %s: %w", name, err)
@@ -297,6 +297,11 @@ func renderFiles(stackIDs []stack.StackID, extraDomains []string, versionOverrid
 		return nil, err
 	}
 
+	cx, err := render.RenderCodex(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	readme, err := render.README(cfg)
 	if err != nil {
 		return nil, err
@@ -315,6 +320,8 @@ func renderFiles(stackIDs []stack.StackID, extraDomains []string, versionOverrid
 		"dynamic-domains.conf":      fw.DynamicDomains,
 		"claude-user-settings.json": cl.UserSettings,
 		"sync-claude-settings.sh":   cl.SyncSettings,
+		"codex-config.toml":         cx.Config,
+		"sync-codex-settings.sh":    cx.SyncSettings,
 		"README.md":                 []byte(readme),
 		"config.toml":               miseConfigBuf.Bytes(),
 	}, nil
