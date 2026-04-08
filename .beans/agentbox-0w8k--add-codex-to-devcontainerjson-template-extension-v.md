@@ -1,11 +1,11 @@
 ---
 # agentbox-0w8k
 title: Add Codex to devcontainer.json template (extension, volume, env, postStart)
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:16:37Z
-updated_at: 2026-04-08T11:24:09Z
+updated_at: 2026-04-08T11:46:51Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-vr4z
