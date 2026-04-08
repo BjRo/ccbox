@@ -125,6 +125,22 @@ func TestUpdateCommand_ForceRegeneration(t *testing.T) {
 	if !strings.Contains(string(dockerfile), "FROM agentbox AS custom") {
 		t.Error("Dockerfile should contain FROM agentbox AS custom after --force")
 	}
+
+	// Verify codex files are produced during force regeneration.
+	codexConfig, err := os.ReadFile(filepath.Join(outDir, "codex-config.toml"))
+	if err != nil {
+		t.Fatalf("read codex-config.toml: %v", err)
+	}
+	if len(codexConfig) == 0 {
+		t.Error("codex-config.toml should be non-empty after --force")
+	}
+	syncCodex, err := os.ReadFile(filepath.Join(outDir, "sync-codex-settings.sh"))
+	if err != nil {
+		t.Fatalf("read sync-codex-settings.sh: %v", err)
+	}
+	if len(syncCodex) == 0 {
+		t.Error("sync-codex-settings.sh should be non-empty after --force")
+	}
 }
 
 func TestUpdateCommand_PreservesCustomStage(t *testing.T) {
