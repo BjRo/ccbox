@@ -1,11 +1,11 @@
 ---
 # agentbox-cqi5
 title: Add Codex CLI support alongside Claude Code
-status: draft
+status: completed
 type: epic
 priority: normal
 created_at: 2026-04-08T09:09:26Z
-updated_at: 2026-04-08T09:15:27Z
+updated_at: 2026-04-08T15:52:52Z
 ---
 
 Install OpenAI Codex CLI in generated devcontainers alongside Claude Code. Both coding tools available simultaneously (one as lead, one as reviewer). Includes: Codex installation, VS Code extension, settings template, firewall domains, volume mounts, auth support (ChatGPT login + OPENAI_API_KEY), and refactoring the stack Plugin field to be tool-agnostic.
