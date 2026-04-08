@@ -102,9 +102,9 @@ Task tool call:
 
 ### Step 4: Evaluate Review Results
 
-- **No actionable findings** -> check off "Automated code review passed". Proceed to Codify.
-- **Actionable findings, iteration < 3** -> Rework
-- **Actionable findings, iteration >= 3** -> Escalate
+- **No actionable findings (zero findings)** -> check off "Automated code review passed". Proceed to Codify.
+- **Any findings at all (CRITICAL, WARNING, or SUGGESTION), iteration < 3** -> Rework. Do NOT evaluate findings yourself and cherry-pick which to fix. ALL findings must go through the rework agent.
+- **Any findings, iteration >= 3** -> Escalate
 
 ### Step 5a: Rework
 
@@ -135,3 +135,4 @@ Check off remaining DoD items. Notify user with PR URL and review summary.
 - **Do NOT mark the bean as completed** — that happens after human merge
 - **Do NOT merge the PR** — always wait for human review
 - **Do NOT skip reviews**
+- **Do NOT skip rework** — if the review has ANY findings (even SUGGESTION-level), launch the rework agent. Never shortcut by fixing findings yourself or deciding they are "non-blocking". The rework→re-review loop exists to ensure all feedback is systematically addressed.

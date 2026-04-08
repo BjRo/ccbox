@@ -17,6 +17,7 @@ type GenerationConfig struct {
 	Runtimes   []stack.Runtime        // Merged runtime entries for mise.toml, sorted by Tool
 	LSPs       []stack.LSP            // Merged LSP servers for Dockerfile + settings, sorted by Package
 	SystemDeps []string               // Merged apt packages from all stacks, deduplicated and sorted
+	DevTools   []string               // Merged dev tool install commands from all stacks, deduplicated and sorted
 	Domains    firewall.MergedDomains // Merged domain allowlists (static + dynamic)
 }
 
@@ -80,7 +81,21 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	}
 	slices.Sort(systemDeps)
 
-	// Step 4: Sort runtimes by Tool, LSPs by Package.
+	// Step 4: Collect dev tools, deduplicating by string value.
+	seenDevTools := make(map[string]bool)
+	var devTools []string
+	for _, id := range uniqueStacks {
+		s, _ := stack.Get(id) // Already validated above.
+		for _, dt := range s.DevTools {
+			if !seenDevTools[dt] {
+				seenDevTools[dt] = true
+				devTools = append(devTools, dt)
+			}
+		}
+	}
+	slices.Sort(devTools)
+
+	// Step 5: Sort runtimes by Tool, LSPs by Package.
 	slices.SortFunc(runtimes, func(a, b stack.Runtime) int {
 		return strings.Compare(a.Tool, b.Tool)
 	})
@@ -88,7 +103,7 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 		return strings.Compare(a.Package, b.Package)
 	})
 
-	// Step 4: Delegate domain merging to firewall.Merge.
+	// Step 6: Delegate domain merging to firewall.Merge.
 	domains, err := firewall.Merge(uniqueStacks, userExtraDomains)
 	if err != nil {
 		return GenerationConfig{}, fmt.Errorf("render: %w", err)
@@ -107,12 +122,16 @@ func Merge(stacks []stack.StackID, userExtraDomains []string) (GenerationConfig,
 	if systemDeps == nil {
 		systemDeps = []string{}
 	}
+	if devTools == nil {
+		devTools = []string{}
+	}
 
 	return GenerationConfig{
 		Stacks:     uniqueStacks,
 		Runtimes:   runtimes,
 		LSPs:       lsps,
 		SystemDeps: systemDeps,
+		DevTools:   devTools,
 		Domains:    domains,
 	}, nil
 }

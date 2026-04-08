@@ -3,6 +3,7 @@ package stack
 import (
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -235,6 +236,75 @@ func TestSystemDeps_KnownValues(t *testing.T) {
 	}
 	if len(goStack.SystemDeps) != 0 {
 		t.Errorf("Go SystemDeps should be empty, got %v", goStack.SystemDeps)
+	}
+}
+
+func TestDevTools_NonNil(t *testing.T) {
+	all := All()
+	for _, s := range all {
+		t.Run(string(s.ID), func(t *testing.T) {
+			if s.DevTools == nil {
+				t.Errorf("DevTools is nil for stack %q, want non-nil (possibly empty) slice", s.ID)
+			}
+		})
+	}
+}
+
+func TestDevTools_DefensiveCopy(t *testing.T) {
+	first, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	if len(first.DevTools) == 0 {
+		t.Fatal("Go should have non-empty DevTools")
+	}
+
+	first.DevTools = append(first.DevTools, "evil-tool install")
+
+	second, _ := Get(Go)
+	for _, dt := range second.DevTools {
+		if dt == "evil-tool install" {
+			t.Error("mutation of DevTools leaked into registry")
+		}
+	}
+}
+
+func TestDevTools_KnownValues(t *testing.T) {
+	goStack, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	found := false
+	for _, dt := range goStack.DevTools {
+		if strings.Contains(dt, "golangci-lint/v2") {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("Go DevTools should contain a golangci-lint install command")
+	}
+
+	nodeStack, ok := Get(Node)
+	if !ok {
+		t.Fatal("Get(Node) returned ok=false")
+	}
+	if len(nodeStack.DevTools) != 0 {
+		t.Errorf("Node DevTools should be empty, got %v", nodeStack.DevTools)
+	}
+}
+
+func TestDevTools_NoDuplicates(t *testing.T) {
+	all := All()
+	for _, s := range all {
+		t.Run(string(s.ID), func(t *testing.T) {
+			seen := make(map[string]bool)
+			for _, dt := range s.DevTools {
+				if seen[dt] {
+					t.Errorf("duplicate dev tool %q in stack %q", dt, s.ID)
+				}
+				seen[dt] = true
+			}
+		})
 	}
 }
 

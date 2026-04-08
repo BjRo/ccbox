@@ -59,6 +59,12 @@ type Stack struct {
 	// Stacks that do not require extra packages use an empty (non-nil) slice.
 	SystemDeps []string
 
+	// DevTools lists install commands for per-stack development tools
+	// (e.g., linters, formatters) that are not LSPs but should be installed
+	// in the generated Dockerfile. Stacks without dev tools use an empty
+	// (non-nil) slice.
+	DevTools []string
+
 	// MarkerFiles lists filenames whose presence in a project root
 	// indicates this stack is in use. These are exact filenames only,
 	// not glob patterns. Pattern-based detection (e.g., *.go files)
@@ -83,6 +89,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"proxy.golang.org", "sum.golang.org", "storage.googleapis.com"},
 		SystemDeps:     []string{},
+		DevTools:       []string{"go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"},
 		MarkerFiles:    []string{"go.mod"},
 	},
 	Node: {
@@ -100,6 +107,7 @@ var registry = map[StackID]Stack{
 		DefaultDomains: []string{"registry.npmjs.org"},
 		DynamicDomains: []string{"registry.yarnpkg.com"},
 		SystemDeps:     []string{},
+		DevTools:       []string{},
 		MarkerFiles:    []string{"package.json", "tsconfig.json"},
 	},
 	Python: {
@@ -116,6 +124,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"pypi.org", "files.pythonhosted.org"},
 		SystemDeps:     []string{"libssl-dev", "zlib1g-dev", "libbz2-dev", "libreadline-dev", "libsqlite3-dev", "libffi-dev"},
+		DevTools:       []string{},
 		MarkerFiles:    []string{"requirements.txt", "pyproject.toml", "setup.py", "Pipfile"},
 	},
 	Rust: {
@@ -133,6 +142,7 @@ var registry = map[StackID]Stack{
 		DefaultDomains: []string{"crates.io", "static.crates.io", "index.crates.io"},
 		DynamicDomains: []string{"static.rust-lang.org"},
 		SystemDeps:     []string{},
+		DevTools:       []string{},
 		MarkerFiles:    []string{"Cargo.toml"},
 	},
 	Ruby: {
@@ -149,6 +159,7 @@ var registry = map[StackID]Stack{
 		},
 		DefaultDomains: []string{"rubygems.org", "index.rubygems.org"},
 		SystemDeps:     []string{"libssl-dev", "libreadline-dev", "libyaml-dev", "zlib1g-dev"},
+		DevTools:       []string{},
 		MarkerFiles:    []string{"Gemfile"},
 	},
 }
@@ -199,6 +210,7 @@ func copyStack(s Stack) Stack {
 	cp.DefaultDomains = slices.Clone(s.DefaultDomains)
 	cp.DynamicDomains = slices.Clone(s.DynamicDomains)
 	cp.SystemDeps = slices.Clone(s.SystemDeps)
+	cp.DevTools = slices.Clone(s.DevTools)
 	cp.MarkerFiles = slices.Clone(s.MarkerFiles)
 	return cp
 }

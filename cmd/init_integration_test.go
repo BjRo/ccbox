@@ -90,6 +90,9 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	if !strings.Contains(dockerfile, "go install golang.org/x/tools/gopls@latest") {
 		t.Error("Dockerfile should contain gopls install command")
 	}
+	if !strings.Contains(dockerfile, "golangci-lint") {
+		t.Error("Dockerfile should contain golangci-lint install command for Go stack")
+	}
 
 	// config.toml content assertions.
 	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
@@ -213,6 +216,9 @@ func TestIntegration_MultiStack(t *testing.T) {
 	}
 	if !strings.Contains(dockerfile, "npm install -g typescript-language-server typescript") {
 		t.Error("Dockerfile should contain typescript-language-server install")
+	}
+	if !strings.Contains(dockerfile, "golangci-lint") {
+		t.Error("Dockerfile should contain golangci-lint install command for Go+Node stack")
 	}
 
 	// config.toml: contains Go and Node runtimes.
@@ -388,6 +394,32 @@ func TestIntegration_ConfigFile(t *testing.T) {
 	// generated_at should be between startTime and now.
 	if cfg.GeneratedAt.Before(startTime) || cfg.GeneratedAt.After(time.Now().UTC()) {
 		t.Errorf("generated_at %v is not within expected range [%v, now]", cfg.GeneratedAt, startTime)
+	}
+}
+
+func TestIntegration_NonGoStack_NoDevTools(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := newRootCmd(nil)
+	cmd.SetArgs([]string{"init", "--dir", dir, "--stack", "node"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("init: %v", err)
+	}
+
+	devcontainerDir := filepath.Join(dir, ".devcontainer")
+	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
+
+	if strings.Contains(dockerfile, "golangci-lint") {
+		t.Error("Node-only Dockerfile should not contain golangci-lint")
+	}
+	if strings.Contains(dockerfile, "Dev tools") {
+		t.Error("Node-only Dockerfile should not contain Dev tools section")
 	}
 }
 
