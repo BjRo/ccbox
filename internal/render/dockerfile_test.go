@@ -304,6 +304,7 @@ func TestDockerfile_CodexCLI_Ordering(t *testing.T) {
 		t.Fatal("output missing USER root directive")
 	}
 
+	// Both packages share a single RUN line; this checks argument order within it.
 	if claudeIdx > codexIdx {
 		t.Error("Claude Code install should appear before Codex CLI install")
 	}
