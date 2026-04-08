@@ -1,11 +1,11 @@
 ---
 # agentbox-xgwq
 title: Fix Codex CLI setup issues in generated containers
-status: in-progress
+status: completed
 type: bug
 priority: normal
 created_at: 2026-04-08T12:14:48Z
-updated_at: 2026-04-08T12:29:06Z
+updated_at: 2026-04-08T12:30:16Z
 parent: agentbox-cqi5
 ---
 
