@@ -48,7 +48,9 @@ func TestGet_ExistingStack(t *testing.T) {
 			if s.LSP.InstallCmd == "" {
 				t.Error("LSP.InstallCmd is empty")
 			}
-			// Plugin may be empty (e.g., Ruby has no official Claude plugin).
+			if s.LSP.Plugins == nil {
+				t.Error("LSP.Plugins is nil, want non-nil (possibly empty) map")
+			}
 			if len(s.DefaultDomains) == 0 {
 				t.Error("DefaultDomains is empty")
 			}
@@ -305,6 +307,57 @@ func TestDevTools_NoDuplicates(t *testing.T) {
 				seen[dt] = true
 			}
 		})
+	}
+}
+
+func TestPlugins_NonNil(t *testing.T) {
+	all := All()
+	for _, s := range all {
+		t.Run(string(s.ID), func(t *testing.T) {
+			if s.LSP.Plugins == nil {
+				t.Errorf("LSP.Plugins is nil for stack %q, want non-nil (possibly empty) map", s.ID)
+			}
+		})
+	}
+}
+
+func TestPlugins_DefensiveCopy(t *testing.T) {
+	first, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	if len(first.LSP.Plugins) == 0 {
+		t.Fatal("Go should have non-empty LSP.Plugins")
+	}
+
+	// Mutate the returned map.
+	first.LSP.Plugins["evil"] = "evil-plugin"
+
+	// A second Get should not see the mutation.
+	second, _ := Get(Go)
+	if _, exists := second.LSP.Plugins["evil"]; exists {
+		t.Error("mutation of LSP.Plugins leaked into registry")
+	}
+}
+
+func TestPlugins_KnownValues(t *testing.T) {
+	// Spot-check: Go should have the gopls claude plugin.
+	goStack, ok := Get(Go)
+	if !ok {
+		t.Fatal("Get(Go) returned ok=false")
+	}
+	if goStack.LSP.Plugins[CodingToolClaude] != "gopls-lsp@claude-plugins-official" {
+		t.Errorf("Go LSP.Plugins[CodingToolClaude] = %q, want %q",
+			goStack.LSP.Plugins[CodingToolClaude], "gopls-lsp@claude-plugins-official")
+	}
+
+	// Spot-check: Ruby should have an empty Plugins map.
+	ruby, ok := Get(Ruby)
+	if !ok {
+		t.Fatal("Get(Ruby) returned ok=false")
+	}
+	if len(ruby.LSP.Plugins) != 0 {
+		t.Errorf("Ruby LSP.Plugins should be empty, got %v", ruby.LSP.Plugins)
 	}
 }
 

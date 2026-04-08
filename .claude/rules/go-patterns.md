@@ -96,7 +96,7 @@ When switching on a string-typed category or enum where one branch is the "safe"
 Packages that own static lookup data (`internal/stack/`, `internal/firewall/`) follow:
 
 - **Unexported `var registry` map**: Public API via accessor functions only.
-- **Defensive-copy accessors**: `All() []T`, `Get(id) (T, bool)`, `IDs() []ID` all return deep copies via `slices.Clone`.
+- **Defensive-copy accessors**: `All() []T`, `Get(id) (T, bool)`, `IDs() []ID` all return deep copies via `slices.Clone` for slices and `maps.Clone` for map fields.
 - **String-based type IDs**: Use `type FooID string` when IDs appear in config files, CLI flags, or template output.
 - **Sorted output**: `All()` and `IDs()` return sorted slices for deterministic output.
 - **`init()` acceptable for static data**: The `init()` prohibition applies to command registration, not immutable data initialization.
