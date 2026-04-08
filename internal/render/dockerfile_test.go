@@ -25,6 +25,9 @@ func TestDockerfile_BaseImage(t *testing.T) {
 	if !strings.Contains(out, "FROM debian:bookworm-slim AS agentbox") {
 		t.Error("output missing FROM debian:bookworm-slim AS agentbox")
 	}
+	if !strings.Contains(out, "AGENTBOX MANAGED -- DO NOT EDIT THIS STAGE") {
+		t.Error("output missing managed stage header comment")
+	}
 }
 
 func TestDockerfile_AlwaysIncludedPackages(t *testing.T) {
