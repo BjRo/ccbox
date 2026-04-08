@@ -41,7 +41,7 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 			if err != nil {
 				return fmt.Errorf("no %s found in %s; run 'agentbox init' first", config.Filename, targetDir)
 			}
-			defer cfgFile.Close()
+			defer func() { _ = cfgFile.Close() }()
 
 			agentboxCfg, err := config.Load(cfgFile)
 			if err != nil {
@@ -89,7 +89,7 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 					return err
 				}
 				if !force {
-					return fmt.Errorf("Dockerfile does not contain custom stage (FROM agentbox AS custom); use --force to regenerate fully")
+					return fmt.Errorf("dockerfile does not contain custom stage (FROM agentbox AS custom); use --force to regenerate fully")
 				}
 				// --force: generate fresh custom stage.
 				userPart = ""
