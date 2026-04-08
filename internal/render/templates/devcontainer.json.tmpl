@@ -7,7 +7,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "openai.chatgpt"
       ],
       "settings": {
         "claude-code.initialPermissionMode": "bypassPermissions",
@@ -18,10 +19,14 @@
   "mounts": [
     "source=agentbox-bash-history,target=/home/node/.bash_history_volume,type=volume",
     "source=agentbox-claude-config,target=/home/node/.claude,type=volume",
+    "source=agentbox-codex-config,target=/home/node/.codex,type=volume",
     "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached"
   ],
-  "postStartCommand": "sudo chown -R node:node /home/node/.claude /home/node/.bash_history_volume && bash .devcontainer/sync-claude-settings.sh && sudo bash .devcontainer/init-firewall.sh",
+  "containerEnv": {
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}"
+  },
+  "postStartCommand": "sudo chown -R node:node /home/node/.claude /home/node/.codex /home/node/.bash_history_volume && bash .devcontainer/sync-claude-settings.sh && bash .devcontainer/sync-codex-settings.sh && sudo bash .devcontainer/init-firewall.sh",
   "capAdd": [
     "NET_ADMIN",
     "NET_RAW"
