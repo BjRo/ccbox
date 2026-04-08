@@ -187,7 +187,7 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 		t.Error("empty config missing Codex CLI install")
 	}
 	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
-		t.Error("empty config missing COPY config.toml directive")
+		t.Error("empty config missing COPY mise-config.toml directive")
 	}
 	// No LSP installs should be present.
 	if strings.Contains(out, "gopls") || strings.Contains(out, "typescript-language-server") {
@@ -510,7 +510,7 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 		t.Error("minimal config missing Codex CLI install")
 	}
 	if !strings.Contains(out, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
-		t.Error("minimal config missing COPY config.toml directive")
+		t.Error("minimal config missing COPY mise-config.toml directive")
 	}
 }
 
