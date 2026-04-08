@@ -1,0 +1,21 @@
+FROM agentbox AS custom
+
+# =============================================================================
+# USER CUSTOMIZATIONS
+# =============================================================================
+# Add your project-specific tools and configuration below.
+# This stage is preserved when running `agentbox update`.
+#
+# Examples:
+#   RUN go install github.com/user/tool@latest && mise reshim
+#   RUN npm install -g some-cli
+#   RUN pip install my-tool
+#   COPY my-config.toml /home/node/.config/my-tool/config.toml
+#
+# Note: Add `&& mise reshim` after `go install` or `pip install` commands
+# so the installed binaries are discoverable on PATH via mise shims.
+#
+# The agentbox stage above provides: mise runtimes, LSP servers, Claude Code,
+# firewall scripts, and all system dependencies. Your customizations layer
+# on top via Docker's multi-stage build caching.
+# =============================================================================

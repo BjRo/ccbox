@@ -89,3 +89,14 @@ Integration tests for CLI commands that generate files follow a consistent patte
 6. **Assert config round-trip**: Load `.agentbox.yml` via `config.Load` and verify field values.
 
 **Intentional coupling comments**: When test-side lists (e.g., `expectedFiles`, `executableScripts`) duplicate knowledge from production code, add a comment noting the coupling: `// Intentionally coupled with <location> -- update both together.` This makes silent staleness visible to future maintainers.
+
+## Update Command Test Pattern: Seed-Then-Mutate
+
+Tests for `agentbox update` follow a seed-then-mutate pattern:
+
+1. **Seed with `init`**: Run `agentbox init --dir dir --stack go` via `newRootCmd(nil)` to produce a valid `.devcontainer/` and `.agentbox.yml`. Extract this into a `seedInitDir(t, dir, stacks)` helper.
+2. **Mutate user content**: Append custom `RUN` instructions to the Dockerfile's custom stage, or edit `config.toml`, to simulate user customizations.
+3. **Run `update`**: Execute `agentbox update --dir dir` and verify regeneration.
+4. **Assert preservation**: Verify user-added content in the custom stage survives verbatim. Verify `config.toml` is unchanged.
+5. **Assert regeneration**: Verify agentbox-managed content (before the custom stage) is freshly rendered.
+6. **Error cases**: Test missing `.agentbox.yml`, missing `Dockerfile`, missing custom stage boundary (with and without `--force`).

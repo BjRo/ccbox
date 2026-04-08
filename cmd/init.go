@@ -44,7 +44,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			// Fail fast if .devcontainer/ already exists (file or directory).
 			outDir := filepath.Join(targetDir, ".devcontainer")
 			if _, statErr := os.Stat(outDir); statErr == nil {
-				return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
+				return fmt.Errorf(".devcontainer/ already exists in %s; run 'agentbox update' to regenerate, or remove it first", targetDir)
 			}
 
 			// Trim and filter flag values.
@@ -102,16 +102,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 
 			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "Stacks: %v\n", stackIDs)
 
-			// Merge configuration.
-			cfg, err := render.Merge(stackIDs, extraDomains)
-			if err != nil {
-				return fmt.Errorf("merge config: %w", err)
-			}
-
-			// Ensure node is present (Claude Code requires npm).
-			render.EnsureNode(&cfg)
-
-			// Apply version overrides: initialize from wizard, then layer CLI flags on top.
+			// Build version overrides: initialize from wizard, then layer CLI flags on top.
 			versionOverrides := make(map[string]string)
 			// Wizard overrides (from interactive prompting).
 			for k, v := range choices.RuntimeVersions {
@@ -128,59 +119,24 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 					versionOverrides[k] = v
 				}
 			}
-			// Apply to cfg.Runtimes.
-			for i, rt := range cfg.Runtimes {
-				if v, ok := versionOverrides[rt.Tool]; ok && v != "" {
-					cfg.Runtimes[i].Version = v
-				}
-			}
 
-			// Render all templates.
-			dockerfile, err := render.Dockerfile(cfg)
+			// Render all agentbox-managed files.
+			files, err := renderFiles(stackIDs, extraDomains, versionOverrides)
 			if err != nil {
 				return err
 			}
 
-			var devcontainerBuf bytes.Buffer
-			if err := render.DevContainer(&devcontainerBuf, cfg); err != nil {
-				return err
-			}
-
-			fw, err := render.RenderFirewall(cfg)
+			// Append the custom stage stub to the Dockerfile.
+			customStage, err := render.CustomStage()
 			if err != nil {
 				return err
 			}
-
-			cl, err := render.RenderClaude(cfg)
-			if err != nil {
-				return err
-			}
-
-			readme, err := render.README(cfg)
-			if err != nil {
-				return err
-			}
-
-			var miseConfigBuf bytes.Buffer
-			if err := render.MiseConfig(&miseConfigBuf, cfg); err != nil {
-				return err
-			}
+			files["Dockerfile"] = append(files["Dockerfile"], '\n')
+			files["Dockerfile"] = append(files["Dockerfile"], []byte(customStage)...)
 
 			// Write .devcontainer/ directory.
 			if err := os.MkdirAll(outDir, 0o755); err != nil {
 				return fmt.Errorf("create .devcontainer: %w", err)
-			}
-
-			files := map[string][]byte{
-				"Dockerfile":                []byte(dockerfile),
-				"devcontainer.json":         devcontainerBuf.Bytes(),
-				"init-firewall.sh":          fw.InitFirewall,
-				"warmup-dns.sh":             fw.WarmupDNS,
-				"dynamic-domains.conf":      fw.DynamicDomains,
-				"claude-user-settings.json": cl.UserSettings,
-				"sync-claude-settings.sh":   cl.SyncSettings,
-				"README.md":                 []byte(readme),
-				"config.toml":               miseConfigBuf.Bytes(),
 			}
 
 			for name, content := range files {
@@ -191,6 +147,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			}
 
 			// Make shell scripts executable.
+			// Intentionally coupled with cmd/update.go executable scripts list -- update both together.
 			for _, name := range []string{"init-firewall.sh", "warmup-dns.sh", "sync-claude-settings.sh"} {
 				path := filepath.Join(outDir, name)
 				if err := os.Chmod(path, 0o755); err != nil {
@@ -293,6 +250,74 @@ func stackIDsToStrings(ids []stack.StackID) []string {
 		result[i] = string(id)
 	}
 	return result
+}
+
+// renderFiles produces all agentbox-managed file content for the given
+// configuration. It returns a map from filename to content. The Dockerfile
+// value contains only the agentbox stage (no custom stage). The caller is
+// responsible for appending the custom stage (init) or preserving the
+// existing one (update).
+//
+// versionOverrides maps tool names to version strings (e.g., "go" -> "1.22").
+// Entries that do not match any runtime in the merged config are silently
+// ignored (no coupling to the registry).
+func renderFiles(stackIDs []stack.StackID, extraDomains []string, versionOverrides map[string]string) (map[string][]byte, error) {
+	cfg, err := render.Merge(stackIDs, extraDomains)
+	if err != nil {
+		return nil, fmt.Errorf("merge config: %w", err)
+	}
+
+	render.EnsureNode(&cfg)
+
+	// Apply version overrides to runtimes.
+	for i, rt := range cfg.Runtimes {
+		if v, ok := versionOverrides[rt.Tool]; ok && v != "" {
+			cfg.Runtimes[i].Version = v
+		}
+	}
+
+	// Render all templates.
+	dockerfile, err := render.Dockerfile(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	var devcontainerBuf bytes.Buffer
+	if err := render.DevContainer(&devcontainerBuf, cfg); err != nil {
+		return nil, err
+	}
+
+	fw, err := render.RenderFirewall(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	cl, err := render.RenderClaude(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	readme, err := render.README(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	var miseConfigBuf bytes.Buffer
+	if err := render.MiseConfig(&miseConfigBuf, cfg); err != nil {
+		return nil, err
+	}
+
+	return map[string][]byte{
+		"Dockerfile":                []byte(dockerfile),
+		"devcontainer.json":         devcontainerBuf.Bytes(),
+		"init-firewall.sh":          fw.InitFirewall,
+		"warmup-dns.sh":             fw.WarmupDNS,
+		"dynamic-domains.conf":      fw.DynamicDomains,
+		"claude-user-settings.json": cl.UserSettings,
+		"sync-claude-settings.sh":   cl.SyncSettings,
+		"README.md":                 []byte(readme),
+		"config.toml":               miseConfigBuf.Bytes(),
+	}, nil
 }
 
 // parseRuntimeVersions parses "tool=version" pairs into a map.

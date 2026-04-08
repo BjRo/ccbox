@@ -86,6 +86,18 @@ For scripts that run on every container start (via `postStartCommand`), use idem
 
 Node/npm is always present in generated containers (Claude Code requires it). The `render.EnsureNode` helper guarantees node is in `GenerationConfig.Runtimes` before any template renders. Templates iterate all runtimes uniformly with no node special-casing. See ADR-0008.
 
+## Multi-Stage Dockerfile: Agentbox + Custom Stages
+
+The Dockerfile template renders as a named stage (`FROM debian:bookworm-slim AS agentbox`). A separate `custom-stage.tmpl` renders the user-managed stage (`FROM agentbox AS custom`). The `devcontainer.json` targets the `custom` stage via `"build": {"target": "custom"}`.
+
+- **`Dockerfile.tmpl`** renders only the agentbox stage (no custom stage). The `render.Dockerfile` function returns this portion alone.
+- **`custom-stage.tmpl`** is a static template (no `GenerationConfig` needed). `render.CustomStage()` returns the rendered stub.
+- **`init` concatenates both**: agentbox stage + newline + custom stage stub.
+- **`update` preserves user content**: `dockerfile.SplitAtCustomStage` finds the `FROM agentbox AS custom` line, replaces everything before it with a fresh render, and keeps everything from that line onward verbatim.
+- **Parsing boundary is Docker syntax**: The `FROM agentbox AS custom` line is both valid Dockerfile syntax and the split point. No comment markers needed. Matching is case-insensitive on `FROM`/`AS` keywords, exact on `agentbox`/`custom` stage names.
+
+See ADR-0009.
+
 ## Standalone Config Files Over Inline Heredocs
 
 When a generated file (e.g., mise `config.toml`) should be user-editable after generation, extract it to a standalone template and `COPY` it in the Dockerfile rather than generating it inline with a COPY heredoc. This makes the file the single source of truth for its content (e.g., runtime versions) and allows users to edit it without touching the Dockerfile.

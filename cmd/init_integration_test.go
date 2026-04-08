@@ -93,6 +93,12 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	if !strings.Contains(dockerfile, "golangci-lint") {
 		t.Error("Dockerfile should contain golangci-lint install command for Go stack")
 	}
+	if !strings.Contains(dockerfile, "AS agentbox") {
+		t.Error("Dockerfile should contain AS agentbox stage name")
+	}
+	if !strings.Contains(dockerfile, "FROM agentbox AS custom") {
+		t.Error("Dockerfile should contain custom stage stub")
+	}
 
 	// config.toml content assertions.
 	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
@@ -124,6 +130,9 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	}
 	if !strings.Contains(devcontainer, `"dockerfile": "Dockerfile"`) {
 		t.Error("devcontainer.json should reference Dockerfile")
+	}
+	if !strings.Contains(devcontainer, `"target": "custom"`) {
+		t.Error("devcontainer.json should contain build target 'custom'")
 	}
 
 	// init-firewall.sh: github.com and api.github.com are Dynamic (IP rotation),

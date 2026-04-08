@@ -50,6 +50,9 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 	if df, _ := build["dockerfile"].(string); df != "Dockerfile" {
 		t.Errorf("build.dockerfile = %q, want %q", df, "Dockerfile")
 	}
+	if target, _ := build["target"].(string); target != "custom" {
+		t.Errorf("build.target = %q, want %q", target, "custom")
+	}
 
 	// remoteUser
 	if ru, _ := parsed["remoteUser"].(string); ru != "node" {
