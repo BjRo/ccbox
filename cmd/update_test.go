@@ -22,6 +22,7 @@ func seedInitDir(t *testing.T, dir string, stacks string) string {
 }
 
 func TestUpdateCommand_RequiresAgentboxYml(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 
 	cmd := newRootCmd(nil)
@@ -37,6 +38,7 @@ func TestUpdateCommand_RequiresAgentboxYml(t *testing.T) {
 }
 
 func TestUpdateCommand_RequiresDockerfile(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 
 	// Create .agentbox.yml but no .devcontainer/Dockerfile.
@@ -59,6 +61,7 @@ func TestUpdateCommand_RequiresDockerfile(t *testing.T) {
 }
 
 func TestUpdateCommand_RequiresCustomStage(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 
 	// Create .agentbox.yml and a Dockerfile without custom stage.
@@ -89,6 +92,7 @@ func TestUpdateCommand_RequiresCustomStage(t *testing.T) {
 }
 
 func TestUpdateCommand_ForceRegeneration(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 
 	// Create .agentbox.yml and a Dockerfile without custom stage.
@@ -124,6 +128,7 @@ func TestUpdateCommand_ForceRegeneration(t *testing.T) {
 }
 
 func TestUpdateCommand_PreservesCustomStage(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	devDir := seedInitDir(t, dir, "go")
 
@@ -157,6 +162,7 @@ func TestUpdateCommand_PreservesCustomStage(t *testing.T) {
 }
 
 func TestUpdateCommand_PreservesConfigToml(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	devDir := seedInitDir(t, dir, "go")
 
@@ -186,6 +192,7 @@ func TestUpdateCommand_PreservesConfigToml(t *testing.T) {
 }
 
 func TestUpdateCommand_StackFlagOverrides(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	seedInitDir(t, dir, "go")
 
@@ -223,6 +230,7 @@ func TestUpdateCommand_StackFlagOverrides(t *testing.T) {
 }
 
 func TestUpdateCommand_ExtraDomainsFlag(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	seedInitDir(t, dir, "go")
 
@@ -250,6 +258,7 @@ func TestUpdateCommand_ExtraDomainsFlag(t *testing.T) {
 }
 
 func TestUpdateCommand_NoRuntimeVersionFlag(t *testing.T) {
+	t.Parallel()
 	cmd := newRootCmd(nil)
 	updateCmd, _, err := cmd.Find([]string{"update"})
 	if err != nil {
@@ -263,6 +272,7 @@ func TestUpdateCommand_NoRuntimeVersionFlag(t *testing.T) {
 }
 
 func TestUpdateCommand_RegeneratesAgentboxStage(t *testing.T) {
+	t.Parallel()
 	dir := t.TempDir()
 	devDir := seedInitDir(t, dir, "go")
 

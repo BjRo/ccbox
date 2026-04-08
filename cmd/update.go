@@ -39,7 +39,7 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 			cfgPath := filepath.Join(targetDir, config.Filename)
 			cfgFile, err := os.Open(cfgPath)
 			if err != nil {
-				return fmt.Errorf("no %s found in %s; run 'agentbox init' first", config.Filename, targetDir)
+				return fmt.Errorf("no %s found in %s; run 'agentbox init' first: %w", config.Filename, targetDir, err)
 			}
 			defer func() { _ = cfgFile.Close() }()
 
@@ -78,7 +78,7 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 			dfPath := filepath.Join(outDir, "Dockerfile")
 			existingDF, err := os.ReadFile(dfPath)
 			if err != nil {
-				return fmt.Errorf("no Dockerfile found in .devcontainer/; run 'agentbox init' first")
+				return fmt.Errorf("no Dockerfile found in .devcontainer/; run 'agentbox init' first: %w", err)
 			}
 
 			// Split Dockerfile at custom stage boundary.
@@ -137,6 +137,7 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 			}
 
 			// Make shell scripts executable.
+			// Intentionally coupled with cmd/init.go executable scripts list -- update both together.
 			for _, name := range []string{"init-firewall.sh", "warmup-dns.sh", "sync-claude-settings.sh"} {
 				path := filepath.Join(outDir, name)
 				if err := os.Chmod(path, 0o755); err != nil {
