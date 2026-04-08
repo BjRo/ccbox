@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -105,9 +106,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			// Build version overrides: initialize from wizard, then layer CLI flags on top.
 			versionOverrides := make(map[string]string)
 			// Wizard overrides (from interactive prompting).
-			for k, v := range choices.RuntimeVersions {
-				versionOverrides[k] = v
-			}
+			maps.Copy(versionOverrides, choices.RuntimeVersions)
 			// CLI flag overrides take precedence (for scripted use).
 			if len(runtimeVersions) > 0 {
 				runtimeVersions = trimAndFilter(runtimeVersions)
@@ -115,9 +114,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 				if parseErr != nil {
 					return parseErr
 				}
-				for k, v := range parsed {
-					versionOverrides[k] = v
-				}
+				maps.Copy(versionOverrides, parsed)
 			}
 
 			// Render all agentbox-managed files.
