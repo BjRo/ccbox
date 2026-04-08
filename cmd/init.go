@@ -44,7 +44,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			// Fail fast if .devcontainer/ already exists (file or directory).
 			outDir := filepath.Join(targetDir, ".devcontainer")
 			if _, statErr := os.Stat(outDir); statErr == nil {
-				return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
+				return fmt.Errorf(".devcontainer/ already exists in %s; run 'agentbox update' to regenerate, or remove it first", targetDir)
 			}
 
 			// Trim and filter flag values.
@@ -147,6 +147,7 @@ func newInitCmd(prompter wizard.Prompter) *cobra.Command {
 			}
 
 			// Make shell scripts executable.
+			// Intentionally coupled with cmd/update.go executable scripts list -- update both together.
 			for _, name := range []string{"init-firewall.sh", "warmup-dns.sh", "sync-claude-settings.sh"} {
 				path := filepath.Join(outDir, name)
 				if err := os.Chmod(path, 0o755); err != nil {

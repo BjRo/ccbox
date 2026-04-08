@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-// CustomStageLine is the exact FROM line that marks the boundary between
-// the agentbox-managed stage and the user-managed custom stage.
-const CustomStageLine = "FROM agentbox AS custom"
-
 // ErrNoCustomStage is returned when the Dockerfile does not contain
 // the expected custom stage boundary line.
 var ErrNoCustomStage = errors.New("dockerfile: custom stage not found (expected \"FROM agentbox AS custom\")")
@@ -19,8 +15,10 @@ var ErrNoCustomStage = errors.New("dockerfile: custom stage not found (expected 
 //
 // The function uses index-based slicing on the original string to find the
 // boundary, preserving all original whitespace and newlines exactly as-is.
-// It scans for a line whose trimmed content matches CustomStageLine
-// (case-insensitive on FROM/AS keywords, exact on stage names agentbox/custom).
+// It scans for a line matching "FROM agentbox AS custom". Matching is
+// case-insensitive on the FROM and AS keywords, whitespace-tolerant
+// (leading/trailing whitespace trimmed, fields split on any whitespace),
+// and exact on the stage names "agentbox" and "custom".
 //
 // If no match is found, it returns ErrNoCustomStage.
 func SplitAtCustomStage(content string) (agentboxPart, userPart string, err error) {
