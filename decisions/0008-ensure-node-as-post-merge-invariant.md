@@ -8,7 +8,7 @@
 
 Claude Code requires Node/npm at runtime, so the generated container must always include a `node` runtime entry in its mise configuration. Previously, this invariant was enforced inside the Dockerfile template itself: `node = "lts"` was hardcoded in an inline COPY heredoc, and `{{ if ne .Tool "node" }}` skipped node in the runtime loop to avoid duplication.
 
-When we extracted the mise config to a standalone `config.toml` file and added user-configurable runtime versions, we needed a new place to enforce the "node is always present" invariant. The options were:
+When we extracted the mise config to a standalone `mise-config.toml` file and added user-configurable runtime versions, we needed a new place to enforce the "node is always present" invariant. The options were:
 
 1. **Inject node inside `render.Merge`** -- `Merge` would always append a node runtime to the merged `GenerationConfig`.
 2. **Inject node at the orchestration layer** -- A separate helper called from `cmd/init.go` after `Merge` returns and after version overrides are applied.

@@ -171,8 +171,8 @@ See `renderFiles` in `cmd/init.go`, shared by `cmd/update.go`.
 The `update` command reads `.agentbox.yml` for stacks and extra domains rather than re-detecting or prompting. This makes regeneration deterministic and scriptable.
 
 - **`.agentbox.yml` as source of truth**: Stacks and domains default from the config file; `--stack` and `--extra-domains` flags override and persist back.
-- **Preserve user content structurally**: Dockerfile is split at a structural boundary (`FROM agentbox AS custom`); everything from that line onward is preserved verbatim. `config.toml` is preserved entirely.
-- **No `--runtime-version` on update**: Users edit `config.toml` directly for version changes.
+- **Preserve user content structurally**: Dockerfile is split at a structural boundary (`FROM agentbox AS custom`); everything from that line onward is preserved verbatim. `mise-config.toml` is preserved entirely.
+- **No `--runtime-version` on update**: Users edit `mise-config.toml` directly for version changes.
 - **`--force` recovery flag**: When the structural boundary is missing (e.g., user deleted the custom stage line), `--force` regenerates a fresh custom stage stub instead of erroring.
 - **Sentinel errors for parsing**: `dockerfile.ErrNoCustomStage` is returned when the boundary is not found, allowing the caller to distinguish "missing marker" from other parse errors and decide whether `--force` applies.
 

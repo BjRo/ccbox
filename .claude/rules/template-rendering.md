@@ -113,4 +113,4 @@ Both strategies use the same script structure: check for template existence, fix
 
 ## Standalone Config Files Over Inline Heredocs
 
-When a generated file (e.g., mise `config.toml`) should be user-editable after generation, extract it to a standalone template and `COPY` it in the Dockerfile rather than generating it inline with a COPY heredoc. This makes the file the single source of truth for its content (e.g., runtime versions) and allows users to edit it without touching the Dockerfile.
+When a generated file (e.g., mise `mise-config.toml`) should be user-editable after generation, extract it to a standalone template and `COPY` it in the Dockerfile rather than generating it inline with a COPY heredoc. This makes the file the single source of truth for its content (e.g., runtime versions) and allows users to edit it without touching the Dockerfile.
