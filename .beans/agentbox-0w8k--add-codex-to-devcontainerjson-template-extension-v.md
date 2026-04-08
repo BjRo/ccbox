@@ -168,10 +168,10 @@ None. All changes are well-defined static template additions following establish
 
 ## Definition of Done
 
-- [ ] Tests written (TDD: write tests before implementation)
-- [ ] No new TODO/FIXME/HACK/XXX comments introduced
-- [ ] `golangci-lint run ./...` passes with no errors
-- [ ] `go test ./...` passes with no failures
+- [x] Tests written (TDD: write tests before implementation)
+- [x] No new TODO/FIXME/HACK/XXX comments introduced
+- [x] `golangci-lint run ./...` passes with no errors
+- [x] `go test ./...` passes with no failures
 - [ ] Branch pushed to remote
 - [ ] PR created
 - [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
