@@ -70,7 +70,7 @@ func TestMerge_MultipleStacks(t *testing.T) {
 	// Spot-check: both LSP plugins present.
 	plugins := make(map[string]bool)
 	for _, l := range cfg.LSPs {
-		plugins[l.Plugin] = true
+		plugins[l.Plugins[stack.CodingToolClaude]] = true
 	}
 	if !plugins["gopls-lsp@claude-plugins-official"] {
 		t.Error("missing LSP plugin 'gopls-lsp@claude-plugins-official'")
