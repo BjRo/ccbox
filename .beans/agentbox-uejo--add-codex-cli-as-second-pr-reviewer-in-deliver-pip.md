@@ -1,11 +1,11 @@
 ---
 # agentbox-uejo
 title: Add Codex CLI as second PR reviewer in deliver pipeline
-status: in-progress
+status: completed
 type: feature
 priority: normal
 created_at: 2026-04-08T12:45:09Z
-updated_at: 2026-04-08T13:25:40Z
+updated_at: 2026-04-08T13:52:58Z
 parent: agentbox-cqi5
 ---
 
