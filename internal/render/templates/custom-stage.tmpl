@@ -15,7 +15,7 @@ FROM agentbox AS custom
 # Note: Add `&& mise reshim` after `go install` or `pip install` commands
 # so the installed binaries are discoverable on PATH via mise shims.
 #
-# The agentbox stage above provides: mise runtimes, LSP servers, Claude Code,
+# The agentbox stage above provides: mise runtimes, LSP servers, Claude Code, Codex CLI,
 # firewall scripts, and all system dependencies. Your customizations layer
 # on top via Docker's multi-stage build caching.
 # =============================================================================
