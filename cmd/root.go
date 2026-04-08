@@ -29,6 +29,7 @@ func newRootCmd(prompter wizard.Prompter) *cobra.Command {
 	cmd.SetVersionTemplate("agentbox version {{.Version}}\n")
 
 	cmd.AddCommand(newInitCmd(prompter))
+	cmd.AddCommand(newUpdateCmd())
 
 	return cmd
 }
