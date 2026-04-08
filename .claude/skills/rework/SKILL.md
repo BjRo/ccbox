@@ -35,5 +35,5 @@ Task tool call:
 ### Step 3: After the Agent Completes
 
 1. **Summarize** — Report what was fixed
-2. **Re-trigger review** — Launch `@review-backend`
+2. **Re-trigger reviews** — Launch both `@review-backend` and `@review-codex` in parallel
 3. **Report results**

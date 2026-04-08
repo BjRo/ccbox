@@ -72,8 +72,8 @@ gh pr create --title "<type>: <description>" --body "..."
 
 Set review_iteration = 1. Then loop:
 
-1. **Launch @review-backend** to review the PR code and post findings as PR comments.
-2. **Read the review results** from the agent's response.
+1. **Launch @review-backend and @review-codex in parallel** (two Agent tool calls in a single message) to review the PR code. Both post findings as PR comments.
+2. **Read the review results** from both agents' responses.
 3. **If no actionable findings** -> exit loop, proceed to Phase 3 (Codify).
 4. **If actionable findings AND review_iteration < 3**:
    a. Launch @rework to address ALL findings (CRITICAL, WARNING, SUGGESTION).
@@ -81,7 +81,7 @@ Set review_iteration = 1. Then loop:
    c. **Go back to step 1 of this loop** (re-launch @review-backend).
 5. **If actionable findings AND review_iteration >= 3** -> escalate (write escalation to bean).
 
-**CRITICAL: After rework, you MUST re-launch @review-backend before proceeding to codify. Never skip the re-review.**
+**CRITICAL: After rework, you MUST re-launch both @review-backend and @review-codex before proceeding to codify. Never skip the re-review.**
 
 ## Phase 3: Codify
 
