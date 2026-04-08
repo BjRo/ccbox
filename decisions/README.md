@@ -14,6 +14,7 @@ This directory contains Architecture Decision Records (ADRs). See the `/decision
 | 0006 | Embedded template rendering pattern | [0006](0006-embedded-template-rendering-pattern.md) | 2026-04-02 | embed.FS + text/template + FuncMap + pure rendering functions; two-layer shell injection defense |
 | 0007 | charmbracelet/huh forms for interactive wizard | [0007](0007-huh-forms-for-interactive-wizard.md) | 2026-04-03 | huh forms + Prompter interface + parameter injection + two-form architecture + TTY detection |
 | 0008 | EnsureNode as post-Merge invariant enforcement | [0008](0008-ensure-node-as-post-merge-invariant.md) | 2026-04-07 | Post-Merge helper keeps Merge pure; container-build invariants applied at orchestration layer |
+| 0009 | Multi-stage Dockerfile for user customizations | [0009](0009-multi-stage-dockerfile-for-user-customizations.md) | 2026-04-07 | agentbox/custom stage split; `agentbox update` preserves user stage and config.toml |
 
 ## Maintenance
 
