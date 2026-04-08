@@ -73,13 +73,20 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 		t.Fatal("missing or invalid 'customizations.vscode.extensions' field")
 	}
 	foundClaude := false
+	foundCodex := false
 	for _, ext := range extensions {
 		if ext == "anthropic.claude-code" {
 			foundClaude = true
 		}
+		if ext == "openai.chatgpt" {
+			foundCodex = true
+		}
 	}
 	if !foundClaude {
 		t.Error("customizations.vscode.extensions missing 'anthropic.claude-code'")
+	}
+	if !foundCodex {
+		t.Error("customizations.vscode.extensions missing 'openai.chatgpt'")
 	}
 
 	// customizations.vscode.settings
@@ -132,13 +139,27 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 		t.Errorf("workspaceFolder = %q, want %q", wf, "/workspace")
 	}
 
-	// mounts (4 entries)
+	// mounts -- verify expected entries are present rather than asserting a
+	// hardcoded count (which breaks silently when mounts are added/removed).
 	mounts, ok := parsed["mounts"].([]any)
 	if !ok {
 		t.Fatal("missing or invalid 'mounts' field")
 	}
-	if len(mounts) != 4 {
-		t.Errorf("mounts count = %d, want 4", len(mounts))
+	ss := make([]string, len(mounts))
+	for i, m := range mounts {
+		ss[i], _ = m.(string)
+	}
+	mountJoined := strings.Join(ss, " ")
+	for _, want := range []string{
+		"agentbox-bash-history",
+		"agentbox-claude-config",
+		"agentbox-codex-config",
+		".config/gh",
+		".gitconfig",
+	} {
+		if !strings.Contains(mountJoined, want) {
+			t.Errorf("mounts missing expected entry containing %q", want)
+		}
 	}
 
 	// postStartCommand
@@ -146,8 +167,23 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 	if !strings.Contains(psc, "sync-claude-settings.sh") {
 		t.Error("postStartCommand missing 'sync-claude-settings.sh'")
 	}
+	if !strings.Contains(psc, "sync-codex-settings.sh") {
+		t.Error("postStartCommand missing 'sync-codex-settings.sh'")
+	}
 	if !strings.Contains(psc, "init-firewall.sh") {
 		t.Error("postStartCommand missing 'init-firewall.sh'")
+	}
+	if !strings.Contains(psc, "/home/node/.codex") {
+		t.Error("postStartCommand missing '/home/node/.codex' in chown")
+	}
+
+	// containerEnv
+	containerEnv, ok := parsed["containerEnv"].(map[string]any)
+	if !ok {
+		t.Fatal("missing or invalid 'containerEnv' field")
+	}
+	if val, ok := containerEnv["OPENAI_API_KEY"].(string); !ok || val != "${localEnv:OPENAI_API_KEY}" {
+		t.Errorf("containerEnv.OPENAI_API_KEY = %q, want %q", val, "${localEnv:OPENAI_API_KEY}")
 	}
 }
 
@@ -212,6 +248,7 @@ func TestDevContainer_MountsContent(t *testing.T) {
 	checks := []string{
 		"agentbox-bash-history",
 		"agentbox-claude-config",
+		"agentbox-codex-config",
 		".config/gh",
 		".gitconfig",
 		"${localEnv:HOME}",
@@ -256,6 +293,49 @@ func TestDevContainer_IsStatic(t *testing.T) {
 	if !bytes.Equal(bufGo.Bytes(), bufMulti.Bytes()) {
 		t.Errorf("devcontainer.json differs between Go-only and Go+Node+Python configs; template should be fully static\n--- Go-only ---\n%s\n--- Go+Node+Python ---\n%s",
 			bufGo.String(), bufMulti.String())
+	}
+}
+
+func TestDevContainer_PostStartCommand_Ordering(t *testing.T) {
+	var buf bytes.Buffer
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	if err := DevContainer(&buf, cfg); err != nil {
+		t.Fatalf("DevContainer: %v", err)
+	}
+
+	var parsed map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &parsed); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	psc, _ := parsed["postStartCommand"].(string)
+
+	chownIdx := strings.Index(psc, "chown")
+	claudeIdx := strings.Index(psc, "sync-claude-settings.sh")
+	codexIdx := strings.Index(psc, "sync-codex-settings.sh")
+	firewallIdx := strings.Index(psc, "init-firewall.sh")
+
+	for name, idx := range map[string]int{
+		"chown": chownIdx, "sync-claude-settings.sh": claudeIdx,
+		"sync-codex-settings.sh": codexIdx, "init-firewall.sh": firewallIdx,
+	} {
+		if idx < 0 {
+			t.Fatalf("postStartCommand missing %q", name)
+		}
+	}
+
+	if chownIdx >= claudeIdx {
+		t.Error("chown must appear before sync-claude-settings.sh")
+	}
+	if claudeIdx >= codexIdx {
+		t.Error("sync-claude-settings.sh must appear before sync-codex-settings.sh")
+	}
+	if codexIdx >= firewallIdx {
+		t.Error("sync-codex-settings.sh must appear before init-firewall.sh")
 	}
 }
 
