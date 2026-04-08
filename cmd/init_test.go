@@ -10,7 +10,7 @@ import (
 	"github.com/bjro/agentbox/internal/wizard"
 )
 
-// expectedFiles lists the 9 files that agentbox init generates inside .devcontainer/.
+// expectedInitFiles lists the 11 files that agentbox init generates inside .devcontainer/.
 // Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedInitFiles = []string{
 	"Dockerfile",
@@ -20,6 +20,8 @@ var expectedInitFiles = []string{
 	"dynamic-domains.conf",
 	"claude-user-settings.json",
 	"sync-claude-settings.sh",
+	"codex-config.toml",
+	"sync-codex-settings.sh",
 	"README.md",
 	"config.toml",
 }
