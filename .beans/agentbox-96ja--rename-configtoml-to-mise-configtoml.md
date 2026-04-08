@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-08T12:04:48Z
-updated_at: 2026-04-08T12:20:54Z
+updated_at: 2026-04-08T12:27:57Z
 parent: agentbox-cqi5
 ---
 
@@ -146,7 +146,7 @@ None. The scope is clear: rename mise's `config.toml` to `mise-config.toml` in a
 |-------|--------|-----------|-----------|
 | refine | done | 1 | 2026-04-08 |
 | challenge | done | 1 | 2026-04-08 |
-| implement | pending | | |
+| implement | done | 1 | 2026-04-08 |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
