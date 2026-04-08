@@ -74,9 +74,18 @@ func TestIntegration_UpdatePreservesCustomizations(t *testing.T) {
 	if !strings.Contains(codexConfig, "approval_policy") {
 		t.Error("codex-config.toml should contain approval_policy after update")
 	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode after update")
+	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false after update")
+	}
 	syncCodex := readFile(t, filepath.Join(devDir, "sync-codex-settings.sh"))
 	if !strings.Contains(syncCodex, "codex-config.toml") {
 		t.Error("sync-codex-settings.sh should reference codex-config.toml after update")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex after update")
 	}
 }
 
@@ -208,12 +217,21 @@ func TestIntegration_UpdateForceMode(t *testing.T) {
 
 	// Verify codex files are regenerated during force mode.
 	codexConfig := readFile(t, filepath.Join(devDir, "codex-config.toml"))
-	if len(codexConfig) == 0 {
-		t.Error("codex-config.toml should be non-empty after --force update")
+	if !strings.Contains(codexConfig, "approval_policy") {
+		t.Error("codex-config.toml should contain approval_policy after --force update")
+	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode after --force update")
+	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false after --force update")
 	}
 	syncCodex := readFile(t, filepath.Join(devDir, "sync-codex-settings.sh"))
-	if len(syncCodex) == 0 {
-		t.Error("sync-codex-settings.sh should be non-empty after --force update")
+	if !strings.Contains(syncCodex, "codex-config.toml") {
+		t.Error("sync-codex-settings.sh should reference codex-config.toml after --force update")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex after --force update")
 	}
 }
 
