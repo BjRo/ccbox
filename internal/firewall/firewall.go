@@ -16,7 +16,7 @@ type Stack string
 
 const (
 	// AlwaysOn contains domains required regardless of detected stacks
-	// (GitHub API, Anthropic API, telemetry).
+	// (GitHub API, Anthropic API, OpenAI API, telemetry).
 	AlwaysOn Stack = "always-on"
 	// Go contains domains required for Go module resolution and downloads.
 	Go Stack = "go"
@@ -67,6 +67,8 @@ var registry = map[Stack]Allowlist{
 			{Name: "api.github.com", Category: Dynamic, Rationale: "GitHub REST API - required for git clone/push/pull over HTTPS"},
 			{Name: "github.com", Category: Dynamic, Rationale: "GitHub web and git-over-HTTPS"},
 			{Name: "*.anthropic.com", Category: Dynamic, Rationale: "Anthropic API - required for Claude Code to function"},
+			{Name: "api.openai.com", Category: Dynamic, Rationale: "OpenAI API - required for Codex CLI to function"},
+			{Name: "auth.openai.com", Category: Dynamic, Rationale: "OpenAI auth - required for Codex ChatGPT login flow"},
 			{Name: "sentry.io", Category: Static, Rationale: "Error reporting for Claude Code"},
 			{Name: "statsig.com", Category: Static, Rationale: "Feature flags and experimentation for Claude Code"},
 		},
