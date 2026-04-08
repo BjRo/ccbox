@@ -78,7 +78,7 @@ Set review_iteration = 1. Then loop:
 4. **If actionable findings AND review_iteration < 3**:
    a. Launch @rework to address ALL findings (CRITICAL, WARNING, SUGGESTION).
    b. Increment review_iteration.
-   c. **Go back to step 1 of this loop** (re-launch @review-backend).
+   c. **Go back to step 1 of this loop** (re-launch both @review-backend and @review-codex).
 5. **If actionable findings AND review_iteration >= 3** -> escalate (write escalation to bean).
 
 **CRITICAL: After rework, you MUST re-launch both @review-backend and @review-codex before proceeding to codify. Never skip the re-review.**

@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-04-08T12:45:09Z
-updated_at: 2026-04-08T12:53:06Z
+updated_at: 2026-04-08T13:25:40Z
 parent: agentbox-cqi5
 ---
 
@@ -29,6 +29,7 @@ Add a @review-codex subagent that runs `codex exec review --base main` and posts
 - **Model**: Use highest-quality available (configurable in agent).
 - **Sandbox**: `--full-auto` implies `--sandbox workspace-write` which is sufficient.
 - **Output capture**: `-o /tmp/codex-review.md` for the agent to read and post.
+- **`bypassPermissions` on review-codex only**: `review-codex` uses `permissionMode: bypassPermissions` because it spawns `codex exec review`, an autonomous sub-process that itself runs shell commands. Without the bypass, the parent Claude session would prompt for approval on each command Codex executes, making unattended pipeline operation impossible. `review-backend` does not need the bypass because its `gh api` calls are individually approved or already within the deliver agent's permission scope.
 
 ## Implementation Plan
 
@@ -260,7 +261,7 @@ None -- all design decisions are settled. The two challenge findings have been a
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
 - [ ] Branch pushed to remote
-- [ ] PR created
+- [x] PR created
 - [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
 - [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)

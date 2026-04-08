@@ -54,7 +54,11 @@ gh pr comment "$PR_NUMBER" --body-file /tmp/codex-comment.md
 
 Always use the `--body-file` approach. Do NOT use `--body` with inline content -- it is fragile with shell quoting and special characters.
 
-### 5. Cleanup
+### 5. Verify and Cleanup
+
+Only remove temp files after confirming the comment was posted successfully. If the `gh pr comment` call in Step 4 fails (non-zero exit code), retry once. If it still fails, report the error and preserve `/tmp/codex-review.md` for manual recovery -- do NOT delete the temp files when posting failed.
+
+On success, clean up:
 
 ```bash
 rm -f /tmp/codex-review.md /tmp/codex-comment.md
