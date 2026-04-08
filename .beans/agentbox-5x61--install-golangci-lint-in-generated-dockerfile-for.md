@@ -1,11 +1,11 @@
 ---
 # agentbox-5x61
 title: Install golangci-lint in generated Dockerfile for Go stack
-status: draft
+status: in-progress
 type: feature
 priority: normal
 created_at: 2026-04-07T19:30:05Z
-updated_at: 2026-04-07T19:30:15Z
+updated_at: 2026-04-08T06:26:42Z
 ---
 
 When Go is a selected stack, the generated Dockerfile should install golangci-lint automatically. This is a standard Go development tool that every Go project needs. Currently it has to be installed manually after container creation and doesn't survive rebuilds.
