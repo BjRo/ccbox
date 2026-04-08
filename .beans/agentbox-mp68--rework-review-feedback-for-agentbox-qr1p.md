@@ -1,11 +1,11 @@
 ---
 # agentbox-mp68
 title: Rework review feedback for agentbox-qr1p
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T11:03:53Z
-updated_at: 2026-04-08T11:04:02Z
+updated_at: 2026-04-08T11:04:16Z
 ---
 
 Add clarifying comment to TestDockerfile_CodexCLI_Ordering explaining that the claudeIdx < codexIdx assertion checks argument order within a single RUN line.
