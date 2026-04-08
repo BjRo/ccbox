@@ -56,7 +56,7 @@ RUN {{ .InstallCmd }}
 {{ range .DevTools -}}
 RUN {{ . }}
 {{ end -}}
-{{ end -}}
+{{ end }}
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
