@@ -33,8 +33,8 @@ func TestIntegration_UpdatePreservesCustomizations(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Edit config.toml to set custom versions.
-	configPath := filepath.Join(devDir, "config.toml")
+	// Edit mise-config.toml to set custom versions.
+	configPath := filepath.Join(devDir, "mise-config.toml")
 	customConfig := "[tools]\ngo = \"1.23\"\nnode = \"22\"\n"
 	if err := os.WriteFile(configPath, []byte(customConfig), 0o644); err != nil {
 		t.Fatal(err)
@@ -53,10 +53,10 @@ func TestIntegration_UpdatePreservesCustomizations(t *testing.T) {
 		t.Error("custom stage content should be preserved after update")
 	}
 
-	// Verify config.toml preserved.
+	// Verify mise-config.toml preserved.
 	configContent := readFile(t, configPath)
 	if configContent != customConfig {
-		t.Errorf("config.toml should be preserved; got %q", configContent)
+		t.Errorf("mise-config.toml should be preserved; got %q", configContent)
 	}
 
 	// Verify agentbox stage is freshly rendered.
