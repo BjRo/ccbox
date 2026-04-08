@@ -1,11 +1,11 @@
 ---
 # agentbox-96ja
 title: Rename config.toml to mise-config.toml
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T12:04:48Z
-updated_at: 2026-04-08T12:36:18Z
+updated_at: 2026-04-08T12:40:25Z
 parent: agentbox-cqi5
 ---
 
