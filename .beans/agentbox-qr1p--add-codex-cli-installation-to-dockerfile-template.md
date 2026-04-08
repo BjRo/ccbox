@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-08T09:15:54Z
-updated_at: 2026-04-08T11:01:42Z
+updated_at: 2026-04-08T11:06:30Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-kyij
@@ -107,11 +107,11 @@ None. This is a straightforward static template addition with no design decision
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
 - [x] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) — N/A, no architectural changes
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Pipeline State
 
@@ -121,5 +121,5 @@ None. This is a straightforward static template addition with no design decision
 | challenge | completed | 1 | 2026-04-08 |
 | implement | complete | 1 | 2026-04-08 |
 | pr | completed | 1 | 2026-04-08 |
-| review | pending | | |
-| codify | pending | | |
+| review | completed | 2 | 2026-04-08 |
+| codify | completed | 1 | 2026-04-08 |
