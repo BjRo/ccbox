@@ -129,7 +129,7 @@ When a command creates an output directory (e.g., `.devcontainer/`), check for c
 
 ```go
 if _, statErr := os.Stat(outDir); statErr == nil {
-    return fmt.Errorf(".devcontainer/ already exists in %s; remove it first or use a different directory", targetDir)
+    return fmt.Errorf(".devcontainer/ already exists in %s; run 'agentbox update' to regenerate, or remove it first", targetDir)
 }
 ```
 
@@ -154,6 +154,27 @@ Container-build invariants (e.g., "node must always be present") are enforced by
 - Is called after `Merge` and after version overrides, so user customizations are preserved.
 
 See `render.EnsureNode` and ADR-0008.
+
+## Shared Pure Helpers for Multi-Command Rendering
+
+When multiple commands (`init`, `update`) need to produce the same set of rendered files, extract the shared logic into a package-level pure function in the `cmd` package:
+
+- **Pure data arguments**: Accept `[]stack.StackID`, `[]string`, `map[string]string` -- not Cobra or wizard types.
+- **Returns `map[string][]byte`**: Filename to content, no file I/O inside the function.
+- **Caller assembles final content**: The helper returns the agentbox-managed portion only. Callers append command-specific content (e.g., `init` appends a fresh custom stage stub; `update` preserves the existing user stage).
+- **No side effects**: Merge, EnsureNode, version overrides, and all template renders happen inside the helper. File writes and chmod happen in the caller.
+
+See `renderFiles` in `cmd/init.go`, shared by `cmd/update.go`.
+
+## Update Command: Config-Driven Regeneration
+
+The `update` command reads `.agentbox.yml` for stacks and extra domains rather than re-detecting or prompting. This makes regeneration deterministic and scriptable.
+
+- **`.agentbox.yml` as source of truth**: Stacks and domains default from the config file; `--stack` and `--extra-domains` flags override and persist back.
+- **Preserve user content structurally**: Dockerfile is split at a structural boundary (`FROM agentbox AS custom`); everything from that line onward is preserved verbatim. `config.toml` is preserved entirely.
+- **No `--runtime-version` on update**: Users edit `config.toml` directly for version changes.
+- **`--force` recovery flag**: When the structural boundary is missing (e.g., user deleted the custom stage line), `--force` regenerates a fresh custom stage stub instead of erroring.
+- **Sentinel errors for parsing**: `dockerfile.ErrNoCustomStage` is returned when the boundary is not found, allowing the caller to distinguish "missing marker" from other parse errors and decide whether `--force` applies.
 
 ## Package Documentation
 
