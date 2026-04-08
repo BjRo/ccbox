@@ -1,11 +1,11 @@
 ---
 # agentbox-qr1p
 title: Add Codex CLI installation to Dockerfile template
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:15:54Z
-updated_at: 2026-04-08T11:06:30Z
+updated_at: 2026-04-08T11:09:10Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-kyij
