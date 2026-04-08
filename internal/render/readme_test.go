@@ -41,7 +41,8 @@ func TestREADME_ContainsAllSections(t *testing.T) {
 		"## Getting Started",
 		"## Firewall Architecture",
 		"## Adding Domains",
-		"## Claude Code Permissions",
+		"## Coding Tools",
+		"## Coding Tool Permissions",
 		"## Settings Sync",
 		"## Customization",
 		"## Updating",
@@ -157,7 +158,8 @@ func TestREADME_EmptyConfig(t *testing.T) {
 		"## Getting Started",
 		"## Firewall Architecture",
 		"## Adding Domains",
-		"## Claude Code Permissions",
+		"## Coding Tools",
+		"## Coding Tool Permissions",
 		"## Settings Sync",
 		"## Customization",
 		"## Updating",
@@ -309,6 +311,98 @@ func TestREADME_WildcardDomainsStripped(t *testing.T) {
 	// Table rows start with "| ", so check for "| *.anthropic.com".
 	if strings.Contains(out, "| *.anthropic.com") {
 		t.Error("README contains raw wildcard '*.anthropic.com' in table; should be stripped")
+	}
+}
+
+func TestREADME_CodingToolsSection(t *testing.T) {
+	t.Parallel()
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := README(cfg)
+	if err != nil {
+		t.Fatalf("README: %v", err)
+	}
+
+	checks := []string{
+		"## Coding Tools",
+		"Claude Code",
+		"Codex CLI",
+		"OPENAI_API_KEY",
+		"ChatGPT",
+		"`codex`",
+		"codex --full-auto",
+		"persist across container rebuilds",
+	}
+	for _, s := range checks {
+		if !strings.Contains(out, s) {
+			t.Errorf("Coding Tools section missing %q", s)
+		}
+	}
+}
+
+func TestREADME_CodingToolPermissionsSection(t *testing.T) {
+	t.Parallel()
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := README(cfg)
+	if err != nil {
+		t.Fatalf("README: %v", err)
+	}
+
+	if !strings.Contains(out, "## Coding Tool Permissions") {
+		t.Error("README missing '## Coding Tool Permissions' heading")
+	}
+	if !strings.Contains(out, "bypassPermissions") {
+		t.Error("Permissions section missing 'bypassPermissions' for Claude Code")
+	}
+	if !strings.Contains(out, "danger-full-access") {
+		t.Error("Permissions section missing 'danger-full-access' for Codex")
+	}
+}
+
+func TestREADME_SettingsSyncMentionsBothTools(t *testing.T) {
+	t.Parallel()
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := README(cfg)
+	if err != nil {
+		t.Fatalf("README: %v", err)
+	}
+
+	if !strings.Contains(out, "sync-claude-settings.sh") {
+		t.Error("Settings Sync section missing 'sync-claude-settings.sh'")
+	}
+	if !strings.Contains(out, "sync-codex-settings.sh") {
+		t.Error("Settings Sync section missing 'sync-codex-settings.sh'")
+	}
+}
+
+func TestREADME_CustomizationContainerEnvForwarding(t *testing.T) {
+	t.Parallel()
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := README(cfg)
+	if err != nil {
+		t.Fatalf("README: %v", err)
+	}
+
+	if !strings.Contains(out, "containerEnv") {
+		t.Error("Customization section missing 'containerEnv'")
+	}
+	if !strings.Contains(out, "forwarded") {
+		t.Error("Customization section missing forwarding semantics for containerEnv")
 	}
 }
 
