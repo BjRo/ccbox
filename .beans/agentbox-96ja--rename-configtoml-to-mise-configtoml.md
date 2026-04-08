@@ -5,7 +5,7 @@ status: in-progress
 type: task
 priority: normal
 created_at: 2026-04-08T12:04:48Z
-updated_at: 2026-04-08T12:28:24Z
+updated_at: 2026-04-08T12:36:18Z
 parent: agentbox-cqi5
 ---
 
@@ -134,10 +134,10 @@ None. The scope is clear: rename mise's `config.toml` to `mise-config.toml` in a
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
 - [x] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill — N/A, pure rename with no architectural changes
+- [x] All other checklist items above are completed
 - [ ] User notified for human review
 
 ## Pipeline State
@@ -148,5 +148,5 @@ None. The scope is clear: rename mise's `config.toml` to `mise-config.toml` in a
 | challenge | done | 1 | 2026-04-08 |
 | implement | done | 1 | 2026-04-08 |
 | pr | done | 1 | 2026-04-08 |
-| review | pending | | |
-| codify | pending | | |
+| review | done | 2 | 2026-04-08 |
+| codify | done | 1 | 2026-04-08 |
