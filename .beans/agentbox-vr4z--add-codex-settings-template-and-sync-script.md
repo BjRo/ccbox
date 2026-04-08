@@ -1,11 +1,11 @@
 ---
 # agentbox-vr4z
 title: Add Codex settings template and sync script
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:16:10Z
-updated_at: 2026-04-08T11:11:19Z
+updated_at: 2026-04-08T11:19:02Z
 parent: agentbox-cqi5
 blocked_by:
     - agentbox-kyij
