@@ -54,6 +54,10 @@ RUN go install golang.org/x/tools/gopls@latest
 # --- Dev tools ---
 RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
+# Regenerate shims so binaries installed by go install / pip install / etc.
+# are discoverable via mise's shim directory on PATH.
+RUN mise reshim
+
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
@@ -103,7 +107,7 @@ FROM agentbox AS custom
 # =============================================================================
 
 # --- Project tools ---
-RUN go install github.com/hmans/beans@latest
+RUN go install github.com/hmans/beans@latest && mise reshim
 
 # Disable adaptive thinking for now
 ENV CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1
