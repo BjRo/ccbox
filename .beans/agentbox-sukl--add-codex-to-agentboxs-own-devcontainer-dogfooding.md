@@ -1,11 +1,11 @@
 ---
 # agentbox-sukl
 title: Add Codex to agentbox's own .devcontainer (dogfooding)
-status: in-progress
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-08T09:17:05Z
-updated_at: 2026-04-08T11:52:43Z
+updated_at: 2026-04-08T11:58:00Z
 parent: agentbox-cqi5
 ---
 
