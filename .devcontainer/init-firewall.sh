@@ -114,9 +114,12 @@ cat >> /etc/dnsmasq.d/agentbox.conf << 'DNSMASQ_EOF'
 # Dynamic domain ipset integration: resolved IPs are automatically added
 # to the allowed_ips ipset for firewall allowlisting.
 ipset=/anthropic.com/allowed_ips
+ipset=/accounts.openai.com/allowed_ips
 ipset=/api.github.com/allowed_ips
 ipset=/api.openai.com/allowed_ips
 ipset=/auth.openai.com/allowed_ips
+ipset=/auth0.openai.com/allowed_ips
+ipset=/chatgpt.com/allowed_ips
 ipset=/github.com/allowed_ips
 ipset=/proxy.golang.org/allowed_ips
 ipset=/storage.googleapis.com/allowed_ips

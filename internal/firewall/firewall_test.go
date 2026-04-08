@@ -35,8 +35,11 @@ func TestRegistry_AlwaysOnDomains(t *testing.T) {
 		"api.github.com":  Dynamic,
 		"github.com":      Dynamic,
 		"*.anthropic.com": Dynamic,
-		"api.openai.com":  Dynamic,
-		"auth.openai.com": Dynamic,
+		"api.openai.com":      Dynamic,
+		"auth.openai.com":     Dynamic,
+		"auth0.openai.com":    Dynamic,
+		"chatgpt.com":         Dynamic,
+		"accounts.openai.com": Dynamic,
 		"sentry.io":       Static,
 		"statsig.com":     Static,
 	}

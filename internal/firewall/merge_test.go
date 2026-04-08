@@ -86,6 +86,15 @@ func TestMerge_AlwaysOnIncluded(t *testing.T) {
 	if !dynamicNames["auth.openai.com"] {
 		t.Error("auth.openai.com should be in Dynamic")
 	}
+	if !dynamicNames["auth0.openai.com"] {
+		t.Error("auth0.openai.com should be in Dynamic")
+	}
+	if !dynamicNames["chatgpt.com"] {
+		t.Error("chatgpt.com should be in Dynamic")
+	}
+	if !dynamicNames["accounts.openai.com"] {
+		t.Error("accounts.openai.com should be in Dynamic")
+	}
 
 	// Verify sorted order within each list.
 	if !slices.IsSortedFunc(result.Static, func(a, b Domain) int {

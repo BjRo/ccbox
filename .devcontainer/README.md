@@ -54,9 +54,12 @@ These domains have rotating IPs (CDNs, load balancers) and are continuously re-r
 | Domain | Rationale |
 |--------|-----------|
 | anthropic.com | Anthropic API - required for Claude Code to function |
+| accounts.openai.com | OpenAI accounts - required for Codex ChatGPT auth |
 | api.github.com | GitHub REST API - required for git clone/push/pull over HTTPS |
 | api.openai.com | OpenAI API - required for Codex CLI to function |
 | auth.openai.com | OpenAI auth - required for Codex ChatGPT login flow |
+| auth0.openai.com | OpenAI auth0 - required for Codex ChatGPT token refresh |
+| chatgpt.com | ChatGPT - required for Codex ChatGPT login auth flow |
 | github.com | GitHub web and git-over-HTTPS |
 | proxy.golang.org | Default Go module proxy - serves go get / go mod download |
 | storage.googleapis.com | GCS backend for Go module proxy - actual module content delivery |
