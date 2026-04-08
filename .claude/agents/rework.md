@@ -25,7 +25,13 @@ PR_NUMBER=$(gh pr view --json number -q '.number')
 REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
 gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" --jq '.[] | select(.body != null and .body != "") | {id: .id, user: .user.login, body: .body}'
 gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" --jq '.[] | {path: .path, line: .line, body: .body}'
+gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" --jq '.[] | {user: .user.login, body: .body}'
 ```
+
+The three endpoints cover all review feedback:
+- `/pulls/{n}/reviews` -- PR review bodies (from @review-backend)
+- `/pulls/{n}/comments` -- Inline PR review comments (line-level comments from @review-backend)
+- `/issues/{n}/comments` -- General PR comments (from @review-codex via `gh pr comment`)
 
 ### 3. Parse Findings
 

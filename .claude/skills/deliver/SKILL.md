@@ -89,10 +89,11 @@ EOF
 )"
 ```
 
-### Step 3: Launch Review
+### Step 3: Launch Reviews (parallel)
 
-Launch `@review-backend` to review the Go code:
+Launch both reviewers in parallel using two Task tool calls in a single message:
 
+**Review A: @review-backend**
 ```
 Task tool call:
   subagent_type: "review-backend"
@@ -100,10 +101,20 @@ Task tool call:
   prompt: "Review the current PR. Post your findings as PR comments using the gh CLI."
 ```
 
+**Review B: @review-codex**
+```
+Task tool call:
+  subagent_type: "review-codex"
+  description: "Codex code review"
+  prompt: "Review the current PR. Run codex exec review and post findings as a PR comment."
+```
+
 ### Step 4: Evaluate Review Results
 
-- **No actionable findings (zero findings)** -> check off "Automated code review passed". Proceed to Codify.
-- **Any findings at all (CRITICAL, WARNING, or SUGGESTION), iteration < 3** -> Rework. Do NOT evaluate findings yourself and cherry-pick which to fix. ALL findings must go through the rework agent.
+Read the responses from both reviewers.
+
+- **No actionable findings from either reviewer** -> check off "Automated code review passed". Proceed to Codify.
+- **Any findings from either reviewer (CRITICAL, WARNING, or SUGGESTION), iteration < 3** -> Rework. Do NOT evaluate findings yourself and cherry-pick which to fix. ALL findings must go through the rework agent.
 - **Any findings, iteration >= 3** -> Escalate
 
 ### Step 5a: Rework
