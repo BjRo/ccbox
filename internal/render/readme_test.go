@@ -315,6 +315,7 @@ func TestREADME_WildcardDomainsStripped(t *testing.T) {
 }
 
 func TestREADME_CodingToolsSection(t *testing.T) {
+	t.Parallel()
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
@@ -331,7 +332,7 @@ func TestREADME_CodingToolsSection(t *testing.T) {
 		"Codex CLI",
 		"OPENAI_API_KEY",
 		"ChatGPT",
-		"codex",
+		"`codex`",
 		"codex --full-auto",
 		"persist across container rebuilds",
 	}
@@ -343,6 +344,7 @@ func TestREADME_CodingToolsSection(t *testing.T) {
 }
 
 func TestREADME_CodingToolPermissionsSection(t *testing.T) {
+	t.Parallel()
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
@@ -365,6 +367,7 @@ func TestREADME_CodingToolPermissionsSection(t *testing.T) {
 }
 
 func TestREADME_SettingsSyncMentionsBothTools(t *testing.T) {
+	t.Parallel()
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
@@ -384,6 +387,7 @@ func TestREADME_SettingsSyncMentionsBothTools(t *testing.T) {
 }
 
 func TestREADME_CustomizationContainerEnvForwarding(t *testing.T) {
+	t.Parallel()
 	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
 	if err != nil {
 		t.Fatalf("Merge: %v", err)
