@@ -22,8 +22,8 @@ func TestDockerfile_BaseImage(t *testing.T) {
 	if !strings.Contains(out, "# syntax=docker/dockerfile:1") {
 		t.Error("output missing BuildKit syntax directive")
 	}
-	if !strings.Contains(out, "FROM debian:bookworm-slim") {
-		t.Error("output missing FROM debian:bookworm-slim")
+	if !strings.Contains(out, "FROM debian:bookworm-slim AS agentbox") {
+		t.Error("output missing FROM debian:bookworm-slim AS agentbox")
 	}
 }
 
@@ -171,8 +171,8 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, "FROM debian:bookworm-slim") {
-		t.Error("empty config missing base image")
+	if !strings.Contains(out, "FROM debian:bookworm-slim AS agentbox") {
+		t.Error("empty config missing base image with stage name")
 	}
 	if !strings.Contains(out, "build-essential") {
 		t.Error("empty config missing system packages")
@@ -444,8 +444,8 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 		t.Fatalf("Dockerfile: %v", err)
 	}
 
-	if !strings.Contains(out, "FROM debian:bookworm-slim") {
-		t.Error("minimal config missing base image")
+	if !strings.Contains(out, "FROM debian:bookworm-slim AS agentbox") {
+		t.Error("minimal config missing base image with stage name")
 	}
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("minimal config missing Claude Code install")

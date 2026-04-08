@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # --- Base image ---
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS agentbox
 
 # --- Locale ---
 ENV LANG=en_US.UTF-8
