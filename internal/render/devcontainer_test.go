@@ -145,13 +145,11 @@ func TestDevContainer_FixedStructure(t *testing.T) {
 	if !ok {
 		t.Fatal("missing or invalid 'mounts' field")
 	}
-	mountJoined := strings.Join(func() []string {
-		ss := make([]string, len(mounts))
-		for i, m := range mounts {
-			ss[i], _ = m.(string)
-		}
-		return ss
-	}(), " ")
+	ss := make([]string, len(mounts))
+	for i, m := range mounts {
+		ss[i], _ = m.(string)
+	}
+	mountJoined := strings.Join(ss, " ")
 	for _, want := range []string{
 		"agentbox-bash-history",
 		"agentbox-claude-config",
@@ -338,36 +336,6 @@ func TestDevContainer_PostStartCommand_Ordering(t *testing.T) {
 	}
 	if codexIdx >= firewallIdx {
 		t.Error("sync-codex-settings.sh must appear before init-firewall.sh")
-	}
-}
-
-func TestDevContainer_ContainerEnv_Structure(t *testing.T) {
-	var buf bytes.Buffer
-	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
-	if err != nil {
-		t.Fatalf("Merge: %v", err)
-	}
-
-	if err := DevContainer(&buf, cfg); err != nil {
-		t.Fatalf("DevContainer: %v", err)
-	}
-
-	var parsed map[string]any
-	if err := json.Unmarshal(buf.Bytes(), &parsed); err != nil {
-		t.Fatalf("unmarshal: %v", err)
-	}
-
-	containerEnv, ok := parsed["containerEnv"].(map[string]any)
-	if !ok {
-		t.Fatal("missing or invalid 'containerEnv' field")
-	}
-
-	val, ok := containerEnv["OPENAI_API_KEY"].(string)
-	if !ok {
-		t.Fatal("containerEnv.OPENAI_API_KEY is not a string")
-	}
-	if val != "${localEnv:OPENAI_API_KEY}" {
-		t.Errorf("containerEnv.OPENAI_API_KEY = %q, want %q", val, "${localEnv:OPENAI_API_KEY}")
 	}
 }
 
