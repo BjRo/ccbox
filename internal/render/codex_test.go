@@ -61,7 +61,7 @@ func TestRenderCodex_Config_SpecificValues(t *testing.T) {
 
 	output := string(files.Config)
 	for _, expected := range []string{
-		`approval_policy = "unless-allow-listed"`,
+		`approval_policy = "never"`,
 		`sandbox_mode = "danger-full-access"`,
 	} {
 		if !strings.Contains(output, expected) {
