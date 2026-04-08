@@ -77,7 +77,7 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 9 files exist and are non-empty.
+	// All expected files exist and are non-empty.
 	for _, name := range expectedFiles {
 		info := assertFileExists(t, filepath.Join(devcontainerDir, name))
 		if info.Size() == 0 {
@@ -228,7 +228,7 @@ func TestIntegration_MultiStack(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 9 files exist.
+	// All expected files exist and are non-empty.
 	for _, name := range expectedFiles {
 		info := assertFileExists(t, filepath.Join(devcontainerDir, name))
 		if info.Size() == 0 {
@@ -350,7 +350,7 @@ func TestIntegration_ExtraDomains(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// All 9 files exist.
+	// All expected files exist.
 	for _, name := range expectedFiles {
 		assertFileExists(t, filepath.Join(devcontainerDir, name))
 	}
