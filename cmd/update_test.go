@@ -161,13 +161,13 @@ func TestUpdateCommand_PreservesCustomStage(t *testing.T) {
 	}
 }
 
-func TestUpdateCommand_PreservesConfigToml(t *testing.T) {
+func TestUpdateCommand_PreservesMiseConfigToml(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	devDir := seedInitDir(t, dir, "go")
 
-	// Modify config.toml.
-	configPath := filepath.Join(devDir, "config.toml")
+	// Modify mise-config.toml.
+	configPath := filepath.Join(devDir, "mise-config.toml")
 	customConfig := "[tools]\ngo = \"1.23\"\nnode = \"22\"\n"
 	if err := os.WriteFile(configPath, []byte(customConfig), 0o644); err != nil {
 		t.Fatal(err)
@@ -181,13 +181,13 @@ func TestUpdateCommand_PreservesConfigToml(t *testing.T) {
 		t.Fatalf("update: %v", err)
 	}
 
-	// Verify config.toml is preserved.
+	// Verify mise-config.toml is preserved.
 	content, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if string(content) != customConfig {
-		t.Errorf("config.toml should be preserved; got %q, want %q", string(content), customConfig)
+		t.Errorf("mise-config.toml should be preserved; got %q, want %q", string(content), customConfig)
 	}
 }
 

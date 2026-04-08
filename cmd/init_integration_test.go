@@ -48,7 +48,7 @@ var expectedFiles = []string{
 	"codex-config.toml",
 	"sync-codex-settings.sh",
 	"README.md",
-	"config.toml",
+	"mise-config.toml",
 }
 
 // executableScripts lists the shell scripts that must have the executable bit set.
@@ -87,8 +87,8 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 
 	// Dockerfile content assertions.
 	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
-	if !strings.Contains(dockerfile, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("Dockerfile should contain COPY config.toml directive")
+	if !strings.Contains(dockerfile, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("Dockerfile should contain COPY mise-config.toml directive")
 	}
 	if !strings.Contains(dockerfile, "go install golang.org/x/tools/gopls@latest") {
 		t.Error("Dockerfile should contain gopls install command")
@@ -103,26 +103,26 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 		t.Error("Dockerfile should contain custom stage stub")
 	}
 
-	// config.toml content assertions.
-	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	// mise-config.toml content assertions.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "mise-config.toml"))
 	if !strings.Contains(configToml, `go = "latest"`) {
-		t.Error(`config.toml should contain go = "latest"`)
+		t.Error(`mise-config.toml should contain go = "latest"`)
 	}
 	if !strings.Contains(configToml, `node = "lts"`) {
-		t.Error(`config.toml should contain node = "lts"`)
+		t.Error(`mise-config.toml should contain node = "lts"`)
 	}
-	// Negative: no other runtimes in config.toml.
+	// Negative: no other runtimes in mise-config.toml.
 	for _, absent := range []string{`python = "`, `ruby = "`, `rust = "`} {
 		if strings.Contains(configToml, absent) {
-			t.Errorf("config.toml should not contain %s for Go-only config", absent)
+			t.Errorf("mise-config.toml should not contain %s for Go-only config", absent)
 		}
 	}
-	// config.toml trailing newline.
+	// mise-config.toml trailing newline.
 	if !strings.HasSuffix(configToml, "\n") {
-		t.Error("config.toml does not end with trailing newline")
+		t.Error("mise-config.toml does not end with trailing newline")
 	}
 	if strings.HasSuffix(configToml, "\n\n") {
-		t.Error("config.toml ends with double trailing newline")
+		t.Error("mise-config.toml ends with double trailing newline")
 	}
 
 	// devcontainer.json: valid JSON with expected fields.
@@ -239,10 +239,10 @@ func TestIntegration_MultiStack(t *testing.T) {
 		}
 	}
 
-	// Dockerfile: contains COPY config.toml, both LSP installs.
+	// Dockerfile: contains COPY mise-config.toml, both LSP installs.
 	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
-	if !strings.Contains(dockerfile, "COPY config.toml /home/node/.config/mise/config.toml") {
-		t.Error("Dockerfile should contain COPY config.toml directive")
+	if !strings.Contains(dockerfile, "COPY mise-config.toml /home/node/.config/mise/config.toml") {
+		t.Error("Dockerfile should contain COPY mise-config.toml directive")
 	}
 	if !strings.Contains(dockerfile, "go install golang.org/x/tools/gopls@latest") {
 		t.Error("Dockerfile should contain gopls install")
@@ -254,13 +254,13 @@ func TestIntegration_MultiStack(t *testing.T) {
 		t.Error("Dockerfile should contain golangci-lint install command for Go+Node stack")
 	}
 
-	// config.toml: contains Go and Node runtimes.
-	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	// mise-config.toml: contains Go and Node runtimes.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "mise-config.toml"))
 	if !strings.Contains(configToml, `go = "latest"`) {
-		t.Error(`config.toml should contain go = "latest"`)
+		t.Error(`mise-config.toml should contain go = "latest"`)
 	}
 	if !strings.Contains(configToml, `node = "lts"`) {
-		t.Error(`config.toml should contain node = "lts"`)
+		t.Error(`mise-config.toml should contain node = "lts"`)
 	}
 
 	// init-firewall.sh: contains domains from both stacks.
@@ -470,18 +470,18 @@ func TestIntegration_RuntimeVersionFlag(t *testing.T) {
 
 	devcontainerDir := filepath.Join(dir, ".devcontainer")
 
-	// config.toml should have overridden versions.
-	configToml := readFile(t, filepath.Join(devcontainerDir, "config.toml"))
+	// mise-config.toml should have overridden versions.
+	configToml := readFile(t, filepath.Join(devcontainerDir, "mise-config.toml"))
 	if !strings.Contains(configToml, `go = "1.22"`) {
-		t.Error(`config.toml should contain go = "1.22"`)
+		t.Error(`mise-config.toml should contain go = "1.22"`)
 	}
 	if !strings.Contains(configToml, `node = "20"`) {
-		t.Error(`config.toml should contain node = "20"`)
+		t.Error(`mise-config.toml should contain node = "20"`)
 	}
 
-	// Dockerfile should NOT contain version strings (they live in config.toml).
+	// Dockerfile should NOT contain version strings (they live in mise-config.toml).
 	dockerfile := readFile(t, filepath.Join(devcontainerDir, "Dockerfile"))
 	if strings.Contains(dockerfile, `= "1.22"`) {
-		t.Error("Dockerfile should not contain version strings; they live in config.toml")
+		t.Error("Dockerfile should not contain version strings; they live in mise-config.toml")
 	}
 }

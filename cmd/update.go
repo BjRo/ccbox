@@ -25,9 +25,9 @@ func newUpdateCmd() *cobra.Command {
 		Use:   "update",
 		Short: "Regenerate agentbox-managed devcontainer files",
 		Long: `Regenerate the agentbox-managed portion of .devcontainer/ while preserving
-user customizations in the Dockerfile custom stage and config.toml.
+user customizations in the Dockerfile custom stage and mise-config.toml.
 
-To change runtime versions, edit .devcontainer/config.toml directly.`,
+To change runtime versions, edit .devcontainer/mise-config.toml directly.`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			// Resolve target directory.
 			targetDir, err := resolveDir(dir)
@@ -95,8 +95,8 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 				userPart = ""
 			}
 
-			// Read existing config.toml (preserved on update).
-			configTomlPath := filepath.Join(outDir, "config.toml")
+			// Read existing mise-config.toml (preserved on update).
+			configTomlPath := filepath.Join(outDir, "mise-config.toml")
 			existingConfigToml, configTomlErr := os.ReadFile(configTomlPath)
 
 			// Render fresh agentbox-managed files.
@@ -119,9 +119,9 @@ To change runtime versions, edit .devcontainer/config.toml directly.`,
 				files["Dockerfile"] = append(files["Dockerfile"], []byte(customStage)...)
 			}
 
-			// Preserve existing config.toml if it was found.
+			// Preserve existing mise-config.toml if it was found.
 			if configTomlErr == nil {
-				files["config.toml"] = existingConfigToml
+				files["mise-config.toml"] = existingConfigToml
 			}
 
 			// Write files.
