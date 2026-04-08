@@ -39,8 +39,8 @@ RUN curl https://mise.jdx.dev/install.sh | sh \
     && cp /root/.local/bin/mise /usr/local/bin/mise
 
 # --- Runtime configuration ---
-# Managed by mise; edit .devcontainer/config.toml to change versions.
-COPY config.toml /home/node/.config/mise/config.toml
+# Managed by mise; edit .devcontainer/mise-config.toml to change versions.
+COPY mise-config.toml /home/node/.config/mise/config.toml
 
 # --- Install runtimes via mise (as node user so $HOME matches config path) ---
 RUN chown -R node:node /home/node/.config

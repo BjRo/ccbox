@@ -103,7 +103,7 @@ RUN npm install -g some-cli
 
 ### Runtime Versions
 
-To change runtime versions, edit `.devcontainer/config.toml` directly.
+To change runtime versions, edit `.devcontainer/mise-config.toml` directly.
 
 ### devcontainer.json
 
@@ -120,7 +120,7 @@ To regenerate agentbox-managed files after changing stacks or updating agentbox:
 
     agentbox update --dir .
 
-This preserves your custom Dockerfile stage and `config.toml` runtime versions.
+This preserves your custom Dockerfile stage and `mise-config.toml` runtime versions.
 
 To change detected stacks permanently:
 
@@ -128,7 +128,7 @@ To change detected stacks permanently:
 
 The `--stack` flag persists the new stack selection to `.agentbox.yml`.
 
-To change runtime versions, edit `.devcontainer/config.toml` directly.
+To change runtime versions, edit `.devcontainer/mise-config.toml` directly.
 
 ## Troubleshooting
 
