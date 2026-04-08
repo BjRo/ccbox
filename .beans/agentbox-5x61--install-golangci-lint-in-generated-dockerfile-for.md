@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-04-07T19:30:05Z
-updated_at: 2026-04-08T06:26:42Z
+updated_at: 2026-04-08T06:43:59Z
 ---
 
 When Go is a selected stack, the generated Dockerfile should install golangci-lint automatically. This is a standard Go development tool that every Go project needs. Currently it has to be installed manually after container creation and doesn't survive rebuilds.
@@ -20,13 +20,13 @@ Also update this project's .devcontainer/ to include it.
 - [x] No new TODO/FIXME/HACK/XXX comments introduced
 - [ ] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
-- [ ] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] Branch pushed to remote
+- [x] PR created
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) — N/A, no new patterns
+- [x] All other checklist items above are completed
+- [x] User notified for human review
 
 ## Implementation Plan
 
