@@ -466,7 +466,7 @@ func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
 			{Tool: "zig", Version: "0.12"},
 		},
 		LSPs: []stack.LSP{
-			{Package: "zls", InstallCmd: "zig-install zls", Plugin: "zls"},
+			{Package: "zls", InstallCmd: "zig-install zls", Plugins: map[string]string{stack.CodingToolClaude: "zls"}},
 		},
 		SystemDeps: []string{"libfoo-dev"},
 		DevTools:   []string{},
