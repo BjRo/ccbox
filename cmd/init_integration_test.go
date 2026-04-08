@@ -35,7 +35,7 @@ func readFile(t *testing.T, path string) string {
 	return string(data)
 }
 
-// expectedFiles lists the 9 files that agentbox init generates inside .devcontainer/.
+// expectedFiles lists the 11 files that agentbox init generates inside .devcontainer/.
 // Intentionally coupled with the file map in cmd/init.go's RunE -- update both together.
 var expectedFiles = []string{
 	"Dockerfile",
@@ -45,6 +45,8 @@ var expectedFiles = []string{
 	"dynamic-domains.conf",
 	"claude-user-settings.json",
 	"sync-claude-settings.sh",
+	"codex-config.toml",
+	"sync-codex-settings.sh",
 	"README.md",
 	"config.toml",
 }
@@ -55,6 +57,7 @@ var executableScripts = []string{
 	"init-firewall.sh",
 	"warmup-dns.sh",
 	"sync-claude-settings.sh",
+	"sync-codex-settings.sh",
 }
 
 func TestIntegration_SingleGoStack(t *testing.T) {
@@ -178,6 +181,24 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	}
 	if strings.Contains(claudeSettings, "typescript-lsp@claude-plugins-official") {
 		t.Error("claude-user-settings.json should not contain typescript plugin (single Go stack)")
+	}
+
+	// codex-config.toml: contains expected TOML keys.
+	codexConfig := readFile(t, filepath.Join(devcontainerDir, "codex-config.toml"))
+	if !strings.Contains(codexConfig, "approval_policy") {
+		t.Error("codex-config.toml should contain approval_policy")
+	}
+	if !strings.Contains(codexConfig, "sandbox_mode") {
+		t.Error("codex-config.toml should contain sandbox_mode")
+	}
+
+	// sync-codex-settings.sh: references codex-config.toml and target dir.
+	syncCodex := readFile(t, filepath.Join(devcontainerDir, "sync-codex-settings.sh"))
+	if !strings.Contains(syncCodex, "codex-config.toml") {
+		t.Error("sync-codex-settings.sh should reference codex-config.toml")
+	}
+	if !strings.Contains(syncCodex, "$HOME/.codex") {
+		t.Error("sync-codex-settings.sh should reference $HOME/.codex")
 	}
 
 	// README.md: contains Go stack listing.
