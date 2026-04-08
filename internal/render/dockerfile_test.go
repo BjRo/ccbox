@@ -183,6 +183,9 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("empty config missing Claude Code install")
 	}
+	if !strings.Contains(out, "@openai/codex") {
+		t.Error("empty config missing Codex CLI install")
+	}
 	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
 		t.Error("empty config missing COPY config.toml directive")
 	}
@@ -257,6 +260,55 @@ func TestDockerfile_ClaudeCodeInstall(t *testing.T) {
 
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("output missing Claude Code install command")
+	}
+}
+
+func TestDockerfile_CodexCLIInstall(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	if !strings.Contains(out, "@openai/codex") {
+		t.Error("output missing Codex CLI install command")
+	}
+}
+
+func TestDockerfile_CodexCLI_Ordering(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	claudeIdx := strings.Index(out, "@anthropic-ai/claude-code")
+	codexIdx := strings.Index(out, "@openai/codex")
+	userRootIdx := strings.Index(out, "USER root")
+
+	if claudeIdx == -1 {
+		t.Fatal("output missing Claude Code install")
+	}
+	if codexIdx == -1 {
+		t.Fatal("output missing Codex CLI install")
+	}
+	if userRootIdx == -1 {
+		t.Fatal("output missing USER root directive")
+	}
+
+	if claudeIdx > codexIdx {
+		t.Error("Claude Code install should appear before Codex CLI install")
+	}
+	if codexIdx > userRootIdx {
+		t.Error("Codex CLI install should appear before USER root directive")
 	}
 }
 
@@ -453,6 +505,9 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 	if !strings.Contains(out, "npm install -g @anthropic-ai/claude-code") {
 		t.Error("minimal config missing Claude Code install")
 	}
+	if !strings.Contains(out, "@openai/codex") {
+		t.Error("minimal config missing Codex CLI install")
+	}
 	if !strings.Contains(out, "COPY config.toml /home/node/.config/mise/config.toml") {
 		t.Error("minimal config missing COPY config.toml directive")
 	}
@@ -633,6 +688,7 @@ func TestDockerfile_DevTools_OrderingInDockerfile(t *testing.T) {
 	miseIdx := strings.Index(out, "RUN mise install")
 	golangciIdx := strings.Index(out, "golangci-lint")
 	claudeIdx := strings.Index(out, "npm install -g @anthropic-ai/claude-code")
+	codexIdx := strings.Index(out, "@openai/codex")
 
 	if miseIdx == -1 {
 		t.Fatal("output missing mise install")
@@ -643,12 +699,18 @@ func TestDockerfile_DevTools_OrderingInDockerfile(t *testing.T) {
 	if claudeIdx == -1 {
 		t.Fatal("output missing Claude Code install")
 	}
+	if codexIdx == -1 {
+		t.Fatal("output missing Codex CLI install")
+	}
 
 	if golangciIdx < miseIdx {
 		t.Error("golangci-lint should appear after mise install")
 	}
 	if golangciIdx > claudeIdx {
 		t.Error("golangci-lint should appear before Claude Code install")
+	}
+	if golangciIdx > codexIdx {
+		t.Error("golangci-lint should appear before Codex CLI install")
 	}
 }
 
