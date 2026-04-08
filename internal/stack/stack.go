@@ -1,9 +1,13 @@
 package stack
 
 import (
+	"maps"
 	"slices"
 	"strings"
 )
+
+// CodingToolClaude identifies Claude Code in the LSP Plugins map.
+const CodingToolClaude = "claude"
 
 // StackID identifies a supported technology stack.
 // It uses string values rather than integer enums because stack IDs appear
@@ -27,9 +31,9 @@ type Runtime struct {
 
 // LSP describes the language server configuration for a stack.
 type LSP struct {
-	Package    string // Language server package name, e.g. "gopls"
-	InstallCmd string // Full install command, e.g. "go install golang.org/x/tools/gopls@latest"
-	Plugin     string // Claude Code plugin identifier, e.g. "gopls-lsp@claude-plugins-official" (empty if no official plugin)
+	Package    string            // Language server package name, e.g. "gopls"
+	InstallCmd string            // Full install command, e.g. "go install golang.org/x/tools/gopls@latest"
+	Plugins    map[string]string // Keyed by coding tool identifier (e.g., CodingToolClaude); values are tool-specific plugin identifiers. May be empty (e.g., Ruby has no official plugins).
 }
 
 // Stack holds all metadata for a supported technology stack.
@@ -85,7 +89,7 @@ var registry = map[StackID]Stack{
 		LSP: LSP{
 			Package:    "gopls",
 			InstallCmd: "go install golang.org/x/tools/gopls@latest",
-			Plugin:     "gopls-lsp@claude-plugins-official",
+			Plugins:    map[string]string{CodingToolClaude: "gopls-lsp@claude-plugins-official"},
 		},
 		DefaultDomains: []string{"proxy.golang.org", "sum.golang.org", "storage.googleapis.com"},
 		SystemDeps:     []string{},
@@ -102,7 +106,7 @@ var registry = map[StackID]Stack{
 		LSP: LSP{
 			Package:    "typescript-language-server",
 			InstallCmd: "npm install -g typescript-language-server typescript",
-			Plugin:     "typescript-lsp@claude-plugins-official",
+			Plugins:    map[string]string{CodingToolClaude: "typescript-lsp@claude-plugins-official"},
 		},
 		DefaultDomains: []string{"registry.npmjs.org"},
 		DynamicDomains: []string{"registry.yarnpkg.com"},
@@ -120,7 +124,7 @@ var registry = map[StackID]Stack{
 		LSP: LSP{
 			Package:    "pyright",
 			InstallCmd: "pip install pyright",
-			Plugin:     "pyright-lsp@claude-plugins-official",
+			Plugins:    map[string]string{CodingToolClaude: "pyright-lsp@claude-plugins-official"},
 		},
 		DefaultDomains: []string{"pypi.org", "files.pythonhosted.org"},
 		SystemDeps:     []string{"libssl-dev", "zlib1g-dev", "libbz2-dev", "libreadline-dev", "libsqlite3-dev", "libffi-dev"},
@@ -137,7 +141,7 @@ var registry = map[StackID]Stack{
 		LSP: LSP{
 			Package:    "rust-analyzer",
 			InstallCmd: "rustup component add rust-analyzer",
-			Plugin:     "rust-analyzer-lsp@claude-plugins-official",
+			Plugins:    map[string]string{CodingToolClaude: "rust-analyzer-lsp@claude-plugins-official"},
 		},
 		DefaultDomains: []string{"crates.io", "static.crates.io", "index.crates.io"},
 		DynamicDomains: []string{"static.rust-lang.org"},
@@ -155,7 +159,7 @@ var registry = map[StackID]Stack{
 		LSP: LSP{
 			Package:    "solargraph",
 			InstallCmd: "gem install solargraph",
-			Plugin:     "",
+			Plugins:    map[string]string{},
 		},
 		DefaultDomains: []string{"rubygems.org", "index.rubygems.org"},
 		SystemDeps:     []string{"libssl-dev", "libreadline-dev", "libyaml-dev", "zlib1g-dev"},
@@ -212,5 +216,6 @@ func copyStack(s Stack) Stack {
 	cp.SystemDeps = slices.Clone(s.SystemDeps)
 	cp.DevTools = slices.Clone(s.DevTools)
 	cp.MarkerFiles = slices.Clone(s.MarkerFiles)
+	cp.LSP.Plugins = maps.Clone(s.LSP.Plugins)
 	return cp
 }

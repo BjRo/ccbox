@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"text/template"
+
+	"github.com/bjro/agentbox/internal/stack"
 )
 
 // claudeFuncMap provides template helper functions for Claude settings rendering.
@@ -20,6 +22,11 @@ var claudeFuncMap = template.FuncMap{
 		}
 		// json.Marshal wraps the string in quotes; strip them.
 		return string(b[1 : len(b)-1]), nil
+	},
+	// claudePlugin extracts the Claude Code plugin identifier from an LSP Plugins map.
+	// Returns the empty string if the map has no "claude" key.
+	"claudePlugin": func(plugins map[string]string) string {
+		return plugins[stack.CodingToolClaude]
 	},
 }
 

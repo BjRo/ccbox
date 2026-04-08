@@ -107,19 +107,20 @@ func TestRenderClaude_UserSettings_PluginsMatchRegistry(t *testing.T) {
 
 	// Structural assertion: every LSP plugin from the config must appear in enabledPlugins.
 	for _, lsp := range cfg.LSPs {
-		if lsp.Plugin == "" {
+		p := lsp.Plugins[stack.CodingToolClaude]
+		if p == "" {
 			continue
 		}
-		if !settings.EnabledPlugins[lsp.Plugin] {
-			t.Errorf("enabledPlugins missing plugin %q from LSP %q", lsp.Plugin, lsp.Package)
+		if !settings.EnabledPlugins[p] {
+			t.Errorf("enabledPlugins missing plugin %q from LSP %q", p, lsp.Package)
 		}
 	}
 
 	// Reverse check: every enabledPlugin must come from the config.
 	lspPlugins := make(map[string]bool)
 	for _, lsp := range cfg.LSPs {
-		if lsp.Plugin != "" {
-			lspPlugins[lsp.Plugin] = true
+		if p := lsp.Plugins[stack.CodingToolClaude]; p != "" {
+			lspPlugins[p] = true
 		}
 	}
 	for p := range settings.EnabledPlugins {
@@ -196,7 +197,7 @@ func TestRenderClaude_UserSettings_NoDuplicatePlugins(t *testing.T) {
 	// Just verify the count matches expectations.
 	expectedCount := 0
 	for _, lsp := range cfg.LSPs {
-		if lsp.Plugin != "" {
+		if lsp.Plugins[stack.CodingToolClaude] != "" {
 			expectedCount++
 		}
 	}
@@ -330,8 +331,8 @@ func TestRenderClaude_DirectConfig_EmptyLSPs(t *testing.T) {
 func TestRenderClaude_DirectConfig_CustomPlugins(t *testing.T) {
 	cfg := GenerationConfig{
 		LSPs: []stack.LSP{
-			{Package: "custom-lsp", Plugin: "custom-plugin"},
-			{Package: "another-lsp", Plugin: "another-plugin"},
+			{Package: "custom-lsp", Plugins: map[string]string{stack.CodingToolClaude: "custom-plugin"}},
+			{Package: "another-lsp", Plugins: map[string]string{stack.CodingToolClaude: "another-plugin"}},
 		},
 	}
 
@@ -362,7 +363,7 @@ func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
 	// would produce invalid JSON if interpolated raw.
 	cfg := GenerationConfig{
 		LSPs: []stack.LSP{
-			{Package: "tricky-lsp", Plugin: `quote"and\backslash`},
+			{Package: "tricky-lsp", Plugins: map[string]string{stack.CodingToolClaude: `quote"and\backslash`}},
 		},
 	}
 
@@ -386,3 +387,81 @@ func TestRenderClaude_DirectConfig_PluginWithSpecialChars(t *testing.T) {
 	}
 }
 
+func TestRenderClaude_DirectConfig_NonClaudePluginsIgnored(t *testing.T) {
+	cfg := GenerationConfig{
+		LSPs: []stack.LSP{
+			{Package: "some-lsp", Plugins: map[string]string{"codex": "codex-plugin"}},
+		},
+	}
+
+	files, err := RenderClaude(cfg)
+	if err != nil {
+		t.Fatalf("RenderClaude: %v", err)
+	}
+
+	var settings claudeSettings
+	if err := json.Unmarshal(files.UserSettings, &settings); err != nil {
+		t.Fatalf("JSON parse: %v\nContent:\n%s", err, files.UserSettings)
+	}
+
+	if len(settings.EnabledPlugins) != 0 {
+		t.Errorf("enabledPlugins has %d entries, want 0 (non-claude plugins should be ignored)", len(settings.EnabledPlugins))
+	}
+}
+
+func TestRenderClaude_DirectConfig_MixedPlugins(t *testing.T) {
+	cfg := GenerationConfig{
+		LSPs: []stack.LSP{
+			{Package: "mixed-lsp", Plugins: map[string]string{
+				stack.CodingToolClaude: "claude-plugin",
+				"codex":               "codex-plugin",
+			}},
+		},
+	}
+
+	files, err := RenderClaude(cfg)
+	if err != nil {
+		t.Fatalf("RenderClaude: %v", err)
+	}
+
+	var settings claudeSettings
+	if err := json.Unmarshal(files.UserSettings, &settings); err != nil {
+		t.Fatalf("JSON parse: %v\nContent:\n%s", err, files.UserSettings)
+	}
+
+	if len(settings.EnabledPlugins) != 1 {
+		t.Fatalf("enabledPlugins has %d entries, want 1", len(settings.EnabledPlugins))
+	}
+	if !settings.EnabledPlugins["claude-plugin"] {
+		t.Error("enabledPlugins missing 'claude-plugin'")
+	}
+}
+
+func TestRenderClaude_DirectConfig_PluginlessFirstLSP(t *testing.T) {
+	// Regression test for comma logic: first LSP (sorted by Package) has no
+	// claude plugin, second does. The old index-based comma logic would emit
+	// a leading comma producing invalid JSON like { , "zzz-plugin": true }.
+	cfg := GenerationConfig{
+		LSPs: []stack.LSP{
+			{Package: "aaa-lsp", Plugins: map[string]string{}},
+			{Package: "zzz-lsp", Plugins: map[string]string{stack.CodingToolClaude: "zzz-plugin"}},
+		},
+	}
+
+	files, err := RenderClaude(cfg)
+	if err != nil {
+		t.Fatalf("RenderClaude: %v", err)
+	}
+
+	var settings claudeSettings
+	if err := json.Unmarshal(files.UserSettings, &settings); err != nil {
+		t.Fatalf("UserSettings is not valid JSON: %v\nContent:\n%s", err, files.UserSettings)
+	}
+
+	if len(settings.EnabledPlugins) != 1 {
+		t.Fatalf("enabledPlugins has %d entries, want 1", len(settings.EnabledPlugins))
+	}
+	if !settings.EnabledPlugins["zzz-plugin"] {
+		t.Error("enabledPlugins missing 'zzz-plugin'")
+	}
+}
