@@ -187,6 +187,10 @@ func TestDockerfile_EmptyConfig(t *testing.T) {
 	if strings.Contains(out, "gopls") || strings.Contains(out, "typescript-language-server") {
 		t.Error("empty config should not have LSP install commands")
 	}
+	// No dev tool installs should be present.
+	if strings.Contains(out, "golangci-lint") {
+		t.Error("empty config should not have dev tool install commands")
+	}
 }
 
 func TestDockerfile_FirewallScriptsCopied(t *testing.T) {
@@ -431,6 +435,7 @@ func TestDockerfile_DirectConfig_MinimalValid(t *testing.T) {
 		Runtimes:   []stack.Runtime{},
 		LSPs:       []stack.LSP{},
 		SystemDeps: []string{},
+		DevTools:   []string{},
 		Domains:    firewall.MergedDomains{Static: []firewall.Domain{}, Dynamic: []firewall.Domain{}},
 	}
 
@@ -461,6 +466,7 @@ func TestDockerfile_DirectConfig_CustomRuntimesAndLSPs(t *testing.T) {
 			{Package: "zls", InstallCmd: "zig-install zls", Plugin: "zls"},
 		},
 		SystemDeps: []string{"libfoo-dev"},
+		DevTools:   []string{},
 		Domains:    firewall.MergedDomains{Static: []firewall.Domain{}, Dynamic: []firewall.Domain{}},
 	}
 
@@ -509,6 +515,13 @@ func TestDockerfile_AllStacks(t *testing.T) {
 	for _, dep := range cfg.SystemDeps {
 		if !strings.Contains(out, dep) {
 			t.Errorf("output missing system dep %q", dep)
+		}
+	}
+
+	// Structural assertion: every dev tool install command must appear.
+	for _, dt := range cfg.DevTools {
+		if !strings.Contains(out, dt) {
+			t.Errorf("output missing dev tool install command %q", dt)
 		}
 	}
 
@@ -568,12 +581,110 @@ func TestDockerfile_Deterministic(t *testing.T) {
 	}
 }
 
+func TestDockerfile_DevTools_GoStack(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	if !strings.Contains(out, "go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest") {
+		t.Error("output missing golangci-lint install command for Go stack")
+	}
+}
+
+func TestDockerfile_DevTools_AbsentForNonGoStack(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Node}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	if strings.Contains(out, "golangci-lint") {
+		t.Error("Node-only output should not contain golangci-lint")
+	}
+	if strings.Contains(out, "Dev tools") {
+		t.Error("Node-only output should not contain Dev tools section")
+	}
+}
+
+func TestDockerfile_DevTools_OrderingInDockerfile(t *testing.T) {
+	cfg, err := Merge([]stack.StackID{stack.Go}, nil)
+	if err != nil {
+		t.Fatalf("Merge: %v", err)
+	}
+
+	out, err := Dockerfile(cfg)
+	if err != nil {
+		t.Fatalf("Dockerfile: %v", err)
+	}
+
+	miseIdx := strings.Index(out, "RUN mise install")
+	golangciIdx := strings.Index(out, "golangci-lint")
+	claudeIdx := strings.Index(out, "npm install -g @anthropic-ai/claude-code")
+
+	if miseIdx == -1 {
+		t.Fatal("output missing mise install")
+	}
+	if golangciIdx == -1 {
+		t.Fatal("output missing golangci-lint")
+	}
+	if claudeIdx == -1 {
+		t.Fatal("output missing Claude Code install")
+	}
+
+	if golangciIdx < miseIdx {
+		t.Error("golangci-lint should appear after mise install")
+	}
+	if golangciIdx > claudeIdx {
+		t.Error("golangci-lint should appear before Claude Code install")
+	}
+}
+
+func TestDockerfile_DevTools_NoTripleNewlines(t *testing.T) {
+	// When DevTools is empty, the template should not produce triple newlines.
+	for _, tc := range []struct {
+		name   string
+		stacks []stack.StackID
+	}{
+		{"empty stacks", []stack.StackID{}},
+		{"node only", []stack.StackID{stack.Node}},
+		{"go only", []stack.StackID{stack.Go}},
+		{"all stacks", []stack.StackID{stack.Go, stack.Node, stack.Python, stack.Rust, stack.Ruby}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg, err := Merge(tc.stacks, nil)
+			if err != nil {
+				t.Fatalf("Merge: %v", err)
+			}
+
+			out, err := Dockerfile(cfg)
+			if err != nil {
+				t.Fatalf("Dockerfile: %v", err)
+			}
+
+			if strings.Contains(out, "\n\n\n") {
+				t.Error("Dockerfile contains triple newlines")
+			}
+		})
+	}
+}
+
 func TestDockerfile_DirectConfig_SystemDepsOnly(t *testing.T) {
 	cfg := GenerationConfig{
 		Stacks:     []stack.StackID{},
 		Runtimes:   []stack.Runtime{},
 		LSPs:       []stack.LSP{},
 		SystemDeps: []string{"libbar-dev", "libquux-dev"},
+		DevTools:   []string{},
 		Domains:    firewall.MergedDomains{Static: []firewall.Domain{}, Dynamic: []firewall.Domain{}},
 	}
 

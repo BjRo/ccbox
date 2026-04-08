@@ -44,13 +44,19 @@ RUN chown -R node:node /home/node/.config
 USER node
 ENV PATH="/home/node/.local/share/mise/shims:/home/node/.local/bin:${PATH}"
 RUN mise install
+{{- if .LSPs }}
 
-{{ if .LSPs }}
 # --- LSP servers ---
 {{ range .LSPs -}}
 RUN {{ .InstallCmd }}
 {{ end -}}
 {{ end -}}
+{{- if .DevTools }}
+# --- Dev tools ---
+{{ range .DevTools -}}
+RUN {{ . }}
+{{ end -}}
+{{ end }}
 # --- Claude Code ---
 RUN npm install -g @anthropic-ai/claude-code
 
