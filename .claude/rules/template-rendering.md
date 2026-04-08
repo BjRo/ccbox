@@ -38,7 +38,11 @@ Never use `{{- }}` trim markers that would collapse continuation backslashes.
 Templates producing JSON files need two safeguards:
 
 1. **`jsonString` FuncMap helper**: Use `json.Marshal` on the string, then strip the surrounding quotes. The result is safe for interpolation inside JSON double quotes.
-2. **Comma-separated arrays via indexed range**: JSON forbids trailing commas. Use `{{range $i, $v := .Items}}{{if $i}}, {{end}}"{{$v | jsonString}}"{{end}}`.
+2. **Comma-separated values via separator variable**: JSON forbids trailing commas. Use a separator variable that starts empty and becomes `", "` after the first emission: `{{$sep := ""}}{{range $v := .Items}}{{$sep}}"{{$v | jsonString}}": true{{$sep = ", "}}{{end}}`. Do not use the index-based `{{if $i}}, {{end}}` approach -- it uses the range index, not the count of emitted items, so it produces a leading comma when early items are skipped by a conditional (e.g., filtering LSPs with no plugin for the current tool).
+
+## Tool-Agnostic Map Fields with FuncMap Extraction
+
+When a data struct field must support multiple coding tools (e.g., Claude, Codex), use `map[string]string` keyed by tool identifier instead of a single string. Define constants for known keys (`stack.CodingToolClaude`). In templates, add a FuncMap helper (e.g., `claudePlugin`) that extracts the relevant key from the map, returning `""` if absent. This keeps templates simple (`{{.Plugins | claudePlugin}}`) while allowing future tools to add their own keys without changing the data structure.
 
 ## Markdown Template Whitespace
 
