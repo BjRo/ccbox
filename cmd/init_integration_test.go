@@ -191,6 +191,9 @@ func TestIntegration_SingleGoStack(t *testing.T) {
 	if !strings.Contains(codexConfig, "sandbox_mode") {
 		t.Error("codex-config.toml should contain sandbox_mode")
 	}
+	if !strings.Contains(codexConfig, "apps = false") {
+		t.Error("codex-config.toml should contain apps = false to disable codex_apps MCP timeout")
+	}
 
 	// sync-codex-settings.sh: references codex-config.toml and target dir.
 	syncCodex := readFile(t, filepath.Join(devcontainerDir, "sync-codex-settings.sh"))
