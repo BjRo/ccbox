@@ -250,9 +250,11 @@ The custom stage is preserved when you run `agentbox update`. The agentbox stage
 Use the `--extra-domains` flag on `init` or `update`:
 
 ```bash
-agentbox init --extra-domains api.example.com,cdn.example.com
+agentbox init -y --extra-domains api.example.com,cdn.example.com
 agentbox update --extra-domains api.example.com
 ```
+
+The `-y` flag is required on `init` because in interactive mode the wizard prompts for extra domains and overrides the `--extra-domains` flag. In non-interactive mode (`-y`), the flag is applied directly.
 
 Extra domains are saved in `.agentbox.yml` and reused on subsequent `agentbox update` runs (unless overridden with `--extra-domains`). All user-specified domains are classified as dynamic and managed by dnsmasq with automatic re-resolution.
 
