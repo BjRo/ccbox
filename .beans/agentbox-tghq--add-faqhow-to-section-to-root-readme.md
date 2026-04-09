@@ -40,7 +40,7 @@ Keep it concise and practical — each entry should be a question followed by a 
 |-------|--------|-----------|-----------|
 | refine | done | 1 | 2026-04-09T10:12:00Z |
 | challenge | done | 1 | 2026-04-09T10:16:00Z |
-| implement | pending | | |
+| implement | in-progress | 1 | 2026-04-09T10:17:00Z |
 | pr | pending | | |
 | review | pending | | |
 | codify | pending | | |
