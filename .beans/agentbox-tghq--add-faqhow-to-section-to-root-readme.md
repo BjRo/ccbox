@@ -28,8 +28,8 @@ Keep it concise and practical — each entry should be a question followed by a 
 - [x] `go test ./...` passes with no failures
 - [x] Branch pushed to remote
 - [x] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
 - [ ] All other checklist items above are completed
 - [ ] User notified for human review
@@ -42,8 +42,8 @@ Keep it concise and practical — each entry should be a question followed by a 
 | challenge | done | 1 | 2026-04-09T10:16:00Z |
 | implement | done | 1 | 2026-04-09T10:20:00Z |
 | pr | done | 1 | 2026-04-09T10:21:00Z |
-| review | in-progress | 3 | 2026-04-09T10:29:00Z |
-| codify | pending | | |
+| review | done | 3 | 2026-04-09T10:31:00Z |
+| codify | in-progress | 1 | 2026-04-09T10:31:00Z |
 
 ## Implementation Plan
 
