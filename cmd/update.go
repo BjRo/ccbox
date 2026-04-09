@@ -166,7 +166,7 @@ To change runtime versions, edit .devcontainer/mise-config.toml directly.`,
 		},
 	}
 
-	cmd.Flags().StringSliceVar(&stacks, "stack", nil, "Override stacks (persists to .agentbox.yml). Auto-detects if omitted.")
+	cmd.Flags().StringSliceVar(&stacks, "stack", nil, "Override stacks (persists to .agentbox.yml). Reuses stacks from .agentbox.yml if omitted.")
 	cmd.Flags().StringSliceVar(&domains, "extra-domains", nil, "Override extra domains (persists to .agentbox.yml)")
 	cmd.Flags().StringVar(&dir, "dir", "", "Target directory (default: current directory)")
 	cmd.Flags().BoolVar(&force, "force", false, "Force full regeneration even if custom stage is missing")
