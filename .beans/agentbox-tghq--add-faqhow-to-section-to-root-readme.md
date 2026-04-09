@@ -33,3 +33,14 @@ Keep it concise and practical — each entry should be a question followed by a 
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
 - [ ] All other checklist items above are completed
 - [ ] User notified for human review
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | in-progress | 1 | 2026-04-09T10:12:00Z |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
