@@ -1,11 +1,11 @@
 ---
 # agentbox-tghq
 title: Add FAQ/How-to section to root README
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-04-09T10:11:08Z
-updated_at: 2026-04-09T10:11:13Z
+updated_at: 2026-04-09T10:36:24Z
 ---
 
 Add a practical FAQ/How-to section to README.md covering common customization tasks:
