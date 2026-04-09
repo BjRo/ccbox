@@ -119,7 +119,7 @@ The changes are organized into seven localized edits within the single file, eac
 
 ## Definition of Done
 
-- [x] Tests written (TDD: write tests before implementation) — N/A, docs-only change
+- [x] Tests written (TDD: write tests before implementation) -- N/A: documentation-only change, no testable behavior
 - [x] No new TODO/FIXME/HACK/XXX comments introduced
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
@@ -129,7 +129,7 @@ The changes are organized into seven localized edits within the single file, eac
 - [x] Review feedback worked in via `/rework` and pushed to remote (if applicable) — N/A, clean review
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) — N/A, no architectural changes
 - [x] All other checklist items above are completed
-- [ ] User notified for human review
+- [x] User notified for human review
 
 ## Pipeline State
 
