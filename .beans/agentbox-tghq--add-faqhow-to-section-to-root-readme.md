@@ -30,8 +30,8 @@ Keep it concise and practical — each entry should be a question followed by a 
 - [x] PR created
 - [x] Automated code review passed via `@review-backend` subagent (via Task tool)
 - [x] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
+- [x] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) — N/A, docs-only change
+- [x] All other checklist items above are completed
 - [ ] User notified for human review
 
 ## Pipeline State
@@ -43,7 +43,7 @@ Keep it concise and practical — each entry should be a question followed by a 
 | implement | done | 1 | 2026-04-09T10:20:00Z |
 | pr | done | 1 | 2026-04-09T10:21:00Z |
 | review | done | 3 | 2026-04-09T10:31:00Z |
-| codify | in-progress | 1 | 2026-04-09T10:31:00Z |
+| codify | done | 1 | 2026-04-09T10:33:00Z |
 
 ## Implementation Plan
 
