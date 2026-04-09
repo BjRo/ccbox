@@ -2,11 +2,9 @@
 agentbox
 dist/
 
-# Claude Code ephemeral state
-.claude/logs/
-.claude/worktrees/
-.claude/state/
-.claude/projects/
+# Claude Code setup (private)
+.claude/
+CLAUDE.md
 
 # Codex CLI workspace marker
 .codex
