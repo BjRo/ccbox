@@ -119,16 +119,16 @@ The changes are organized into seven localized edits within the single file, eac
 
 ## Definition of Done
 
-- [ ] Tests written (TDD: write tests before implementation)
-- [ ] No new TODO/FIXME/HACK/XXX comments introduced
-- [ ] `golangci-lint run ./...` passes with no errors
-- [ ] `go test ./...` passes with no failures
-- [ ] Branch pushed to remote
-- [ ] PR created
-- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
-- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
-- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
-- [ ] All other checklist items above are completed
+- [x] Tests written (TDD: write tests before implementation) — N/A, docs-only change
+- [x] No new TODO/FIXME/HACK/XXX comments introduced
+- [x] `golangci-lint run ./...` passes with no errors
+- [x] `go test ./...` passes with no failures
+- [x] Branch pushed to remote
+- [x] PR created — https://github.com/BjRo/agentbox/pull/38
+- [x] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [x] Review feedback worked in via `/rework` and pushed to remote (if applicable) — N/A, clean review
+- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes) — N/A, no architectural changes
+- [x] All other checklist items above are completed
 - [ ] User notified for human review
 
 ## Pipeline State
@@ -137,7 +137,7 @@ The changes are organized into seven localized edits within the single file, eac
 |-------|--------|-----------|-----------|
 | refine | done | 1 | 2026-04-09 |
 | challenge | done | 1 | 2026-04-09 |
-| implement | in_progress | 1 | 2026-04-09 |
-| pr | pending | | |
-| review | pending | | |
-| codify | pending | | |
+| implement | done | 1 | 2026-04-09 |
+| pr | done | 1 | 2026-04-09 |
+| review | done | 1 | 2026-04-09 |
+| codify | done | 1 | 2026-04-09 |
