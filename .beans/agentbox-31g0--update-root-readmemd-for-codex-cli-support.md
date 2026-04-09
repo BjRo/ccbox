@@ -31,3 +31,14 @@ The root README.md is outdated after the Codex CLI epic. Needs updates:
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
 - [ ] All other checklist items above are completed
 - [ ] User notified for human review
+
+## Pipeline State
+
+| Phase | Status | Iteration | Timestamp |
+|-------|--------|-----------|-----------|
+| refine | in_progress | 1 | 2026-04-09 |
+| challenge | pending | | |
+| implement | pending | | |
+| pr | pending | | |
+| review | pending | | |
+| codify | pending | | |
