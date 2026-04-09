@@ -3,8 +3,9 @@
 title: Update root README.md for Codex CLI support
 status: todo
 type: task
+priority: normal
 created_at: 2026-04-09T09:03:43Z
-updated_at: 2026-04-09T09:03:43Z
+updated_at: 2026-04-09T09:03:50Z
 ---
 
 The root README.md is outdated after the Codex CLI epic. Needs updates:
@@ -16,3 +17,17 @@ The root README.md is outdated after the Codex CLI epic. Needs updates:
 5. devcontainer.json section — add containerEnv (OPENAI_API_KEY), Codex volume mount, Codex extension
 6. Generated files table — add codex-config.toml, sync-codex-settings.sh, update config.toml to mise-config.toml
 7. Go version — fix 1.25+ to 1.24+
+
+## Definition of Done
+
+- [ ] Tests written (TDD: write tests before implementation)
+- [ ] No new TODO/FIXME/HACK/XXX comments introduced
+- [ ] `golangci-lint run ./...` passes with no errors
+- [ ] `go test ./...` passes with no failures
+- [ ] Branch pushed to remote
+- [ ] PR created
+- [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
+- [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
+- [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
+- [ ] All other checklist items above are completed
+- [ ] User notified for human review
