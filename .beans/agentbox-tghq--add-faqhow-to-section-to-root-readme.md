@@ -42,7 +42,7 @@ Keep it concise and practical — each entry should be a question followed by a 
 | challenge | done | 1 | 2026-04-09T10:16:00Z |
 | implement | done | 1 | 2026-04-09T10:20:00Z |
 | pr | done | 1 | 2026-04-09T10:21:00Z |
-| review | rework | 2 | 2026-04-09T10:27:00Z |
+| review | in-progress | 3 | 2026-04-09T10:29:00Z |
 | codify | pending | | |
 
 ## Implementation Plan
