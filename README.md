@@ -1,12 +1,12 @@
 # agentbox
 
-Generate devcontainer setups for running Claude Code in sandboxed environments with full permissions and network isolation.
+Generate devcontainer setups for running Claude Code and Codex CLI in sandboxed environments with full permissions and network isolation.
 
 ## Why
 
-Claude Code works best with full permissions -- file read/write, command execution, and network access. But granting those on your host machine is risky.
+Claude Code and Codex CLI work best with full permissions -- file read/write, command execution, and network access. But granting those on your host machine is risky.
 
-agentbox generates a [devcontainer](https://containers.dev/) that gives Claude Code full permissions inside a network-isolated Docker container. An iptables firewall with domain-level allowlisting ensures Claude Code can only reach explicitly approved domains, making "bypass permissions" mode safe to use.
+agentbox generates a [devcontainer](https://containers.dev/) that gives Claude Code and Codex CLI full permissions inside a network-isolated Docker container. An iptables firewall with domain-level allowlisting ensures the coding tools can only reach explicitly approved domains, making "bypass permissions" mode safe to use.
 
 ## Features
 
@@ -15,7 +15,7 @@ agentbox generates a [devcontainer](https://containers.dev/) that gives Claude C
 - **Network isolation** -- iptables default-DROP policy with ipset allowlist and dnsmasq for dynamic domains
 - **Interactive wizard** -- TUI for stack selection and domain configuration (powered by [charmbracelet/huh](https://github.com/charmbracelet/huh))
 - **Non-interactive mode** -- `--non-interactive` / `-y` flag for CI pipelines and scripting
-- **Claude Code settings sync** -- Copies host settings into the container with jq deep-merge on subsequent runs
+- **Settings sync** -- Copies host Claude Code settings with jq deep-merge; copies Codex CLI config on first run
 - **LSP plugin configuration** -- Auto-configures Claude Code LSP plugins per detected stack
 - **Runtime management via mise** -- Installs language runtimes through [mise](https://mise.jdx.dev/)
 
@@ -52,7 +52,7 @@ Example output:
 
 ```
 Stacks: [go]
-Generated .devcontainer/ with 8 files and .agentbox.yml
+Generated .devcontainer/ with 11 files and .agentbox.yml
 ```
 
 Then open the project in VS Code and select **Dev Containers: Reopen in Container**, or use [DevPod](https://devpod.sh/) to launch the container.
@@ -102,7 +102,8 @@ The generated `Dockerfile` uses `debian:bookworm-slim` as the base image and ins
 
 - **mise** for language runtime management (Go, Node, Python, Rust, Ruby)
 - **LSP servers** per detected stack (gopls, pyright, typescript-language-server, etc.)
-- **Claude Code** via `npm install -g @anthropic-ai/claude-code`
+- **Claude Code and Codex CLI** via `npm install -g @anthropic-ai/claude-code @openai/codex`
+- **Sandbox runtime**: bubblewrap (required by Codex CLI sandbox mode)
 - **Firewall tooling**: iptables, ipset, dnsmasq
 - **Developer experience**: zsh, git-delta, GitHub CLI, fzf
 
@@ -119,6 +120,8 @@ The firewall uses a three-layer architecture to enforce domain-level network iso
                               |
                   sync-claude-settings.sh
                               |
+                  sync-codex-settings.sh
+                              |
                       init-firewall.sh
                               |
           +-----------------------+-----------------------+
@@ -130,21 +133,26 @@ into ipset hash:ip        for dynamic domains      OUTPUT -> DROP
           |                       |                       |
           +-----------------------+-----------------------+
                                   |
-                          Claude Code ready
+                   Claude Code and Codex CLI ready
                     (network limited to allowlist)
 ```
 
-**Static domains** (e.g., `api.github.com`, `registry.npmjs.org`) have stable IPs. They are resolved once at startup and cached in an ipset.
+**Static domains** (e.g., `sentry.io`, `registry.npmjs.org`) have stable IPs. They are resolved once at startup and cached in an ipset.
 
 **Dynamic domains** (e.g., `*.anthropic.com`, `proxy.golang.org`) use CDNs or rotating IPs. They are managed by dnsmasq, which re-resolves them on TTL expiry and updates the ipset automatically.
 
-The always-on allowlist includes domains required for Claude Code to function regardless of stack:
+The always-on allowlist includes domains required for Claude Code and Codex CLI to function regardless of stack:
 
 | Domain | Category | Purpose |
 |--------|----------|---------|
-| `github.com` | static | GitHub web and git-over-HTTPS |
-| `api.github.com` | static | GitHub REST API |
+| `github.com` | dynamic | GitHub web and git-over-HTTPS |
+| `api.github.com` | dynamic | GitHub REST API |
 | `*.anthropic.com` | dynamic | Anthropic API for Claude Code |
+| `api.openai.com` | dynamic | OpenAI API for Codex CLI |
+| `auth.openai.com` | dynamic | OpenAI auth for Codex ChatGPT login flow |
+| `auth0.openai.com` | dynamic | OpenAI auth0 for Codex ChatGPT token refresh |
+| `chatgpt.com` | dynamic | ChatGPT for Codex ChatGPT login auth flow |
+| `accounts.openai.com` | dynamic | OpenAI accounts for Codex ChatGPT auth |
 | `sentry.io` | static | Error reporting for Claude Code |
 | `statsig.com` | static | Feature flags and experimentation for Claude Code |
 
@@ -154,14 +162,18 @@ Each detected stack adds its own domains (package registries, module proxies, et
 
 `sync-claude-settings.sh` copies the generated `claude-user-settings.json` into `~/.claude/settings.json` inside the container. On first run it creates the file; on subsequent runs it uses jq to deep-merge new settings with existing ones, preserving any manual changes.
 
+`sync-codex-settings.sh` copies the generated `codex-config.toml` into `~/.codex/config.toml` inside the container. On first run it creates the file; on subsequent runs it skips the copy to preserve any manual changes (copy-on-first-run strategy, unlike the Claude Code deep-merge approach).
+
 ### devcontainer.json
 
 The generated `devcontainer.json` configures:
 
-- **Mounts** for bash history, Claude config, GitHub CLI config, and gitconfig
-- **`postStartCommand`** that chains settings sync and firewall initialization
+- **containerEnv** forwards `OPENAI_API_KEY` from the host for Codex CLI authentication
+- **Mounts** for bash history, Claude config, Codex config, GitHub CLI config, and gitconfig
+- **`postStartCommand`** that chains settings sync (Claude Code and Codex CLI) and firewall initialization
 - **Capabilities**: `NET_ADMIN` and `NET_RAW` (required for iptables/ipset)
 - **Security**: `seccomp=unconfined` (required for iptables inside the container)
+- **Extensions**: Claude Code (`anthropic.claude-code`) and Codex (`openai.chatgpt`) VS Code extensions are auto-configured
 
 ## Generated Files
 
@@ -171,13 +183,16 @@ Running `agentbox init` creates a `.devcontainer/` directory and a `.agentbox.ym
 
 | File | Description |
 |------|-------------|
-| `Dockerfile` | Container image with runtimes, LSPs, Claude Code, and firewall tooling |
+| `Dockerfile` | Container image with runtimes, LSPs, Claude Code, Codex CLI, and firewall tooling |
 | `devcontainer.json` | VS Code / DevPod configuration with mounts, capabilities, and startup commands |
 | `init-firewall.sh` | Network isolation setup script (runs as root via `sudo`) |
 | `warmup-dns.sh` | Pre-resolves dynamic domains through dnsmasq after firewall init |
 | `dynamic-domains.conf` | Editable list of dynamic domains for dnsmasq |
 | `claude-user-settings.json` | Claude Code settings with bypass permissions mode and LSP plugins |
 | `sync-claude-settings.sh` | Copies/merges Claude Code settings into the container |
+| `codex-config.toml` | Codex CLI settings with full-auto approval policy and sandbox mode |
+| `sync-codex-settings.sh` | Copies Codex CLI settings into the container (first-run only) |
+| `mise-config.toml` | Runtime version configuration for mise (Go, Node, etc.) |
 | `README.md` | Per-project documentation for the generated devcontainer |
 
 ### `.agentbox.yml`
