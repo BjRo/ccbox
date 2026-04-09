@@ -26,8 +26,8 @@ Keep it concise and practical — each entry should be a question followed by a 
 - [x] No new TODO/FIXME/HACK/XXX comments introduced
 - [x] `golangci-lint run ./...` passes with no errors
 - [x] `go test ./...` passes with no failures
-- [ ] Branch pushed to remote
-- [ ] PR created
+- [x] Branch pushed to remote
+- [x] PR created
 - [ ] Automated code review passed via `@review-backend` subagent (via Task tool)
 - [ ] Review feedback worked in via `/rework` and pushed to remote (if applicable)
 - [ ] ADR written via `/decision` skill (if new dependencies, patterns, or architectural changes)
@@ -41,8 +41,8 @@ Keep it concise and practical — each entry should be a question followed by a 
 | refine | done | 1 | 2026-04-09T10:12:00Z |
 | challenge | done | 1 | 2026-04-09T10:16:00Z |
 | implement | done | 1 | 2026-04-09T10:20:00Z |
-| pr | in-progress | 1 | 2026-04-09T10:20:00Z |
-| review | pending | | |
+| pr | done | 1 | 2026-04-09T10:21:00Z |
+| review | in-progress | 1 | 2026-04-09T10:21:00Z |
 | codify | pending | | |
 
 ## Implementation Plan
